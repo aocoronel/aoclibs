@@ -1,0 +1,5 @@
+list:
+  just --list
+
+printh-bmark:
+  gcc -o printh-bmark printh-bmark.c ../info/printh.c
