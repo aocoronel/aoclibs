@@ -1,5 +1,5 @@
+#include "printfc.h"
 #include <stdarg.h>
-#include "colors.h"
 #include <stdio.h>
 
 #define PFATAL(...) printfc(FATAL, __VA_ARGS__)
