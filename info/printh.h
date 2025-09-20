@@ -7,8 +7,7 @@
 #define PH_RESET "\x1b[0m"
 #define PH_BOLD_UNDERLINE "\x1b[1;4m"
 
-#define PH_CMD_ALIGN_WIDTH 36
-#define PH_FLAG_ALIGN_WIDTH 26
+#define PH_DESC_INDENT 10
 
 /*
  * Define the program command details
@@ -49,12 +48,4 @@ typedef struct {
   struct ProgramFlag *flags;
 } ProgramInfo;
 
-void print_aligned(const char *str, int width);
-void printh_reset();
-void printh_color();
-static void get_cmd_full(const struct ProgramCommands *cmd, char *buffer,
-                         size_t size);
-int compare_commands(const void *a, const void *b);
-static const char *get_flag_sort_key(const struct ProgramFlag *flag);
-int compare_flags(const void *a, const void *b);
 void printh(ProgramInfo program_info);
