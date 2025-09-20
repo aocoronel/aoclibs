@@ -38,7 +38,7 @@
  *
  * command, argument, description
  */
-struct ProgramCommands {
+struct PProgramCommands {
   const char *cmd;
   const char *argument;
   const char *cmd_desc;
@@ -49,7 +49,7 @@ struct ProgramCommands {
  *
  * short flag, long flag, argument, description
  */
-struct ProgramFlag {
+struct PProgramFlag {
   const char *short_flag;
   const char *long_flag;
   const char *argument;
@@ -60,16 +60,19 @@ struct ProgramFlag {
  * Define the program info
  *
  * flag count, command count, program name, program description, program usage,
- * ProgramCommands, ProgramFlag
+ * PProgramCommands, PProgramFlag
  */
 typedef struct {
-  int flag_count;
-  int command_count;
-  const char *prog_name;
-  const char *prog_desc;
-  const char *prog_usage;
-  struct ProgramCommands *commands;
-  struct ProgramFlag *flags;
-} ProgramInfo;
+  int flagc;
+  int cmdc;
+  const char *name;
+  const char *desc;
+  const char *usage;
+  struct PProgramCommands *commands;
+  struct PProgramFlag *flags;
+} PProgramInfo;
 
-void printh(ProgramInfo program_info);
+/*
+ * Prints help message
+*/
+void printh(PProgramInfo program_info);
