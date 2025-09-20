@@ -24,13 +24,11 @@
 
 #include "printh.h"
 #include <ctype.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include <ctype.h>
 
 void print_aligned(const char *str, int width) {
         printf("%-*s", width, str);
@@ -77,7 +75,7 @@ int print_d(const char *desc) {
         return 0;
 }
 
-static void get_cmd_full(const struct ProgramCommands *cmd, char *buffer,
+static void get_cmd_full(const struct PProgramCommands *cmd, char *buffer,
                          size_t size) {
         if (cmd->argument) {
                 snprintf(buffer, size, "%s %s", cmd->cmd, cmd->argument);
@@ -87,8 +85,10 @@ static void get_cmd_full(const struct ProgramCommands *cmd, char *buffer,
 }
 
 int compare_commands(const void *a, const void *b) {
-        const struct ProgramCommands *cmdA = (const struct ProgramCommands *)a;
-        const struct ProgramCommands *cmdB = (const struct ProgramCommands *)b;
+        const struct PProgramCommands *cmdA =
+                (const struct PProgramCommands *)a;
+        const struct PProgramCommands *cmdB =
+                (const struct PProgramCommands *)b;
 
         char fullA[128], fullB[128];
         get_cmd_full(cmdA, fullA, sizeof(fullA));
@@ -97,39 +97,38 @@ int compare_commands(const void *a, const void *b) {
         return strcmp(fullA, fullB);
 }
 
-static const char *get_flag_sort_key(const struct ProgramFlag *flag) {
+static const char *get_flag_sort_key(const struct PProgramFlag *flag) {
         if (flag->short_flag) return flag->short_flag;
         if (flag->long_flag) return flag->long_flag;
         return "";
 }
 
 int compare_flags(const void *a, const void *b) {
-        const struct ProgramFlag *flagA = (const struct ProgramFlag *)a;
-        const struct ProgramFlag *flagB = (const struct ProgramFlag *)b;
+        const struct PProgramFlag *flagA = (const struct PProgramFlag *)a;
+        const struct PProgramFlag *flagB = (const struct PProgramFlag *)b;
 
         return strcmp(get_flag_sort_key(flagA), get_flag_sort_key(flagB));
 }
 
-void printh(ProgramInfo program_info) {
+void printh(PProgramInfo program_info) {
         FILE *out = stdout;
 
-        qsort(program_info.commands, program_info.command_count,
-              sizeof(struct ProgramCommands), compare_commands);
+        qsort(program_info.commands, program_info.cmdc,
+              sizeof(struct PProgramCommands), compare_commands);
 
-        qsort(program_info.flags, program_info.flag_count,
-              sizeof(struct ProgramFlag), compare_flags);
+        qsort(program_info.flags, program_info.flagc,
+              sizeof(struct PProgramFlag), compare_flags);
 
-        fprintf(out, "%s | %s\n\n", program_info.prog_name,
-                program_info.prog_desc);
+        fprintf(out, "%s | %s\n\n", program_info.name, program_info.desc);
 
         printh_p("Usage:", PH_BOLD_UNDERLINE);
-        fprintf(out, "  %s%s%s", PH_BOLD, program_info.prog_name, PH_RESET);
-        fprintf(out, " %s\n\n", program_info.prog_usage);
+        fprintf(out, "  %s%s%s", PH_BOLD, program_info.name, PH_RESET);
+        fprintf(out, " %s\n\n", program_info.usage);
 
         printh_p("Commands:", PH_BOLD_UNDERLINE);
         fprintf(out, "\n");
 
-        for (int i = 0; i < program_info.command_count; i++) {
+        for (int i = 0; i < program_info.cmdc; i++) {
                 const char *cmd = program_info.commands[i].cmd;
                 const char *arg = program_info.commands[i].argument;
                 const char *desc = program_info.commands[i].cmd_desc;
@@ -154,7 +153,7 @@ void printh(ProgramInfo program_info) {
         printh_p("Options:", PH_BOLD_UNDERLINE);
         fprintf(out, "\n");
 
-        for (int i = 0; i < program_info.flag_count; i++) {
+        for (int i = 0; i < program_info.flagc; i++) {
                 const char *short_flag = program_info.flags[i].short_flag;
                 const char *long_flag = program_info.flags[i].long_flag;
                 const char *arg = program_info.flags[i].argument;
