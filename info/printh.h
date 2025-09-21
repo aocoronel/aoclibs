@@ -22,7 +22,8 @@
  * SOFTWARE.
 */
 
-#pragma once
+#ifndef PRINTH_H
+#define PRINTH_H
 
 #define PH_BOLD "\x1b[1m"
 #define PH_UNDERLINE "\x1b[4m"
@@ -31,14 +32,14 @@
 
 #define PH_DESC_INDENT 10
 
-#ifndef PPROGRAM_VAR
-#define PPROGRAM_VAR
+#ifndef PROGRAM_VAR
+#define PROGRAM_VAR
 /*
  * Define the program command details
  *
  * command, argument, description
  */
-struct PProgramCommands {
+struct ProgramCommands {
   const char *cmd;
   const char *argument;
   const char *cmd_desc;
@@ -49,7 +50,7 @@ struct PProgramCommands {
  *
  * short flag, long flag, argument, description
  */
-struct PProgramFlag {
+struct ProgramFlag {
   const char *short_flag;
   const char *long_flag;
   const char *argument;
@@ -60,7 +61,7 @@ struct PProgramFlag {
  * Define the program info
  *
  * flag count, command count, program name, program description, program usage,
- * PProgramCommands, PProgramFlag
+ * ProgramCommands, ProgramFlag
  */
 typedef struct {
   int flagc;
@@ -68,12 +69,14 @@ typedef struct {
   const char *name;
   const char *desc;
   const char *usage;
-  struct PProgramCommands *commands;
-  struct PProgramFlag *flags;
-} PProgramInfo;
-#endif // !PPROGRAM_VAR
+  struct ProgramCommands *commands;
+  struct ProgramFlag *flags;
+} ProgramInfo;
+#endif // !PROGRAM_VAR
 
 /*
  * Prints help message
 */
-void printh(PProgramInfo program_info);
+void printh(ProgramInfo program_info);
+
+#endif // PRINTH_H

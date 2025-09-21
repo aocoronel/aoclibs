@@ -1,14 +1,14 @@
 #ifndef BASHGEN_H
 #define BASHGEN_H
 
-#ifndef PPROGRAM_VAR
-#define PPROGRAM_VAR
+#ifndef PROGRAM_VAR
+#define PROGRAM_VAR
 /*
  * Define the program command details
  *
  * command, argument, description
  */
-struct PProgramCommands {
+struct ProgramCommands {
   const char *cmd;
   const char *argument;
   const char *cmd_desc;
@@ -19,7 +19,7 @@ struct PProgramCommands {
  *
  * short flag, long flag, argument, description
  */
-struct PProgramFlag {
+struct ProgramFlag {
         const char *short_flag;
         const char *long_flag;
         const char *argument;
@@ -30,7 +30,7 @@ struct PProgramFlag {
  * Define the program info
  *
  * flag count, command count, program name, program description, program usage,
- * PProgramCommands, PProgramFlag
+ * ProgramCommands, ProgramFlag
  */
 typedef struct {
         int flagc;
@@ -38,31 +38,46 @@ typedef struct {
         const char *name;
         const char *desc;
         const char *usage;
-        struct PProgramCommands *commands;
-        struct PProgramFlag *flags;
-} PProgramInfo;
-#endif // !PPROGRAM_VAR
+        struct ProgramCommands *commands;
+        struct ProgramFlag *flags;
+} ProgramInfo;
+#endif // !PROGRAM_VAR
 
+#ifndef BZ_COMPLETION
+#define BZ_COMPLETION
 /*
  * Define the program arguments and completions
  *
  * argument, completion
 */
-struct AProgramArguments {
+struct ProgramArguments {
         const char *name;
         const char *completions;
 };
 
 /*
+ * Define the environment variables
+ *
+ * name, value
+*/
+struct ProgramEnv {
+        const char *name;
+        const char *value;
+};
+
+/*
  * Includes the program info and program arguments
  *
- * PProgramInfo, AProgramArguments
+ * ProgramInfo, ProgramArguments
 */
 typedef struct {
-        PProgramInfo *info;
+        ProgramInfo *info;
         int argc;
-        struct AProgramArguments *args;
+        int envc;
+        struct ProgramArguments *args;
+        struct ProgramEnv *envs;
 } CompletionInfo;
+#endif // !BZ_COMPLETION
 
 /*
  * Generates bash completions for commands, flags and arguments
