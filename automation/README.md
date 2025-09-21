@@ -13,6 +13,8 @@ Supports:
 
 ### Usage
 
+An example can be found [here](https://github.com/aocoronel/clibs/tree/main/tests).
+
 Define all arguments your program will use:
 
 - Completions set as NULL are discarded.
