@@ -75,7 +75,7 @@ int print_d(const char *desc) {
         return 0;
 }
 
-static void get_cmd_full(const struct PProgramCommands *cmd, char *buffer,
+static void get_cmd_full(const struct ProgramCommands *cmd, char *buffer,
                          size_t size) {
         if (cmd->argument) {
                 snprintf(buffer, size, "%s %s", cmd->cmd, cmd->argument);
@@ -85,10 +85,8 @@ static void get_cmd_full(const struct PProgramCommands *cmd, char *buffer,
 }
 
 int compare_commands(const void *a, const void *b) {
-        const struct PProgramCommands *cmdA =
-                (const struct PProgramCommands *)a;
-        const struct PProgramCommands *cmdB =
-                (const struct PProgramCommands *)b;
+        const struct ProgramCommands *cmdA = (const struct ProgramCommands *)a;
+        const struct ProgramCommands *cmdB = (const struct ProgramCommands *)b;
 
         char fullA[128], fullB[128];
         get_cmd_full(cmdA, fullA, sizeof(fullA));
@@ -97,27 +95,27 @@ int compare_commands(const void *a, const void *b) {
         return strcmp(fullA, fullB);
 }
 
-static const char *get_flag_sort_key(const struct PProgramFlag *flag) {
+static const char *get_flag_sort_key(const struct ProgramFlag *flag) {
         if (flag->short_flag) return flag->short_flag;
         if (flag->long_flag) return flag->long_flag;
         return "";
 }
 
 int compare_flags(const void *a, const void *b) {
-        const struct PProgramFlag *flagA = (const struct PProgramFlag *)a;
-        const struct PProgramFlag *flagB = (const struct PProgramFlag *)b;
+        const struct ProgramFlag *flagA = (const struct ProgramFlag *)a;
+        const struct ProgramFlag *flagB = (const struct ProgramFlag *)b;
 
         return strcmp(get_flag_sort_key(flagA), get_flag_sort_key(flagB));
 }
 
-void printh(PProgramInfo program_info) {
+void printh(ProgramInfo program_info) {
         FILE *out = stdout;
 
         qsort(program_info.commands, program_info.cmdc,
-              sizeof(struct PProgramCommands), compare_commands);
+              sizeof(struct ProgramCommands), compare_commands);
 
         qsort(program_info.flags, program_info.flagc,
-              sizeof(struct PProgramFlag), compare_flags);
+              sizeof(struct ProgramFlag), compare_flags);
 
         fprintf(out, "%s | %s\n\n", program_info.name, program_info.desc);
 

@@ -22,7 +22,8 @@
  * SOFTWARE.
 */
 
-#pragma once
+#ifndef PRINTFC_H
+#define PRINTFC_H
 
 #define COLOR_RED "\x1b[91m"
 #define COLOR_YELLOW "\x1b[33m"
@@ -45,3 +46,5 @@ typedef enum { FATAL, ERROR, WARN, INFO, DEBUG } LogLevel;
  * printfc(FATAL, "Something went very wrong: %s", "disk not found");
 */
 int printfc(LogLevel level, const char *restrict fmt, ...);
+
+#endif // PRINTFC_H
