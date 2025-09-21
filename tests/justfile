@@ -3,3 +3,6 @@ list:
 
 printh-bmark:
   gcc -o printh-bmark printh-bmark.c ../info/printh.c
+
+bashgen-bmark:
+  gcc -o bashgen-bmark bashgen-bmark.c ../automation/bashgen.c
