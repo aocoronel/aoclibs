@@ -28,6 +28,7 @@ The code organization has different directories depending on the purpose of each
 **Current directories:**
 
 - `info`: Anything to deal with printing messages as a primary goal.
+- `automation`: Automate boring tasks.
 
 **Special directories:**
 
