@@ -9,3 +9,6 @@ bashgen-bmark:
 
 zshgen-bmark:
   gcc -o zshgen-bmark zshgen-bmark.c ../automation/zshgen.c
+
+bashgen-zshgen-printh-bmark:
+  gcc -o bashgen-zshgen-printh-bmark bashgen-zshgen-printh-bmark.c ../info/printh.c ../automation/bashgen.c ../automation/zshgen.c
