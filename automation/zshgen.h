@@ -1,5 +1,5 @@
-#ifndef BASHGEN_H
-#define BASHGEN_H
+#ifndef ZSHGEN_H
+#define ZSHGEN_H
 
 #ifndef PROGRAM_VAR
 #define PROGRAM_VAR
@@ -83,4 +83,4 @@ typedef struct {
  * Generates bash completions for commands, flags and arguments
 */
 void generate_zsh_completion(const CompletionInfo *info);
-#endif // BASHGEN_H
+#endif // ZSHGEN_H
