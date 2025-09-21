@@ -24,8 +24,6 @@
 
 #pragma once
 
-#include <stdlib.h>
-
 #define PH_BOLD "\x1b[1m"
 #define PH_UNDERLINE "\x1b[4m"
 #define PH_RESET "\x1b[0m"
@@ -33,6 +31,8 @@
 
 #define PH_DESC_INDENT 10
 
+#ifndef PPROGRAM_VAR
+#define PPROGRAM_VAR
 /*
  * Define the program command details
  *
@@ -71,6 +71,7 @@ typedef struct {
   struct PProgramCommands *commands;
   struct PProgramFlag *flags;
 } PProgramInfo;
+#endif // !PPROGRAM_VAR
 
 /*
  * Prints help message

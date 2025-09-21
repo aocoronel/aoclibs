@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "../info/printh.h"
 
 struct PProgramCommands commands[] = {
