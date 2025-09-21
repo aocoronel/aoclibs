@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include "../automation/bashgen.h"
 
-struct AProgramArguments args[] = {
+struct ProgramArguments args[] = {
         { .name = "ID", .completions = NULL },
         { .name = "TAG", .completions = "ls" },
         { .name = "URL", .completions = NULL },
@@ -12,7 +12,7 @@ struct AProgramArguments args[] = {
                   "sqlite3 \"$BMARK_DB_DIR/$BMARK_FILE\" \"select tag from tags;\" | tr \"\\n\" \" \"" },
 };
 
-struct PProgramCommands commands[] = {
+struct ProgramCommands commands[] = {
         { "bulk", NULL, "Edit the database using an EDITOR" },
         { "delete", "ID|URL|TAG",
           "Delete a bookmark or tag by ID, URL or TAG" },
@@ -28,7 +28,7 @@ struct PProgramCommands commands[] = {
         { "version", NULL, "Display current version" }
 };
 
-struct PProgramFlag flags[] = {
+struct ProgramFlag flags[] = {
         { NULL, "--note", "NOTE", "Query for NOTE" },
         { "-T", "--tag", "TAG", "Query for TAG" },
         { NULL, "--title", "TITLE", "Query for TITLE" },
@@ -39,7 +39,7 @@ struct PProgramFlag flags[] = {
         { "-s", "--strict", NULL, "List will strictly match given query" }
 };
 
-PProgramInfo program_info = {
+ProgramInfo program_info = {
         .flagc = sizeof(flags) / sizeof(flags[0]),
         .cmdc = sizeof(commands) / sizeof(commands[0]),
         .name = "bmark",
@@ -49,10 +49,17 @@ PProgramInfo program_info = {
         .flags = flags,
 };
 
+struct ProgramEnv envs[] = {
+        { "BMARK_FILE", "${BMARK_FILE:-bookmark.db}" },
+        { "BMARK_DB_DIR", "${BMARK_DB_DIR:-$HOME/.local/share/bookmarks}" }
+};
+
 CompletionInfo completion_info = {
         .info = &program_info,
         .argc = sizeof(args) / sizeof(args[0]),
+        .envc = sizeof(envs) / sizeof(envs[0]),
         .args = args,
+        .envs = envs,
 };
 
 int main() {
