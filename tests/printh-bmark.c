@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include "../info/printh.h"
 
-struct PProgramCommands commands[] = {
+struct ProgramCommands commands[] = {
         { "bulk", NULL, "Edit the database using an EDITOR" },
         { "delete", "ID|URL|TAG",
           "Delete a bookmark or tag by ID, URL or TAG" },
@@ -17,7 +17,7 @@ struct PProgramCommands commands[] = {
         { "version", NULL, "Display current version" }
 };
 
-struct PProgramFlag flags[] = {
+struct ProgramFlag flags[] = {
         { NULL, "--note", "note", "Query for NOTE" },
         { NULL, "--tag", "tag", "Query for TAG" },
         { NULL, "--title", "title", "Query for TITLE" },
@@ -28,7 +28,7 @@ struct PProgramFlag flags[] = {
         { "-s", "--strict", NULL, "List will strictly match given query" }
 };
 
-PProgramInfo program_info = {
+ProgramInfo program_info = {
         .flagc = sizeof(flags) / sizeof(flags[0]),
         .cmdc = sizeof(commands) / sizeof(commands[0]),
         .name = "bmark",
