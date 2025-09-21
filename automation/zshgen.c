@@ -2,8 +2,8 @@
 #include <string.h>
 #include "zshgen.h"
 
-const char *find_comparg(const char *arg_name, struct ProgramArguments *args,
-                         int args_count) {
+const char *find_comparg_zsh(const char *arg_name,
+                             struct ProgramArguments *args, int args_count) {
         for (int i = 0; i < args_count; i++) {
                 if (args[i].name != NULL &&
                     strcmp(args[i].name, arg_name) == 0) {
@@ -39,9 +39,10 @@ void generate_zsh_completion(const CompletionInfo *info) {
                 const char *long_flag = pinfo->flags[i].long_flag;
                 const char *arg = pinfo->flags[i].argument;
                 const char *desc = pinfo->flags[i].desc;
-                const char *comp = (arg != NULL) ? find_comparg(arg, info->args,
-                                                                info->argc) :
-                                                   NULL;
+                const char *comp =
+                        (arg != NULL) ?
+                                find_comparg_zsh(arg, info->args, info->argc) :
+                                NULL;
                 if (long_flag) {
                         printf("    '%s", long_flag);
                         if (desc) printf("=[%s]", desc);
@@ -86,7 +87,7 @@ void generate_zsh_completion(const CompletionInfo *info) {
                 const char *cmdargs = pinfo->commands[i].argument;
                 if (cmdargs == NULL) continue;
                 const char *completions =
-                        find_comparg(cmdargs, info->args, info->argc);
+                        find_comparg_zsh(cmdargs, info->args, info->argc);
                 if (completions == NULL) continue;
 
                 printf("        %s)\n", cmd);
@@ -102,7 +103,7 @@ void generate_zsh_completion(const CompletionInfo *info) {
                 const char *flagargs = pinfo->flags[i].argument;
                 if (flagargs == NULL) continue;
                 const char *completions =
-                        find_comparg(flagargs, info->args, info->argc);
+                        find_comparg_zsh(flagargs, info->args, info->argc);
 
                 if (completions == NULL) continue;
 

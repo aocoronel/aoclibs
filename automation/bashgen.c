@@ -4,8 +4,8 @@
 #include <string.h>
 #include "bashgen.h"
 
-const char *find_comparg(const char *arg_name, struct ProgramArguments *args,
-                         int args_count) {
+const char *find_comparg_bash(const char *arg_name,
+                              struct ProgramArguments *args, int args_count) {
         for (int i = 0; i < args_count; i++) {
                 if (args[i].name != NULL &&
                     strcmp(args[i].name, arg_name) == 0) {
@@ -57,8 +57,8 @@ void generate_bash_completion(const CompletionInfo *info) {
         int j = 0;
         for (int i = 0; i < info->info->flagc; i++) {
                 if (info->info->flags[i].argument != NULL &&
-                    find_comparg(info->info->flags[i].argument, info->args,
-                                 info->argc) != NULL) {
+                    find_comparg_bash(info->info->flags[i].argument, info->args,
+                                      info->argc) != NULL) {
                         const char *short_flag =
                                 info->info->flags[i].short_flag;
                         const char *long_flag = info->info->flags[i].long_flag;
