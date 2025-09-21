@@ -6,3 +6,6 @@ printh-bmark:
 
 bashgen-bmark:
   gcc -o bashgen-bmark bashgen-bmark.c ../automation/bashgen.c
+
+zshgen-bmark:
+  gcc -o zshgen-bmark zshgen-bmark.c ../automation/zshgen.c
