@@ -4,7 +4,7 @@
 #include <string.h>
 #include "bashgen.h"
 
-const char *find_comparg(const char *arg_name, struct AProgramArguments *args,
+const char *find_comparg(const char *arg_name, struct ProgramArguments *args,
                          int args_count) {
         for (int i = 0; i < args_count; i++) {
                 if (args[i].name != NULL &&
@@ -16,20 +16,26 @@ const char *find_comparg(const char *arg_name, struct AProgramArguments *args,
 }
 
 void generate_bash_completion(const CompletionInfo *info) {
+        // Header
         printf("#!/usr/bin/env bash\n");
-
+        // Environment defaults
+        for (int i = 0; i < info->envc; i++) {
+                printf("%s=%s\n", info->envs[i].name, info->envs[i].value);
+        }
+        // Define helper functions to autocomplete arguments
         for (int i = 0; i < info->argc; i++) {
                 if (info->args[i].completions == NULL) continue;
                 printf("_%s() {\n", info->args[i].name);
                 printf("  %s\n", info->args[i].completions);
                 printf("}\n");
         }
-
+        // Main function
         printf("_%s() {\n", info->info->name);
         printf("  COMPREPLY=()\n");
         printf("  cur=\"${COMP_WORDS[COMP_CWORD]}\"\n");
         printf("  prev=\"${COMP_WORDS[COMP_CWORD - 1]}\"\n");
 
+        // Autocomplete flags
         printf("  case \"${cur}\" in\n");
         printf("  -*)\n");
         printf("    mapfile -t COMPREPLY < <(compgen -W \"");
@@ -46,6 +52,7 @@ void generate_bash_completion(const CompletionInfo *info) {
         }
         printf("\" -- \"${cur}\"%c\n    return 0\n    ;;\n  esac\n", ')');
 
+        // Autocomplete arguments from flags and commands
         printf("  case \"${prev}\" in\n");
         int j = 0;
         for (int i = 0; i < info->info->flagc; i++) {
@@ -79,10 +86,13 @@ void generate_bash_completion(const CompletionInfo *info) {
         }
         printf("  esac\n");
 
+        // Autocomplete commands
         printf("  mapfile -t COMPREPLY < <(compgen -W \"");
         for (int i = 0; i < info->info->cmdc; i++) {
                 printf(" %s", info->info->commands[i].cmd);
         }
         printf("\" -- \"${cur}\"%c\n  return 0\n}\n", ')');
+
+        // Assign function to program
         printf("complete -F _%s %s", info->info->name, info->info->name);
 }
