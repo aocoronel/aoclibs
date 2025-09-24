@@ -79,6 +79,29 @@ void generate_bash_completion(const CompletionInfo *info) {
         // Autocomplete arguments from flags and commands
         printf("  case \"${prev}\" in\n");
         int j = 0;
+
+        for (int i = 0; i < info->info->cmdc; i++) {
+                if (info->info->commands[i].argument != NULL &&
+                    find_comparg_bash(info->info->commands[i].argument,
+                                      info->args, info->argc) != NULL) {
+                        const char *command = info->info->commands[i].cmd;
+                        if (command != NULL) {
+                                printf("  %s%c\n", command, ')');
+                        }
+                        printf("    mapfile -t COMPREPLY < <(compgen -W \"$\(_%s%c\" -- \"${cur}\"%c\n",
+                               info->info->commands[i].argument, ')', ')');
+                        printf("    return 0\n");
+                        printf("    ;;\n");
+                } else {
+                        j++;
+                        // If flags does not have argument with completions, fallback
+                        if (j == info->info->cmdc) {
+                                printf("  \"\"%c\n", ')');
+                                printf("    break\n    ;;\n");
+                                break;
+                        }
+                }
+        }
         for (int i = 0; i < info->info->flagc; i++) {
                 if (info->info->flags[i].argument != NULL &&
                     find_comparg_bash(info->info->flags[i].argument, info->args,
