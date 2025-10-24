@@ -2,6 +2,14 @@
 #include "heap_string.h"
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
+
+String *default_string(void) {
+        String *s1 = string_create();
+        strcpy(s1, "world!");
+        strcat(s1, " Hello,");
+        return s1;
+}
 
 int main(void) {
         String *s1 = string_create();
@@ -61,14 +69,19 @@ int main(void) {
         string_free(s3);
 
         String *s4 = string_from("hello,world");
-        String s4_1;
-        String s4_2;
-        string_split(s4, ',', &s4_1, &s4_2);
-
+        String s4_1, s4_2;
+        heap_init(&s4_1.heap);
+        heap_init(&s4_2.heap);
+        if (string_split(s4, ',', &s4_1, &s4_2) != 0) {
+                fprintf(stderr, "splitting failed\n");
+                return EXIT_FAILURE;
+        }
         printf("String 1: %s\n", (char *)s4_1.heap.ptr);
         printf("String 2: %s\n", (char *)s4_2.heap.ptr);
         printf("Original: %s\n", (char *)s4->heap.ptr);
 
+        heap_free(&s4_1.heap);
+        heap_free(&s4_2.heap);
         string_free(s4);
 
         return 0;
