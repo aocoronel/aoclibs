@@ -4,6 +4,11 @@
 #include <stddef.h>
 
 /*
+ * gcc -DALLOC_DEBUG
+ * Define ALLOC_DEBUG to enable runtime debugging
+ */
+
+/*
  * Defines a pointer used for heap allocation, which is followed by it's size.
  */
 typedef struct HeapPtr {
