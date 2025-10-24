@@ -32,7 +32,7 @@ String *string_from(const char *str) {
 }
 
 void string_free(String *s) {
-        if (!s) return;
+        if (s == NULL) return;
         heap_free(&s->heap);
         free(s);
 }
@@ -55,7 +55,8 @@ int string_append(String *s, const char *str) {
         if (needed > s->heap.mem) {
                 if (string_reserve(s, needed * 2) != 0) return -1;
         }
-        memcpy((char *)s->heap.ptr + s->length, str, needed);
+        memcpy((char *)s->heap.ptr + s->length, str, add_len);
+        ((char *)s->heap.ptr)[s->length + add_len] = '\0';
         s->length += add_len;
         return 0;
 }
@@ -66,19 +67,15 @@ int string_string_append(String *s1, const String *s2) {
         }
 
         size_t add_len = s2->length;
-        size_t needed = s1->length + add_len + 1; // +1 for null terminator
+        size_t needed = s1->length + add_len + 1;
 
         if (needed > s1->heap.mem) {
-                // Double the needed space for growth
                 if (string_reserve(s1, needed * 2) != 0) return -1;
         }
 
-        // Copy contents from s2 into the end of s1
         memcpy((char *)s1->heap.ptr + s1->length, s2->heap.ptr, add_len);
+        ((char *)s1->heap.ptr)[s1->length + add_len] = '\0';
         s1->length += add_len;
-
-        // Null-terminate the new combined string
-        ((char *)s1->heap.ptr)[s1->length] = '\0';
 
         return 0;
 }
@@ -92,7 +89,7 @@ int string_copy(String *s, const char *str) {
         if (needed > s->heap.mem) {
                 if (string_reserve(s, needed * 2) != 0) return -1;
         }
-        memcpy((char *)s->heap.ptr, str, needed);
+        memcpy((char *)s->heap.ptr, str, add_len + 1);
         s->length += add_len;
         return 0;
 }
@@ -102,17 +99,14 @@ int string_string_copy(String *s1, const String *s2) {
                 return -1;
         }
 
-        size_t needed = s2->length + 1; // +1 for null terminator
+        size_t needed = s2->length + 1;
 
         if (needed > s1->heap.mem) {
-                // Grow the buffer if not enough space
                 if (string_reserve(s1, needed * 2) != 0) return -1;
         }
 
-        // Copy s2's data into s1
         memcpy((char *)s1->heap.ptr, s2->heap.ptr, needed);
 
-        // Set new length (replace, not append)
         s1->length = s2->length;
 
         return 0;
@@ -243,21 +237,56 @@ static String *string_from_len(const char *str, size_t len) {
         return s;
 }
 
+static int string_copy_buffer(String *dest, const char *src, size_t len) {
+        if (!dest || !src) return -1;
+        if (len + 1 > dest->heap.mem) {
+                if (!resize_alloc(&dest->heap, len + 1)) return -1;
+        }
+        memcpy(dest->heap.ptr, src, len);
+        ((char *)dest->heap.ptr)[len] = '\0';
+        dest->length = len;
+        return 0;
+}
+
 int string_split(String *s, char delimiter, String *out_s1, String *out_s2) {
-        if (!s || !s->heap.ptr || s->length == 0) return -1;
+        if (!s || !s->heap.ptr || s->length == 0 || !out_s1 || !out_s2)
+                return -1;
 
         const char *ptr = (const char *)s->heap.ptr;
         size_t i = 0;
         while (i < s->length && ptr[i] != delimiter)
                 i++;
 
+        String *tmp_s1 = NULL;
+        String *tmp_s2 = NULL;
+
         if (i < s->length) {
-                *out_s1 = *string_from_len(ptr, i);
-                *out_s2 = *string_from_len(&ptr[i + 1], s->length - i - 1);
+                tmp_s1 = string_from_len(ptr, i);
+                tmp_s2 = string_from_len(&ptr[i + 1], s->length - i - 1);
         } else {
-                *out_s1 = *string_from(ptr);
-                *out_s2 = *string_from("");
+                tmp_s1 = string_from(ptr);
+                tmp_s2 = string_from("");
         }
+
+        if (!tmp_s1 || !tmp_s2) {
+                if (tmp_s1) string_free(tmp_s1);
+                if (tmp_s2) string_free(tmp_s2);
+                return -1;
+        }
+
+        if (string_copy_buffer(out_s1, tmp_s1->heap.ptr, tmp_s1->length) != 0) {
+                string_free(tmp_s1);
+                string_free(tmp_s2);
+                return -1;
+        }
+        if (string_copy_buffer(out_s2, tmp_s2->heap.ptr, tmp_s2->length) != 0) {
+                string_free(tmp_s1);
+                string_free(tmp_s2);
+                return -1;
+        }
+
+        string_free(tmp_s1);
+        string_free(tmp_s2);
         return 0;
 }
 
