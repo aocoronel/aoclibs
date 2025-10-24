@@ -62,7 +62,7 @@ int resize_alloc(HeapPtr *h, size_t new_size) {
 }
 
 void heap_free(HeapPtr *h) {
-        if (!h || !h->ptr) return;
+        if (!h || h->ptr == NULL) return;
         free(h->ptr);
         h->ptr = NULL;
         h->mem = 0;
