@@ -4,17 +4,17 @@
 #include "heap_alloc.h"
 #include <stddef.h>
 
-#define strcat(s1, s2) string_append((s1), (s2))
-#define sstrcat(s1, s2) string_string_append((s1), (s2))
+#define str_cat(s1, s2) string_append((s1), (s2))
+#define sst_rcat(s1, s2) string_string_append((s1), (s2))
 
-#define strcmp(s1, s2) string_compare((s1), (s2))
-#define sstrcmp(s1, s2) string_string_compare((s1), (s2))
+#define str_cmp(s1, s2) string_compare((s1), (s2))
+#define sstr_cmp(s1, s2) string_string_compare((s1), (s2))
 
-#define strcpy(s1, s2) string_copy((s1), (s2))
-#define sstrcpy(s1, s2) string_string_copy((s1), (s2))
+#define str_cpy(s1, s2) string_copy((s1), (s2))
+#define sstr_cpy(s1, s2) string_string_copy((s1), (s2))
 
-#define strchr(s1, s2) string_find((s1), (s2))
-#define strrchr(s1, s2) string_reverse_find((s1), (s2))
+#define str_chr(s1, s2) string_find((s1), (s2))
+#define str_rchr(s1, s2) string_reverse_find((s1), (s2))
 
 /*
  * Define heap allocated strings.
