@@ -1,1 +1,1 @@
--I../../info/
+-lprinth
