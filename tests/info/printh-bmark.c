@@ -1,5 +1,5 @@
 #include <stddef.h>
-#include "../info/printh.h"
+#include "printh.h"
 
 struct ProgramCommands commands[] = {
         { "bulk", NULL, "Edit the database using an EDITOR" },
