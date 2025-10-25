@@ -1,5 +1,5 @@
-#include "heap_alloc.h"
-#include "heap_string.h"
+#include <aoclibs/heap_alloc.h>
+#include <aoclibs/heap_string.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -68,7 +68,7 @@ int main(void) {
 
         string_free(s3);
 
-        String *s4 = string_from("hello,world");
+        String *s4 = string_from("hello,my,world");
         String s4_1, s4_2;
         heap_init(&s4_1.heap);
         heap_init(&s4_2.heap);
@@ -83,6 +83,22 @@ int main(void) {
         heap_free(&s4_1.heap);
         heap_free(&s4_2.heap);
         string_free(s4);
+
+        String *s5 = string_from("hello,my,world");
+        String s5_1, s5_2;
+        heap_init(&s5_1.heap);
+        heap_init(&s5_2.heap);
+        if (string_rsplit(s5, ',', &s5_1, &s5_2) != 0) {
+                fprintf(stderr, "splitting failed\n");
+                return EXIT_FAILURE;
+        }
+        printf("String 1: %s\n", (char *)s5_1.heap.ptr);
+        printf("String 2: %s\n", (char *)s5_2.heap.ptr);
+        printf("Original: %s\n", (char *)s5->heap.ptr);
+
+        heap_free(&s5_1.heap);
+        heap_free(&s5_2.heap);
+        string_free(s5);
 
         return 0;
 }
