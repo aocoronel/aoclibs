@@ -45,6 +45,6 @@ typedef enum { FATAL, ERROR, WARN, INFO, DEBUG } LogLevel;
  *
  * printfc(FATAL, "Something went very wrong: %s", "disk not found");
 */
-int printfc(LogLevel level, const char *restrict fmt, ...);
+int printfc(LogLevel level, const char *fmt, ...);
 
 #endif // PRINTFC_H

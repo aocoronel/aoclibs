@@ -32,7 +32,7 @@
 #define PINFO(...) printfc(INFO, __VA_ARGS__)
 #define PDEBUG(...) printfc(DEBUG, __VA_ARGS__)
 
-int printfc(LogLevel level, const char *restrict fmt, ...) {
+int printfc(LogLevel level, const char *fmt, ...) {
         const char *color;
         const char *label;
         FILE *out = stdout;
