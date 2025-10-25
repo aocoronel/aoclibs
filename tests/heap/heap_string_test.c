@@ -6,8 +6,8 @@
 
 String *default_string(void) {
         String *s1 = string_create();
-        strcpy(s1, "world!");
-        strcat(s1, " Hello,");
+        str_cpy(s1, "world!");
+        str_cat(s1, " Hello,");
         return s1;
 }
 
@@ -23,13 +23,13 @@ int main(void) {
         }
 
         String *s2 = string_from("Heklo");
-        int err = sstrcmp(s, s2);
+        int err = sstr_cmp(s, s2);
         printf("%d\n", err);
 
         string_append(s, ", world!");
 
         const char *mystr = "Hejlo, world!";
-        err = strcmp(s, mystr);
+        err = str_cmp(s, mystr);
         printf("%d\n", err);
 
         printf("s [memory: %zu] [length %zu]: %s\n", s->heap.mem, s->length,
@@ -38,8 +38,8 @@ int main(void) {
         string_flush(s);
         printf("s [memory: %zu] [length %zu]: %s\n", s->heap.mem, s->length,
                (char *)s->heap.ptr);
-        assert(strcmp(s, "Hello, world!") == 0);
-        assert(strcmp(s2, "Heklo") == 0);
+        assert(str_cmp(s, "Hello, world!") == 0);
+        assert(str_cmp(s2, "Heklo") == 0);
 
         string_free(s);
         string_free(s1);
