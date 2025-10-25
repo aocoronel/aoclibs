@@ -1,15 +1,15 @@
 #include <stddef.h>
-#include "../automation/bashgen.h"
+#include "zshgen.h"
 
 struct ProgramArguments args[] = {
         { .name = "ID", .completions = NULL },
-        { .name = "TAG", .completions = "ls" },
+        { .name = "DB", .completions = "ls" },
         { .name = "URL", .completions = NULL },
         { .name = "TITLE", .completions = NULL },
         { .name = "NOTE", .completions = NULL },
-        { .name = "DB",
+        { .name = "TAG",
           .completions =
-                  "sqlite3 \"$BMARK_DB_DIR/$BMARK_FILE\" \"select tag from tags;\" | tr \"\\n\" \" \"" },
+                  "sqlite3 \"$BMARK_DB_DIR/$BMARK_FILE\" \"select tag from tags;\"" },
 };
 
 struct ProgramCommands commands[] = {
@@ -63,6 +63,6 @@ CompletionInfo completion_info = {
 };
 
 int main() {
-        generate_bash_completion(&completion_info);
+        generate_zsh_completion(&completion_info);
         return 0;
 }

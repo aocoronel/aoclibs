@@ -1,8 +1,5 @@
 #include <stddef.h>
-#include <stdio.h>
-#include "../automation/bashgen.h"
-#include "../automation/zshgen.h"
-#include "../info/printh.h"
+#include "bashgen.h"
 
 struct ProgramArguments args[] = {
         { .name = "ID", .completions = NULL },
@@ -66,11 +63,6 @@ CompletionInfo completion_info = {
 };
 
 int main() {
-        printf("Help message:\n\n");
-        printh(program_info);
-        printf("\n\nZsh Completions:\n\n");
-        generate_zsh_completion(&completion_info);
-        printf("\n\nBash Completions:\n\n");
         generate_bash_completion(&completion_info);
         return 0;
 }
