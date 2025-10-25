@@ -1,4 +1,4 @@
-# C CLI Libraries
+# Coronel's C Libraries
 
 This repository contemplates C libraries developed specially for personal CLI development.
 
@@ -29,6 +29,7 @@ The code organization has different directories depending on the purpose of each
 
 - `info`: Anything to deal with printing messages as a primary goal.
 - `automation`: Automate boring tasks.
+- `heap`: Higher abstractions to safely use the heap and strings. Libraries in this repo may rely on each other.
 
 **Special directories:**
 
