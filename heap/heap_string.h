@@ -159,8 +159,8 @@ int string_pop(String *s);
 int string_drop(String *s, size_t index);
 
 /*
- * Splits a String from a delimiter.
- * String out_s1 and out_s2 should not be initialized. Both strings are overwritten, and may cause
+ * Splits a String from in the first occurance of a delimiter.
+ * Both strings are overwritten, and may cause
  * memory leaks.
  * Will allocate Strings in the heap and return to out_s1 and out_s2, potentially being NULL.
  * Check out_s1 and out_s2 to NULL to prevent dereferencing a NULL pointer.
@@ -169,6 +169,18 @@ int string_drop(String *s, size_t index);
  * -1 - String does not exist.
 */
 int string_split(String *s, char delimiter, String *out_s1, String *out_s2);
+
+/*
+ * Splits a String from in the last occurance of a delimiter.
+ * Both strings are overwritten, and may cause
+ * memory leaks.
+ * Will allocate Strings in the heap and return to out_s1 and out_s2, potentially being NULL.
+ * Check out_s1 and out_s2 to NULL to prevent dereferencing a NULL pointer.
+ * Return Values:
+ * 0 - Strings out_s1 and out_s2 may contain the split String s.
+ * -1 - String does not exist.
+*/
+int string_rsplit(String *s, char delimiter, String *out_s1, String *out_s2);
 
 /*
  * Clears the string content.
