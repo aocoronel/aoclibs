@@ -1,5 +1,8 @@
 # Coronel's C Libraries
 
+> [!WARNING]
+> This repository has been moved to Codeberg. Find it at [aocoronel/aoclibs](https://codeberg.org/aocoronel/aoclibs).
+
 This repository contemplates C libraries developed specially for personal CLI development.
 
 ## Rules
