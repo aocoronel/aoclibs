@@ -1,37 +1,31 @@
 #include "mem_error.h"
+#include "mem_string.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define str_from(str, cap) aoc_str_from((str), aoc_str_length(str, cap), (cap))
+size_t max_str_capacity = 126;
 
-typedef struct str {
-        size_t length;
-        size_t capacity;
-        char *str;
-} str;
-
-str aoc_str_create(size_t cap) {
+str aoc_str_create(size_t *cap) {
         if (cap == 0) {
-                str string;
-                return string;
+                cap = &max_str_capacity;
         }
-        char str[cap];
+        char str[*cap];
         struct str string = {
                 .length = 0,
-                .capacity = cap,
+                .capacity = *cap,
                 .str = str,
         };
         return string;
 }
 
-int8_t aoc_is_null_terminated(str *str) {
+MemError aoc_is_null_terminated(str *str) {
         if (str->str[str->length] == '\0')
-                return 0;
+                return MemSucess;
         else
-                return 1;
+                return MemNullNotFound;
 }
 
 MemError aoc_str_copy(str *string, const char *str, size_t str_len) {
@@ -45,45 +39,82 @@ MemError aoc_str_copy(str *string, const char *str, size_t str_len) {
         return MemSucess;
 }
 
-int aoc_str_cmp(const char a, const char b) {
-        return (a > b) - (a < b);
+MemError aoc_str_str_copy(str *a, str *b) {
+        if (a == NULL || b == NULL) {
+                return MemNoValue;
+        }
+        if (a->capacity < b->length + a->length) {
+                return MemNoSpace;
+        }
+        memcpy(a->str, b->str, sizeof(char) * b->length);
+        return MemSucess;
 }
 
-size_t aoc_str_length(const char *str, size_t cap) {
-        for (int i = 0; i < cap; i++) {
-                if (aoc_str_cmp(str[i], '\0') == 0) return i;
+// int aoc_str_cmp(const char *a, const char *b) {
+//         return (a > b) - (a < b);
+// }
+
+size_t aoc_str_length(const char *str, size_t *cap) {
+        size_t capacity;
+        if (cap != NULL) {
+                capacity = *cap;
+        } else {
+                capacity = max_str_capacity;
+        }
+        for (int i = 0; i < capacity; i++) {
+                if (str[i] == '\0') return i;
         }
         return -1;
 }
 
-str aoc_str_from(char *str, size_t len, size_t cap) {
-        if (cap == 0) {
-                cap = len;
+static void aoc_str_copy_raw(char *a, const char *b, size_t b_len) {
+        for (int i = 0; i < b_len; i++) {
+                a[i] = b[i];
+        }
+}
+
+str aoc_str_from(char *a, size_t len, size_t *cap) {
+        size_t capacity;
+        if (cap != NULL) {
+                capacity = *cap;
+        } else {
+#ifdef AOC_UNIFORM_MAX_CAPACITY
+                capacity = max_str_capacity;
+#else
+                capacity = len;
+#endif
         }
         if (len == 0) {
-                return aoc_str_create(cap);
+                return aoc_str_create(&capacity);
         }
-        if (str == NULL) {
-                str = "";
+        char b[capacity];
+        if (a == NULL) {
+                b[0] = '\0';
+        } else {
+                aoc_str_copy_raw(b, a, aoc_str_length(a, cap));
         }
         struct str string = {
                 .length = len,
-                .capacity = cap,
-                .str = str,
+                .capacity = capacity,
+                .str = b,
         };
         return string;
 }
 
 int main() {
-        // str mystr = aoc_str_create(10);
-        // printf("My Str (str): %s\nMy Str (capacity): %zu", mystr.str,
-        //        mystr.capacity);
-        str mystr = str_from("hi", 10);
+        str mystr1 = aoc_str_create(NULL);
+        printf("My Str (str): %s\nMy Str (capacity): %zu\n", mystr1.str,
+               mystr1.capacity);
+
+        str mystr2 = aoc_str_from("hi", aoc_str_length("hi", NULL), NULL);
         const char *str2 = "hello, there";
-        printf("My Str (str): %s\nMy Str (capacity): %zu\n", mystr.str,
-               mystr.capacity);
-        aoc_str_copy(&mystr, str2, aoc_str_length(str2, 40));
-        printf("My Str (str): %s\nMy Str (capacity): %zu\n", mystr.str,
-               mystr.capacity);
+        printf("My Str (str): %s\nMy Str (capacity): %zu\n", mystr2.str,
+               mystr2.capacity);
+
+        MemError err = aoc_str_copy(&mystr2, str2, aoc_str_length(str2, NULL));
+        aoc_explain_memerror(err, &mystr2);
+        printf("My Str (str): %s\nMy Str (capacity): %zu\n", mystr2.str,
+               mystr2.capacity);
+
         return 0;
 }
