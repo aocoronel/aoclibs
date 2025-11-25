@@ -34,6 +34,19 @@ typedef struct { Error err; u16 value; }  u16err;
 typedef struct { Error err; u32 value; }  u32err;
 typedef struct { Error err; u64 value; }  u64err;
 
+typedef struct { Error err; f32   value; }  f32err;
+typedef struct { Error err; f64  value; }  f64err;
+#elif defined(_STDINT_H)
+typedef struct { Error err; int8_t   value; }  i8err;
+typedef struct { Error err; int16_t  value; }  i16err;
+typedef struct { Error err; int32_t  value; }  i32err;
+typedef struct { Error err; int64_t  value; }  i64err;
+
+typedef struct { Error err; uint8_t  value; }  u8err;
+typedef struct { Error err; uint16_t value; }  u16err;
+typedef struct { Error err; uint32_t value; }  u32err;
+typedef struct { Error err; uint64_t value; }  u64err;
+
 typedef struct { Error err; float   value; }  f32err;
 typedef struct { Error err; double  value; }  f64err;
 #endif /* AOCLIBS_INT_H */
