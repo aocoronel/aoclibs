@@ -1,1 +1,7 @@
 -std=c99
+-Iheap
+-Imem
+-Itype
+-Iinfo
+-Ierror
+-Iautomation
