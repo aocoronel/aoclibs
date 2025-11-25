@@ -2,10 +2,6 @@
 #include <a_error.h>
 #include <stdio.h>
 
-ErrorValue errvalue(Error err, void *value) {
-        return (ErrorValue){ err, value };
-}
-
 Error err(i32 code, const char msg[]) {
         if (msg == NULL) {
                 return (Error){ code, "undefined" };

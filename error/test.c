@@ -4,16 +4,16 @@
 #include <stdlib.h>
 #include <a_assert.h>
 
-ErrorValue add_ten(int *x) {
+i32err add_ten(int x) {
         Error _err = err(0, "OK");
-        int *value = x + 10;
-        return errvalue(_err, (int *)value);
+        i32 value = x + 10;
+        return (i32err){_err, value};
 }
 
 Error execute_something(int x) {
-        ErrorValue errnval = add_ten(&x);
-        int *y = (int *)errnval.value;
-        if (*y > 20) return err(1, NULL);
+        i32err errnval = add_ten(x);
+        i32 y = errnval.value;
+        if (y > 20) return err(1, NULL);
         return err(0, "OK");
 }
 
