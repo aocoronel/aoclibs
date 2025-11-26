@@ -2,6 +2,7 @@
 #define HEAP_STRING_H
 
 #include "heap_alloc.h"
+#include <a_error.h>
 #include <stddef.h>
 
 #define str_cat(s1, s2) string_append((s1), (s2))
@@ -25,13 +26,18 @@ typedef struct {
         size_t length; // current length (not counting '\0')
 } String;
 
+typedef struct {
+        Error err;
+        String value;
+} stringerr;
+
 /*
  * Return an empty null terminated String.
  * Return Values:
  * String - return a String with a 16 bytes allocated in HeapPtr.ptr.
  * NULL - Allocattion fails.
 */
-String *string_create(void);
+stringerr string_create(size_t cap);
 
 /*
  * Return a null terminated String from a string literal.
@@ -39,7 +45,7 @@ String *string_create(void);
  * String - return a String in HeapPtr.ptr with a length-based bytes allocated.
  * NULL - Allocattion fails.
 */
-String *string_from(const char *str);
+stringerr string_from(const char *str);
 
 /*
  * Frees heap allocated String and HeapPtr.ptr.

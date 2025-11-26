@@ -3,32 +3,34 @@
 #include <string.h>
 #include "heap_alloc.h"
 #include "heap_string.h"
+#include <a_error.h>
 
-String *string_create(void) {
-        String *s = malloc(sizeof(String));
-        if (!s) return NULL;
-        heap_init(&s->heap);
-        if (!heap_alloc(&s->heap, 16)) {
-                free(s);
-                return NULL;
+stringerr string_create(size_t cap) {
+        if (cap == 0) cap = 16;
+        String s;
+        heap_init(&s.heap);
+        if (!heap_alloc(&s.heap, cap)) {
+                return (stringerr){ .err = { .code = 1,
+                                             .msg = "Failed to allocate" },
+                                    .value = s };
         }
-        s->length = 0;
-        ((char *)s->heap.ptr)[0] = '\0';
-        return s;
+        s.length = 0;
+        ((char *)s.heap.ptr)[0] = '\0';
+        return (stringerr){ .err = ok(), .value = s };
 }
 
-String *string_from(const char *str) {
-        String *s = malloc(sizeof(String));
-        if (!s) return NULL;
+stringerr string_from(const char *str) {
+        String s;
         size_t len = strlen(str);
-        heap_init(&s->heap);
-        if (!heap_alloc(&s->heap, len + 1)) {
-                free(s);
-                return NULL;
+        heap_init(&s.heap);
+        if (!heap_alloc(&s.heap, len + 1)) {
+                return (stringerr){ .err = { .code = 1,
+                                             .msg = "Failed to allocate" },
+                                    .value = s };
         }
-        memcpy(s->heap.ptr, str, len + 1);
-        s->length = len;
-        return s;
+        memcpy(s.heap.ptr, str, len + 1);
+        s.length = len;
+        return (stringerr){ .err = ok(), .value = s };
 }
 
 void string_free(String *s) {
@@ -223,18 +225,18 @@ int string_drop(String *s, size_t index) {
 
 // === Split ===
 
-static String *string_from_len(const char *str, size_t len) {
-        String *s = malloc(sizeof(String));
-        if (!s) return NULL;
-        heap_init(&s->heap);
-        if (!heap_alloc(&s->heap, len + 1)) {
-                free(s);
-                return NULL;
+static stringerr string_from_len(const char *str, size_t len) {
+        String s;
+        heap_init(&s.heap);
+        if (!heap_alloc(&s.heap, len + 1)) {
+                return (stringerr){ .err = { .code = 1,
+                                             .msg = "Failed to allocate" },
+                                    .value = s };
         }
-        memcpy(s->heap.ptr, str, len);
-        ((char *)s->heap.ptr)[len] = '\0';
-        s->length = len;
-        return s;
+        memcpy(s.heap.ptr, str, len);
+        ((char *)s.heap.ptr)[len] = '\0';
+        s.length = len;
+        return (stringerr){ .err = ok(), .value = s };
 }
 
 static int string_copy_buffer(String *dest, const char *src, size_t len) {
@@ -257,36 +259,36 @@ int string_split(String *s, char delimiter, String *out_s1, String *out_s2) {
         while (i < s->length && ptr[i] != delimiter)
                 i++;
 
-        String *tmp_s1 = NULL;
-        String *tmp_s2 = NULL;
+        stringerr tmp_s1_err;
+        stringerr tmp_s2_err;
+        String tmp_s1;
+        String tmp_s2;
 
         if (i < s->length) {
-                tmp_s1 = string_from_len(ptr, i);
-                tmp_s2 = string_from_len(&ptr[i + 1], s->length - i - 1);
+                tmp_s1_err = string_from_len(ptr, i);
+                tmp_s2_err = string_from_len(&ptr[i + 1], &s.length - i - 1);
+                tmp_s1 = tmp_s1_err.value;
+                tmp_s2 = tmp_s2_err.value;
         } else {
-                tmp_s1 = string_from(ptr);
-                tmp_s2 = string_from("");
+                tmp_s1_err = string_from(ptr);
+                tmp_s2_err = string_from("");
+                tmp_s1 = tmp_s1_err.value;
+                tmp_s2 = tmp_s2_err.value;
         }
 
-        if (!tmp_s1 || !tmp_s2) {
-                if (tmp_s1) string_free(tmp_s1);
-                if (tmp_s2) string_free(tmp_s2);
+        if (string_copy_buffer(out_s1, tmp_s1.heap.ptr, tmp_s1.length) != 0) {
+                string_free(&tmp_s1);
+                string_free(&tmp_s2);
+                return -1;
+        }
+        if (string_copy_buffer(out_s2, tmp_s2.heap.ptr, tmp_s2.length) != 0) {
+                string_free(&tmp_s1);
+                string_free(&tmp_s2);
                 return -1;
         }
 
-        if (string_copy_buffer(out_s1, tmp_s1->heap.ptr, tmp_s1->length) != 0) {
-                string_free(tmp_s1);
-                string_free(tmp_s2);
-                return -1;
-        }
-        if (string_copy_buffer(out_s2, tmp_s2->heap.ptr, tmp_s2->length) != 0) {
-                string_free(tmp_s1);
-                string_free(tmp_s2);
-                return -1;
-        }
-
-        string_free(tmp_s1);
-        string_free(tmp_s2);
+        string_free(&tmp_s1);
+        string_free(&tmp_s2);
         return 0;
 }
 
