@@ -1,4 +1,4 @@
-#include <a_int.h>
+#include <a_types.h>
 #include <a_error.h>
 #include <stdio.h>
 #include <stdlib.h>

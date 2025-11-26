@@ -13,7 +13,14 @@
     ((err).code == 0 ? (void)0 : _assert_err(err, __FILE__, __LINE__, __func__))
 #endif
 
+/*
+ * Asserts the error code is ok
+*/
 void _assert_ok(Error e, const char *file, int line, const char *func);
+
+/*
+ * Asserts the error code is an error
+*/
 void _assert_err(Error e, const char *file, int line, const char *func);
 
 #endif

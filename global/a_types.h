@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_INT_H
-#define AOCLIBS_INT_H
+#ifndef AOCLIBS_TYPES_H
+#define AOCLIBS_TYPES_H
 
 #include <stdint.h>
 
@@ -19,4 +19,4 @@ typedef double f64;
 typedef intptr_t isize;
 typedef uintptr_t usize;
 
-#endif // AOCLIBS_INT_H
+#endif // AOCLIBS_TYPES_H
