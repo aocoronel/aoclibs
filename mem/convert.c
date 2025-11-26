@@ -1,22 +1,29 @@
-#include <string.h>
+#include <a_mem.h>
+#include <a_types.h>
 #include <stdbool.h>
-#include <a_int.h>
-
 #include <stdlib.h>
 
-i32 str_to_i32(const char *_Nonnull restrict str, const i32 _default) {
+isize str_to_int(const char *_Nonnull str, const i32 _default) {
         char *endptr;
         long val = strtol(str, &endptr, 10);
-        if (*endptr != ' ') {
+        if (*endptr != '\0') {
                 return _default;
         }
-        i32 intval = (i32)val;
-        return intval;
+        return (isize)val;
+}
+
+f64 str_to_float(const char *_Nonnull str, const f64 _default) {
+        char *endptr;
+        double val = strtof(str, &endptr);
+        if (*endptr != '\0') {
+                return _default;
+        }
+        return (f64)val;
 }
 
 bool str_to_bool(const char *str, const bool _default) {
-        if (strcasecmp(str, "true") == 0 || strcmp(str, "1") == 0) return true;
-        if (strcasecmp(str, "false") == 0 || strcmp(str, "0") == 0)
+        if (a_strcmp(str, "true") == 0 || a_strcmp(str, "1") == 0) return true;
+        if (a_strcmp(str, "false") == 0 || a_strcmp(str, "0") == 0)
                 return false;
         return _default;
 }

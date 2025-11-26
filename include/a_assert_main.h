@@ -1,7 +1,7 @@
 #ifndef AOCLIBS_ASSERT_H
 #define AOCLIBS_ASSERT_H
 
-#include <a_error.h>
+#include <a_error_types.h>
 
 #ifdef NDEBUG
 #define assert_ok(e) ((void)0)

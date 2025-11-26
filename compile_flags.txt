@@ -2,5 +2,7 @@
 -Iheap
 -Imem
 -Iglobal
+-Iinclude
 -Iinfo
+-Imem
 -Iautomation
