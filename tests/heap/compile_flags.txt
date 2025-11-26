@@ -1,1 +1,3 @@
 -I../../heap/
+-I../../error
+-I../../type
