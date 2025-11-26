@@ -4,9 +4,9 @@
 #include <string.h>
 
 #ifdef ALLOC_DEBUG
-#define ALLOC_DEBUG_PRINT(...) fprintf(stderr, __VA_ARGS__)
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__)
 #else
-#define ALLOC_DEBUG_PRINT(...)
+#define DEBUG(...)
 #endif
 
 typedef struct HeapPtr {
@@ -23,7 +23,7 @@ int heap_alloc(HeapPtr *h, size_t size) {
         if (!h) return 0;
         void *tmp = malloc(size);
         if (!tmp) {
-                ALLOC_DEBUG_PRINT("[heap_alloc] %s\n[Requested: %zu bytes]\n",
+                DEBUG("[heap_alloc] %s\n[Requested: %zu bytes]\n",
                                   strerror(errno), size);
                 return 0;
         }
@@ -36,7 +36,7 @@ int heap_clean_alloc(HeapPtr *h, size_t count, size_t size) {
         if (!h) return 0;
         void *tmp = calloc(count, size);
         if (!tmp) {
-                ALLOC_DEBUG_PRINT(
+                DEBUG(
                         "[heap_clean_alloc] %s\n[Requested: %zu bytes]\n",
                         strerror(errno), count * size);
                 return 0;
@@ -51,7 +51,7 @@ int resize_alloc(HeapPtr *h, size_t new_size) {
 
         void *tmp = realloc(h->ptr, new_size);
         if (!tmp) {
-                ALLOC_DEBUG_PRINT(
+                DEBUG(
                         "[resize_alloc] %s\n[Current: %zu bytes, Requested: %zu bytes]\n",
                         strerror(errno), h->mem, new_size);
                 return 0;

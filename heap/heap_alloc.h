@@ -4,8 +4,8 @@
 #include <stddef.h>
 
 /*
- * gcc -DALLOC_DEBUG
- * Define ALLOC_DEBUG to enable runtime debugging
+ * gcc -DDEBUG
+ * Define DEBUG to enable runtime debugging
  */
 
 /*
