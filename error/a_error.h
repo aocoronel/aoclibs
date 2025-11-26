@@ -3,6 +3,7 @@
 
 #include <a_int.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef struct {
         int code;
@@ -68,6 +69,14 @@ typedef struct { Error err; double  value; }  f64err;
         return _err.code; \
     } \
 } while(0)
+
+#define unreachable() panic(__FILE__, __LINE__, __func__, "unreachable code")
+
+_Noreturn void panic(const char *file, int line, const char *func, const char *msg) {
+    fprintf(stderr, "PANIC: %s at %s:%d (%s) ", msg, file, line, func);
+    fflush(stderr);
+    abort();
+}
 
 Error err(int code, const char msg[]);
 Error ok(void);
