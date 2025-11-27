@@ -5,6 +5,6 @@
 
 #define a_strlen(s) _strlen(s, sizeof(s))
 
-usize _strlen(const char *_Nonnull s, const usize buff);
+usize _strlen(const char *s, const usize buff);
 
 #endif /* AOCLIBS_MEM_STRLEN_H */
