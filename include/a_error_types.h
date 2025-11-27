@@ -38,4 +38,7 @@ typedef struct { Error err; u64 value; } u64err;
 typedef struct { Error err; f32  value; } f32err;
 typedef struct { Error err; f64 value; } f64err;
 
+typedef struct { Error err; isize value; } isizeerr;
+typedef struct { Error err; usize value; } usizeerr;
+
 #endif
