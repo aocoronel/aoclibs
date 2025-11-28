@@ -4,7 +4,6 @@
 #include <a_heap_fn_alloc.h>
 #include <assert.h>
 #include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
