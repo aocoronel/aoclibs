@@ -1,6 +1,5 @@
 -std=c99
 -Iheap
--Imem
 -Iglobal
 -Iinclude
 -Iinfo
