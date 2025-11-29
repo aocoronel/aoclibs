@@ -5,3 +5,6 @@
 -Iinfo
 -Imem
 -Iautomation
+-Itunit/include
+-DTUNIT
+-DTUNIT_FUZZ
