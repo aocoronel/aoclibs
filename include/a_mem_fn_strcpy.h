@@ -2,6 +2,7 @@
 #define AOCLIBS_MEM_STRCPY_H
 
 #include <a_types.h>
+#include <a_mem_fn_strlen.h>
 #include <a_error_types.h>
 
 #define a_strcpy(s1, s2) _strcpy(s1, s2, sizeof(s1), sizeof(s2), a_strlen(s2))
