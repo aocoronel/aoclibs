@@ -30,13 +30,13 @@ typedef struct HeapPtr {
 This type is a generic way to store allocations and follow along with their capacity. This type is managed by the following helper functions:
 
 ```c
-Error heap_alloc(HeapPtr *h, usize size);
-Error heap_clean_alloc(HeapPtr *h, usize count, usize size);
-Error resize_alloc(HeapPtr *h, usize new_size);
+Error heap_malloc(HeapPtr *h, usize size);
+Error heap_calloc(HeapPtr *h, usize count, usize size);
+Error heap_realloc(HeapPtr *h, usize new_size);
 void heap_free(HeapPtr *h);
 ```
 
-`heap_alloc` works on top of `malloc`, by updating `mem` and setting the pointer to `ptr`. `heap_clean_alloc` works on top of `calloc`. `resize_alloc` works on top of `realloc` and `heap_free` works on top of `free`.
+`heap_malloc` works on top of `malloc`, by updating `mem` and setting the pointer to `ptr`. `heap_calloc` works on top of `calloc`. `heap_realloc` works on top of `realloc` and `heap_free` works on top of `free`.
 
 ## String Type
 
@@ -64,4 +64,4 @@ Under the hood, String stores the pointer in the `HeapPtr.ptr` and its length in
 
 The mechanism of the String functions are basically like C's standard library ones.
 
-<!-- TODO: Continue talking about Stirng functions -->
+<!-- TODO: Continue talking about String functions -->

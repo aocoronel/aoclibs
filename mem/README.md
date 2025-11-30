@@ -21,3 +21,7 @@ const char my_string[128];
 It may not be necessary to heap allocate to make a simple buffered and formatted print to `stdout`, so this module rewrites common `string.h` functions with more checks.
 
 For that, all functions requires the size of the string. Each function has a macro, which simplifies the process of adding the size, but they require defining the string with a known size at compile-time, thus the convention. Since getting the `sizeof(*str)` returns the size of the pointer, this is the only way that I found out to deal with it. At least, all operations are guaranteed to occur in the bounds of the string buffer, and never reach out-of-bounds.
+
+## Functions
+
+All the functions defined in this module can be used directly, like `_strlen`, or using a macro, which is the most appropriate way: `a_strlen`. All macros expect the string to have a size known at compile-time, so don't use the macro, if you have a pointer and you know it's size.
