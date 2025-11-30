@@ -6,7 +6,7 @@
 #include <a_error_macros.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <a_assert_main.h>
+#include <a_error_assert.h>
 
 i32err add_ten(int x) {
         i32 value = x + 10;

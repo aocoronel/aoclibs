@@ -2,7 +2,7 @@
 #define AOCLIBS_ERROR_PRINT_H
 
 #include <a_error_types.h>
-#include <stdio.h>
+#include <bits/types/FILE.h>
 
 /*
  * Prints error message

@@ -3,6 +3,8 @@
 
 #include <a_types.h>
 
+#define ERROR_FAIL -1
+
 /*
  * Stores the error code and its message
 */
@@ -21,6 +23,7 @@ typedef struct { Error err; long long value; }  longlongerr;
 typedef struct { Error err; short value; } shorterr;
 typedef struct { Error err; void* value; } voiderr;
 
+// stdbool.h
 #ifdef __STDBOOL_H
 typedef struct { Error err; bool value; } boolerr;
 #endif /* __STDBOOL_H */
