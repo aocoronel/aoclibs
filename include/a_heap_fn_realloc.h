@@ -6,13 +6,24 @@
 
 /*
  * High abstraction to realloc.
+ *
  * Heap reallocate given HeapPtr to desired new size.
  * If realloc fails, the HeapPtr is untouched and still requires to be freed
  * with heap_free.
- * Return values:
- * 0 - The HeapPtr does not exist, or realloc failed.
- * 1 - A new pointer and size are set to HeapPtr.
-*/
-Error resize_alloc(HeapPtr *h, usize new_size);
+ *
+ * Sets pointer to h.ptr, and it's capacity to h.mem
+ *
+ * Defines:
+ *
+ * - NDEBUG: Disable debug prints. Disable non null h assert.
+ * - DEBUG_HEAP: Enable a_debug_heap.h
+ *
+ * Error.code:
+ *
+ * - Success: ok()
+ *
+ * - Fail: errno
+ */
+Error heap_realloc(HeapPtr *h, usize new_size);
 
 #endif

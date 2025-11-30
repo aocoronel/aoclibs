@@ -1,9 +1,8 @@
 #include <a_error_macros.h>
 #include <a_error_types.h>
 #include <a_mem_fn_strlen.h>
-#include <a_string_fn_error.h>
-#include <a_string_fn_strtrim.h>
-#include <a_string_fn_strclear.h>
+#include <a_string_fn_trim.h>
+#include <a_string_fn_clear.h>
 #include <a_string_macros.h>
 #include <a_string_types.h>
 #include <assert.h>
@@ -13,7 +12,7 @@
 static Error string_shrink_to_fit(String *s) {
         usize needed = s->length + 1;
         if (needed < s->heap.mem) {
-                try(resize_alloc(&s->heap, needed));
+                try(heap_realloc(&s->heap, needed));
         }
         return ok();
 }
@@ -33,9 +32,9 @@ void string_clear(String *s) {
         s->length = 0;
 }
 
-void string_garbage(void *ptr, usize len) {
-        assert(!ptr);
-        volatile unsigned char *p = ptr;
+void string_garbage(String *s, usize len) {
+        assert(!s->heap.ptr);
+        volatile unsigned char *p = s->heap.ptr;
         while (len--)
                 *p++ = 0;
 }

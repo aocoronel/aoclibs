@@ -5,7 +5,6 @@
 #include <a_heap_fn_alloc.h>
 #include <a_heap_fn_calloc.h>
 #include <a_heap_fn_free.h>
-#include <a_heap_fn_init.h>
 #include <a_heap_fn_realloc.h>
 #include <a_heap_types.h>
 

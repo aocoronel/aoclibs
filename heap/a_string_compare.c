@@ -2,8 +2,7 @@
 #include <a_error_main.h>
 #include <a_error_types.h>
 #include <a_mem_fn_strlen.h>
-#include <a_string_fn_error.h>
-#include <a_string_fn_strcmp.h>
+#include <a_string_fn_compare.h>
 #include <a_string_types.h>
 #include <assert.h>
 #include <string.h>

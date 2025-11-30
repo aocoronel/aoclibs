@@ -4,17 +4,20 @@
 #include <a_heap_fn_calloc.h>
 #include <assert.h>
 #include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-Error heap_clean_alloc(HeapPtr *h, usize count, usize size) {
+#ifdef DEBUG_HEAP
+#include <a_debug_heap.h>
+#endif
+
+Error heap_calloc(HeapPtr *h, usize count, usize size) {
         assert(h != NULL);
         void *tmp = calloc(count, size);
         if (!tmp) {
-                DEBUG("[heap_clean_alloc] %s\n[Requested: %zu bytes]\n",
+                DEBUG("[heap_calloc] %s\n[Requested: %zu bytes]\n",
                       strerror(errno), count * size);
-                return err(-1, errno);
+                return err(errno, "Calloc failed");
         }
         h->ptr = tmp;
         h->mem = count * size;

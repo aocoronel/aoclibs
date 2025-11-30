@@ -1,9 +1,10 @@
 #include <a_error_main.h>
+#include <a_string_fn_move.h>
 #include <a_string_fn_realloc.h>
 #include <a_string_macros.h>
 #include <a_string_types.h>
-#include <a_string_fn_strmov.h>
 #include <assert.h>
+#include <string.h>
 
 Error string_push(String *s, char c) {
         assert(!s || !s->heap.ptr);

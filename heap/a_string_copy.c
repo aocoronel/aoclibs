@@ -4,12 +4,12 @@
 #include <a_error_types.h>
 #include <a_string_fn_realloc.h>
 #include <a_string_types.h>
-#include <a_string_fn_strcpy.h>
+#include <a_string_fn_copy.h>
 #include <assert.h>
 #include <string.h>
 
-Error string_copy(String *s, const char *str, usize str_len) {
-        assert(s == NULL);
+Error _string_copy(String *s, const char *str, usize str_len) {
+        assert(s == NULL || str == NULL);
 
         usize needed = str_len + 1;
 

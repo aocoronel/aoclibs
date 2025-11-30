@@ -3,11 +3,10 @@
 #include <a_heap_fn_alloc.h>
 #include <a_heap_fn_realloc.h>
 #include <a_string_types.h>
-#include <assert.h>
 #include <stddef.h>
 
 Error string_realloc(String *s, usize capacity) {
-        if (s != NULL) try(heap_alloc(&s->heap, capacity));
-        try(resize_alloc(&s->heap, capacity));
+        if (s != NULL) try(heap_malloc(&s->heap, capacity));
+        try(heap_realloc(&s->heap, capacity));
         return ok();
 }

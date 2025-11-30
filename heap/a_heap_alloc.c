@@ -7,13 +7,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-Error heap_alloc(HeapPtr *h, usize size) {
+#ifdef DEBUG_HEAP
+#include <a_debug_heap.h>
+#endif
+
+Error heap_malloc(HeapPtr *h, usize size) {
         assert(h != NULL);
         void *tmp = malloc(size);
         if (!tmp) {
-                DEBUG("[heap_alloc] %s\n[Requested: %zu bytes]\n",
+                DEBUG("[heap_malloc] %s\n[Requested: %zu bytes]\n",
                       strerror(errno), size);
-                return err(-1, errno);
+                return err(errno, "Malloc failed");
         }
         h->ptr = tmp;
         h->mem = size;

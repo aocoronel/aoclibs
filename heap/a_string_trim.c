@@ -1,5 +1,5 @@
 #include <a_string_types.h>
-#include <a_string_fn_strtrim.h>
+#include <a_string_fn_trim.h>
 #include <assert.h>
 #include <ctype.h>
 

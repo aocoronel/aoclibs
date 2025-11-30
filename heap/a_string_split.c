@@ -1,8 +1,7 @@
 #include <a_error_main.h>
 #include <a_heap_main.h>
-#include <a_string_fn_error.h>
-#include <a_string_fn_strcreate.h>
-#include <a_string_fn_strplit.h>
+#include <a_string_fn_create.h>
+#include <a_string_fn_split.h>
 #include <a_string_macros.h>
 #include <a_string_types.h>
 #include <assert.h>
@@ -14,7 +13,7 @@ static stringerr string_from_len(const char *str, usize len) {
         Error err;
         String s = {0};
 
-        err = heap_alloc(&s.heap, len + 1);
+        err = heap_malloc(&s.heap, len + 1);
         if (err.code != 0) {
                 return (stringerr){ .err = err, .value = s };
         }
@@ -27,7 +26,7 @@ static stringerr string_from_len(const char *str, usize len) {
 static Error string_copy_buffer(String *dest, const char *src, usize len) {
         assert(!dest || !src);
         if (len + 1 > dest->heap.mem) {
-                try(resize_alloc(&dest->heap, len + 1));
+                try(heap_realloc(&dest->heap, len + 1));
         }
         memcpy(dest->heap.ptr, src, len);
         ((char *)dest->heap.ptr)[len] = '\0';
@@ -56,8 +55,8 @@ Error string_split(String *s, char delimiter, String *out_s1, String *out_s2) {
                 tmp_s1 = tmp_s1_err.value;
                 tmp_s2 = tmp_s2_err.value;
         } else {
-                tmp_s1_err = string_from(ptr);
-                tmp_s2_err = string_from("");
+                tmp_s1_err = _string_from(ptr, s->length);
+                tmp_s2_err = a_string_from("");
                 tmp_s1 = tmp_s1_err.value;
                 tmp_s2 = tmp_s2_err.value;
         }

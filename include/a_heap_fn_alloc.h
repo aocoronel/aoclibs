@@ -6,11 +6,20 @@
 
 /*
  * High abstraction to malloc.
- * Heap allocate without initiliazing all values to 0.
- * Return values:
- * 0 - The HeapPtr does not exist, or malloc failed.
- * 1 - A new pointer and size are set to HeapPtr.
+ *
+ * Sets pointer to h.ptr, and it's capacity to h.mem
+ *
+ * Defines:
+ *
+ * - NDEBUG: Disable debug prints. Disable non null h assert.
+ * - DEBUG_HEAP: Enable a_debug_heap.h
+ *
+ * Error.code:
+ *
+ * - Success: ok()
+ *
+ * - Fail: errno
  */
-Error heap_alloc(HeapPtr *h, usize size);
+Error heap_malloc(HeapPtr *h, usize size);
 
 #endif
