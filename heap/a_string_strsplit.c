@@ -12,8 +12,8 @@
 
 static stringerr string_from_len(const char *str, usize len) {
         Error err;
-        String s;
-        heap_init(&s.heap);
+        String s = {0};
+
         err = heap_alloc(&s.heap, len + 1);
         if (err.code != 0) {
                 return (stringerr){ .err = err, .value = s };

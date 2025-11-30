@@ -10,10 +10,9 @@
 stringerr string_create(usize cap) {
         if (cap == 0) cap = 16;
 
-        String s;
+        String s = {0};
         Error err;
 
-        heap_init(&s.heap);
         try_stringerr(heap_alloc(&s.heap, cap), s);
         s.length = 0;
         ((char *)s.heap.ptr)[0] = '\0';
@@ -23,11 +22,10 @@ stringerr string_create(usize cap) {
 stringerr string_from(const char *str) {
         assert(str != NULL);
 
+        String s = {0};
         Error err;
-        String s;
         usize len = strlen(str);
 
-        heap_init(&s.heap);
         try_stringerr(heap_alloc(&s.heap, len + 1), s);
         memcpy(s.heap.ptr, str, len + 1);
         s.length = len;
