@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_CONVERT_H
-#define AOCLIBS_CONVERT_H
+#ifndef AOCLIBS_MEM_CONVERT_H
+#define AOCLIBS_MEM_CONVERT_H
 
 #include <a_types.h>
 #include <stdbool.h>
