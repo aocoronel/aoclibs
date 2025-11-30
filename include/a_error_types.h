@@ -7,7 +7,7 @@
  * Stores the error code and its message
 */
 typedef struct {
-        int code;
+        i32 code;
         const char *msg;
 } Error;
 
