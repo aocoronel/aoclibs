@@ -46,3 +46,10 @@ build: setup
 [group: 'dev']
 buildf: reconfigure
   meson compile -C build
+
+# === Dependencies ===
+
+# Gets all dependencies
+[group: 'deps']
+deps:
+  sh scripts/get_dependency.sh
