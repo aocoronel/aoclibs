@@ -1,7 +1,8 @@
+#ifdef MEM_DEBUG
+#include <a_mem_debug.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <a_mem_debug.h>
 
 static void *(*std_malloc)(size_t) = NULL;
 static void *(*std_calloc)(size_t, size_t) = NULL;
@@ -118,3 +119,4 @@ void print_memory_summary(void) {
                 printf("No memory leaks detected.\n");
         }
 }
+#endif

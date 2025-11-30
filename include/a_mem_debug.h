@@ -1,3 +1,4 @@
+#ifdef MEM_DEBUG
 #ifndef AOCLIBS_MEM_DEBUG_H
 #define AOCLIBS_MEM_DEBUG_H
 
@@ -28,3 +29,4 @@ void debug_free(void *ptr, const char *func, const char *file, int line);
 void print_memory_summary(void);
 
 #endif
+#endif /* MEM_DEBUG */
