@@ -13,14 +13,24 @@ isize str_to_int(const char *str, const i32 _default) {
         return (isize)val;
 }
 
-f64 str_to_float(const char *str, const f64 _default) {
+f32 str_to_float(const char *str, const f32 _default) {
         assert(str != NULL);
         char *endptr;
-        double val = strtof(str, &endptr);
+        f32 val = strtof(str, &endptr);
         if (*endptr != '\0') {
                 return _default;
         }
-        return (f64)val;
+        return val;
+}
+
+f64 str_to_double(const char *str, const f64 _default) {
+        assert(str != NULL);
+        char *endptr;
+        f64 val = strtod(str, &endptr);
+        if (*endptr != '\0') {
+                return _default;
+        }
+        return val;
 }
 
 bool str_to_bool(const char *str, const bool _default) {

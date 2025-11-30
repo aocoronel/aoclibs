@@ -6,7 +6,9 @@
 
 isize str_to_int(const char *str, const i32 _default);
 
-f64 str_to_float(const char *str, const f64 _default);
+f32 str_to_float(const char *str, const f32 _default);
+
+f64 str_to_double(const char *str, const f64 _default);
 
 bool str_to_bool(const char *str, const bool _default);
 
