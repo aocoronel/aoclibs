@@ -1,4 +1,5 @@
 #ifdef DEBUG_HEAP
+
 #include <a_debug_heap.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -100,6 +101,10 @@ void debug_free(void *ptr, const char *func, const char *file, int line) {
         remove_entry(ptr);
         init_std_functions();
         std_free(ptr);
+}
+
+int count_leaks(void) {
+        return allocCount - freeCount;
 }
 
 void print_memory_summary(void) {
