@@ -7,6 +7,14 @@
 
 #define a_strcpy(s1, s2) _strcpy(s1, s2, sizeof(s1), a_strlen(s2))
 
+/*
+ * Copies the characters from s2 to s1
+ *
+ * Error Values:
+ * Success: ok
+ * Fail:
+ * - -1 :: s1 buffer doesn't fit the contents of s2
+*/
 Error _strcpy(char *s1, const char *s2, const usize s1_buff, usize s2_len);
 
 #endif /* AOCLIBS_MEM_STRCPY_H */
