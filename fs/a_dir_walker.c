@@ -12,7 +12,7 @@
 Error dir_walker(const char *path, bool recurse, dw_dir isdir,
                 dw_regular isregular, dw_symlink issymlink, dw_null isnull) {
         DIR *dir = opendir(path);
-        if (!dir) err(-1, errno);
+        if (!dir) err(errno, "failed to open directory");
 
         struct dirent *entry;
         char fullpath[4096];
