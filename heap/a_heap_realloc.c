@@ -7,6 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef NDEBUG
+#include <stdio.h>
+#endif
+
 #ifdef DEBUG_HEAP
 #include <a_debug_heap.h>
 #endif
@@ -16,7 +20,7 @@ Error heap_realloc(HeapPtr *h, usize new_size) {
 
         void *tmp = realloc(h->ptr, new_size);
         if (!tmp) {
-                DEBUG("[heap_realloc] %s\n[Current: %zu bytes, Requested: %zu bytes]\n",
+                PDEBUG("[heap_realloc] %s\n[Current: %zu bytes, Requested: %zu bytes]\n",
                       strerror(errno), h->mem, new_size);
                 return err(errno, "Realloc failed");
         }

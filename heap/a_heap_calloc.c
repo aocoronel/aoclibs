@@ -7,6 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef NDEBUG
+#include <stdio.h>
+#endif
+
 #ifdef DEBUG_HEAP
 #include <a_debug_heap.h>
 #endif
@@ -15,7 +19,7 @@ Error heap_calloc(HeapPtr *h, usize count, usize size) {
         assert(h != NULL);
         void *tmp = calloc(count, size);
         if (!tmp) {
-                DEBUG("[heap_calloc] %s\n[Requested: %zu bytes]\n",
+                PDEBUG("[heap_calloc] %s\n[Requested: %zu bytes]\n",
                       strerror(errno), count * size);
                 return err(errno, "Calloc failed");
         }

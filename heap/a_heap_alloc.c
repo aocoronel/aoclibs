@@ -7,6 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef NDEBUG
+#include <stdio.h>
+#endif
+
 #ifdef DEBUG_HEAP
 #include <a_debug_heap.h>
 #endif
@@ -15,7 +19,7 @@ Error heap_malloc(HeapPtr *h, usize size) {
         assert(h != NULL);
         void *tmp = malloc(size);
         if (!tmp) {
-                DEBUG("[heap_malloc] %s\n[Requested: %zu bytes]\n",
+                PDEBUG("[heap_malloc] %s\n[Requested: %zu bytes]\n",
                       strerror(errno), size);
                 return err(errno, "Malloc failed");
         }
