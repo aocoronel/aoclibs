@@ -1,51 +1,45 @@
-# Coronel's C Libraries
+# aoclibs
 
 This repository contemplates C libraries developed specially for personal CLI development.
 
-## How to use
+## Conventions
+
+### Documentation
 
 A README is being written for each module, explaining each function. I do encourage you to read the actual code and header files, since they are already a source of documentation themselves.
 
-Whenever the documentation is not explanatory enough, the corresponding `test.c` shows a real usage for each function.
-
-## Style
-
-Header files should be highly separated, and may allow the user to include just the parts of the library they find useful, thus minimizing unnecessary imports.
-
-While macros help in managing this kind of style, I do prefer to use it as least as I can.
+Whenever the documentation is not explanatory enough, the corresponding test file of save given name at `tests/` shows a real usage for each function.
 
 ### Header Files
 
-All header files start with `a_`, followed by their module name, and their type.
+Header files are defined in `aoclibs/` and separated by module. Each module has header files, which combines related functions, types and macros.
 
-- `assert` defines assert macros.
-- `fn` defines functions. The function name comes after.
-- `macros` defines macros.
-- `main` glue all headers from the module.
-- `type` defines types.
+The header guards are defined as follows: `AOCLIBS_MODULE_FILENAME_H`.
 
 ### Functions
 
-Functions starting with underscore means they have a macro, which starts with `a_`.
+Functions will *almost* start with the module name, followed by a short, yet descriptive name. Some functions may not follow this convention, and will, however, receive the filename as it's name. Another case, where this convention doesn't apply, is when a function starts with underscore. This means the function has a **must-use** macro by appending the letter `a`, like `a_strlen`.
 
-In the header files, all functions should explain what they do concisely, explain the returned values and errors, and what values the user should expect.
-
-Whenever a function has special behavior based on macros, it should be clarified.
+The documentation for each function is available in the header file. The documentation must describe what each function does, what defines can be set to apply special behavior, and describe the expected returned values or errors, if applicable.
 
 ### Macros
 
-Not all macros start with `a_`, but they do when they work on top of a function with a similar name.
+Whenever a macro starts with `a_`, it means they are an abstraction to a function of a similar name.
 
-Macros defined as `a_module_macros.h` are mere extra utilities, which may be useful to the user, but poses only as extra syntax, rather than real utility. However, all macros declared in other files must be reviewed and classified as strictly necessary to the module usage.
+### Tests
+
+Tests are written in the `test/` directory, and are structured in the same way as `aoclibs/`, and have test filenames in the same name as the header files.
+
+To run tests, [tunit](https://codeberg.org/aocoronel/tunit) is required.
 
 ## Code Formatting
 
-Take advantage of `.clang-format` to keep code consistency across all libraries. Some notable formatting guides used include:
+Take advantage of `.clang-format` to keep code consistency across all libraries. Some notable formatting style include:
 
 - 8 character indent
 - No brace wrapping
 - 80 character column limit
-- Use inline, when possible
+- Inline, when possible
 - Consistent spacing
 
 ## License

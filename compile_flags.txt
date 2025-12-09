@@ -1,10 +1,5 @@
 -std=c99
--Iheap
--Iglobal
--Iinclude
--Iinfo
--Imem
--Iautomation
+-I.
 -Itunit/include
 -DTUNIT
 -DTUNIT_FUZZ
