@@ -1,5 +1,3 @@
-# IO
-
 ## Bashgen & Zshgen
 
 A library to generate bash and zsh completion scripts.

@@ -1,5 +1,4 @@
-#include <aoclibs/error.h>
-#include <aoclibs/int.h>
+#include <aoclibs/common.h>
 #include <aoclibs/heap/heap.h>
 #include <assert.h>
 #include <errno.h>
@@ -20,7 +19,7 @@ Err heap_malloc(Heap *h, usize size) {
         if (!tmp) {
                 ptrace("[heap_malloc] %s [Requested: %zu bytes]\n",
                       strerror(errno), size);
-                return err(errno, "malloc failed");
+                return werr(errno, "malloc failed");
         }
         h->ptr = tmp;
         h->cap = size;

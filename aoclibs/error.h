@@ -3,7 +3,6 @@
 
 /* === Types === */
 
-#include <aoclibs/int.h>
 #include <stdio.h>
 
 #define ERR_FAIL -1
@@ -14,7 +13,7 @@
 /*
  * Stores the error code and its message
 */
-typedef struct { i32 code; const char *msg; } Err;
+typedef struct { int code; const char *msg; } Err;
 
 typedef struct { Err err; char value; }  char_e;
 typedef struct { Err err; char* value; } str_e;
@@ -31,6 +30,7 @@ typedef struct { Err err; void* value; } void_e;
 typedef struct { Err err; bool value; } boolerr;
 #endif /* __STDBOOL_H */
 
+#ifdef AOCLIBS_TYPES_H
 typedef struct { Err err; i8 value; } i8_e;
 typedef struct { Err err; i16 value; } i16_e;
 typedef struct { Err err; i32 value; } i32_e;
@@ -46,6 +46,7 @@ typedef struct { Err err; f64 value; } f64_e;
 
 typedef struct { Err err; isize value; } isize_e;
 typedef struct { Err err; usize value; } usize_e;
+#endif
 
 // clang-format on
 
@@ -54,7 +55,7 @@ typedef struct { Err err; usize value; } usize_e;
 /*
  * Creates an Err type
 */
-Err err(int code, const char msg[]);
+Err werr(int code, const char msg[]);
 
 /*
  * Returns success Err
@@ -104,7 +105,7 @@ Err err_println(Err err, FILE *output);
  */
 #define assert_ok(e)                                                   \
         do {                                                           \
-                if ((e).code != 0) {                                   \
+                if ((e).code != ERR_SUCCESS) {                         \
                         fprintf(stderr,                                \
                                 "Assertion failed: expected success\n" \
                                 "  got: %d : %s\n"                     \
@@ -120,7 +121,7 @@ Err err_println(Err err, FILE *output);
  */
 #define assert_err(e)                                                  \
         do {                                                           \
-                if ((e).code == 0) {                                   \
+                if ((e).code == ERR_SUCCESS) {                         \
                         fprintf(stderr,                                \
                                 "Assertion failed: expected error\n"   \
                                 "  got: %d : %s\n"                     \

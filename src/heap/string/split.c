@@ -1,3 +1,4 @@
+#include <aoclibs/common.h>
 #include <aoclibs/error.h>
 #include <aoclibs/heap/string.h>
 #include <aoclibs/int.h>
@@ -34,7 +35,7 @@ static Err split_copy_buffer(String *dest, const char *src, usize len) {
 
 Err string_split(String *s, char delimiter, String *out_s1, String *out_s2) {
         assert(!s || !s->heap.ptr || !out_s1 || !out_s2);
-        if (s->length == 0) return err(-1, "String is empty");
+        if (s->length == 0) return werr(-1, "String is empty");
 
         const char *ptr = (const char *)s->heap.ptr;
         usize i = 0;
@@ -79,7 +80,7 @@ Err string_split(String *s, char delimiter, String *out_s1, String *out_s2) {
 
 Err string_rsplit(String *s, char delimiter, String *out_s1, String *out_s2) {
         assert(!s || !s->heap.ptr || !out_s1 || !out_s2);
-        if (s->length == 0) return err(-1, "String is empty");
+        if (s->length == 0) return werr(-1, "String is empty");
 
         const char *ptr = (const char *)s->heap.ptr;
         usize i = s->length;
@@ -134,6 +135,6 @@ Err string_rsplit(String *s, char delimiter, String *out_s1, String *out_s2) {
                 string_free(&tmp_s2);
                 return ok();
         } else {
-                return err(-1, "String s doesn't contain the delimiter");
+                return werr(-1, "String s doesn't contain the delimiter");
         }
 }

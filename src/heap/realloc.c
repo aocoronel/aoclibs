@@ -1,5 +1,4 @@
-#include <aoclibs/error.h>
-#include <aoclibs/int.h>
+#include <aoclibs/common.h>
 #include <aoclibs/heap/heap.h>
 #include <assert.h>
 #include <errno.h>
@@ -21,7 +20,7 @@ Err heap_realloc(Heap *h, usize new_size) {
         if (!tmp) {
                 ptrace("[heap_realloc] %s [Current: %zu bytes, Requested: %zu bytes]\n",
                       strerror(errno), h->cap, new_size);
-                return err(errno, "realloc failed");
+                return werr(errno, "realloc failed");
         }
         h->ptr = tmp;
         h->cap = new_size;

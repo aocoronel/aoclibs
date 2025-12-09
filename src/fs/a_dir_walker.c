@@ -1,4 +1,4 @@
-#include <aoclibs/error.h>
+#include <aoclibs/common.h>
 #include <aoclibs/fs/types.h>
 #include <aoclibs/fs/file.h>
 #include <aoclibs/fs/dir.h>
@@ -13,7 +13,7 @@
 Err dir_walker(const char *path, bool recurse, dw_dir isdir, dw_reg isreg,
                dw_lnk islnk, dw_null isnull) {
         DIR *dir = opendir(path);
-        if (!dir) err(errno, "failed to open directory");
+        if (!dir) werr(errno, "failed to open directory");
 
         struct dirent *entry;
         char fullpath[DIR_WALKER_BUFF];

@@ -1,3 +1,4 @@
+#include <aoclibs/common.h>
 #include <aoclibs/error.h>
 #include <aoclibs/heap/string.h>
 #include <aoclibs/int.h>
@@ -21,7 +22,7 @@ Err string_push(String *s, char c) {
 
 Err string_pop(String *s) {
         assert(!s || !s->heap.ptr);
-        if (s->length == 0) return err(-1, "String is empty");
+        if (s->length == 0) return werr(-1, "String is empty");
 
         s->length--;
         ((char *)s->heap.ptr)[s->length] = '\0';
@@ -30,7 +31,7 @@ Err string_pop(String *s) {
 
 Err string_drop(String *s, usize index) {
         assert(!s || !s->heap.ptr);
-        if (index > s->length) return err(-1, "Out of bounds memory access");
+        if (index > s->length) return werr(-1, "Out of bounds memory access");
 
         char *ptr = (char *)s->heap.ptr;
         memmove(&ptr[index], &ptr[index + 1], s->length - index);

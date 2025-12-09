@@ -1,3 +1,4 @@
+#include <aoclibs/common.h>
 #include <aoclibs/heap/string.h>
 #include <aoclibs/mem/str.h>
 #include <aoclibs/error.h>

@@ -1,5 +1,4 @@
-#include <aoclibs/error.h>
-#include <aoclibs/int.h>
+#include <aoclibs/common.h>
 #include <aoclibs/mem/str.h>
 #include <assert.h>
 #include <stddef.h>

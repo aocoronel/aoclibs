@@ -1,3 +1,4 @@
+#include <aoclibs/common.h>
 #include <aoclibs/heap/string.h>
 #include <aoclibs/int.h>
 #include <assert.h>
