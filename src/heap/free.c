@@ -8,7 +8,7 @@
 
 void heap_free(Heap *h) {
         if (!h || h->ptr == NULL) return;
-        ptrace("[free] %s [%zu bytes]\n", h->ptr, h->cap);
+        PTRACE("[free] %s [%zu bytes]\n", h->ptr, h->cap);
         free(h->ptr);
         h->ptr = NULL;
         h->cap = 0;

@@ -125,14 +125,14 @@ Err rerrln(Err err, FILE *output);
 /* === Asserts === */
 
 #ifdef NDEBUG
-#define assert_ok(e) ((void)0)
-#define assert_err(e) ((void)0)
+#define ASSERT_OK(e) ((void)0)
+#define ASSERT_ERR(e) ((void)0)
 #else
 
 /*
  * Asserts the error code is success (code == 0)
  */
-#define assert_ok(e)                                                   \
+#define ASSERT_OK(e)                                                   \
         do {                                                           \
                 if ((e).code != Ok) {                                  \
                         fprintf(stderr,                                \
@@ -148,7 +148,7 @@ Err rerrln(Err err, FILE *output);
 /*
  * Asserts the error code is an error (code != 0)
  */
-#define assert_err(e)                                                  \
+#define ASSERT_ERR(e)                                                  \
         do {                                                           \
                 if ((e).code == Ok) {                                  \
                         fprintf(stderr,                                \

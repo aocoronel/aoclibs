@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
         // execute_something() returns an actual error
         Error err = execute_something(120);
         // Asserts err is an error
-        assert_err(err);
+        ASSERT_ERR(err);
         // Prints error message to stdout
         println_error(err, stdout);
 

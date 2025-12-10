@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
         printfc(ERROR, "file not found\n");
         printfc(WARN, "your software is out-of-date\n");
         printfc(CRITICAL, "the system is compromised!\n");
-        pdbg("debug message, ran if NDEBUG is not set\n");
-        ptrace("trace message, ran if NDEBUG is not set\n");
+        PDBG("debug message, ran if NDEBUG is not set\n");
+        PTRACE("trace message, ran if NDEBUG is not set\n");
         return 0;
 }

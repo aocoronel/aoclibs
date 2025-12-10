@@ -2,11 +2,11 @@
 #define AOCLIBS_IO_PRINTFC_H
 
 #ifdef NDEBUG
-#define pdbg(...) ((void)0)
-#define ptrace(...) ((void)0)
+#define PDBG(...) ((void)0)
+#define PTRACE(...) ((void)0)
 #else
-#define pdbg(...) printfc(DEBUG, __VA_ARGS__)
-#define ptrace(...) printfc(TRACE, __VA_ARGS__)
+#define PDBG(...) printfc(DEBUG, __VA_ARGS__)
+#define PTRACE(...) printfc(TRACE, __VA_ARGS__)
 #endif // NDEBUG
 
 typedef enum {

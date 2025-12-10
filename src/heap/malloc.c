@@ -17,7 +17,7 @@ Err heap_malloc(Heap *h, usize size) {
         assert(h != NULL);
         void *tmp = malloc(size);
         if (!tmp) {
-                ptrace("[heap_malloc] %s [Requested: %zu bytes]\n",
+                PTRACE("[heap_malloc] %s [Requested: %zu bytes]\n",
                        strerror(errno), size);
                 return eHeapAllocFailed;
         }

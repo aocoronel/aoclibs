@@ -17,7 +17,7 @@ Err heap_calloc(Heap *h, usize count, usize size) {
         assert(h != NULL);
         void *tmp = calloc(count, size);
         if (!tmp) {
-                ptrace("[heap_calloc] %s [Requested: %zu bytes]\n",
+                PTRACE("[heap_calloc] %s [Requested: %zu bytes]\n",
                        strerror(errno), count * size);
                 return eHeapAllocFailed;
         }
