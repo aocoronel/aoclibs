@@ -16,9 +16,11 @@ typedef struct {
 
 // clang-format off
 
-typedef struct { Err err; String value; } string_e;
+typedef struct { Err err; String value; } eString;
 
 // clang-format on
+
+eString werr_string(Err err, String s);
 
 /*
  * Appends a string literal str to a String s.
@@ -163,7 +165,7 @@ Err string_string_copy(String *s1, const String *s2);
  *
  * - Fail: errno
  */
-string_e string_create(usize cap);
+eString string_create(usize cap);
 
 /*
  * Allocates a String from a string literal.
@@ -181,7 +183,7 @@ string_e string_create(usize cap);
  *
  * - Fail: errno
  */
-string_e _string_from(const char *str, usize len);
+eString _string_from(const char *str, usize len);
 
 /*
  * Frees heap allocated String and HeapPtr.ptr.
@@ -217,7 +219,7 @@ void string_free(String *s);
  *
  * - Fail: ERROR_FAIL
  */
-usize_e string_find(String *s, const char c);
+eusize string_find(String *s, const char c);
 
 /*
  * Finds the last occurance of c in the String.
@@ -238,7 +240,7 @@ usize_e string_find(String *s, const char c);
  *
  * - Fail: ERROR_FAIL
  */
-usize_e string_reverse_find(String *s, const char c);
+eusize string_reverse_find(String *s, const char c);
 
 /*
  * Inserts a character into the String's ending.
@@ -347,5 +349,33 @@ void string_trim_trailing(String *s);
 #define a_string_copy(s1, s2) string_copy((s1), (s2), (sizeof(s2)))
 #define a_string_from(s) _string_from(s, sizeof(s))
 #define a_string_garbage(s) _string_garbage(s, s.length)
+
+/* Errors */
+
+#define STRING_ERROR_LIST                 \
+        X(ValNotFound, "value not found") \
+        X(DelimiterNotFound, "delimiter not found") \
+        X(OutOfBounds, "out of bounds access attempt") \
+        X(IsEmpty, "string is empty")
+
+typedef enum {
+#define X(enum_name, msg) String##enum_name,
+        STRING_ERROR_LIST
+#undef X
+} _StringErr;
+
+const char *const _StringErrMsg[] = {
+#define X(enum_name, msg) msg,
+        STRING_ERROR_LIST
+#undef X
+};
+
+#define X(enum_name, m)                                 \
+        const Err eString##enum_name = {                \
+                .code = String##enum_name,              \
+                .msg = _StringErrMsg[String##enum_name] \
+        };
+STRING_ERROR_LIST
+#undef X
 
 #endif // AOCLIBS_HEAP_STRING_H

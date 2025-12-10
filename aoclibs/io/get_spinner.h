@@ -6,5 +6,6 @@
  *
  * Using this function multiple times, gives the next spinner.
 */
-const char *get_spinner(void);
+const char *io_get_spinner(void);
+
 #endif

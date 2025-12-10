@@ -10,7 +10,7 @@
 #endif
 
 #ifdef DEBUG_HEAP
-#include <a_debug_heap.h>
+#include <aoclibs/debug/heap.h>
 #endif
 
 Err heap_malloc(Heap *h, usize size) {
@@ -18,8 +18,8 @@ Err heap_malloc(Heap *h, usize size) {
         void *tmp = malloc(size);
         if (!tmp) {
                 ptrace("[heap_malloc] %s [Requested: %zu bytes]\n",
-                      strerror(errno), size);
-                return werr(errno, "malloc failed");
+                       strerror(errno), size);
+                return eHeapAllocFailed;
         }
         h->ptr = tmp;
         h->cap = size;

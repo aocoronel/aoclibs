@@ -7,25 +7,25 @@
 
 // === Split ===
 
-static string_e split_from_len(const char *str, usize len) {
+static eString split_from_len(const char *str, usize len) {
         Err err;
-        String s = {0};
+        String s = { 0 };
 
         err = heap_malloc(&s.heap, len + 1);
         if (err.code != 0) {
-                return (string_e){ .err = err, .value = s };
+                return (eString){ .err = err, .value = s };
         }
         memcpy(s.heap.ptr, str, len);
         ((char *)s.heap.ptr)[len] = '\0';
         s.length = len;
-        return (string_e){ .err = ok(), .value = s };
+        return (eString){ .err = ok(), .value = s };
 }
 
 static Err split_copy_buffer(String *dest, const char *src, usize len) {
         assert(!dest || !src);
         if (len + 1 > dest->heap.cap) {
                 Err err = heap_realloc(&dest->heap, len + 1);
-                if (err.code != ERR_SUCCESS) return err;
+                if (err.code != Ok) return err;
         }
         memcpy(dest->heap.ptr, src, len);
         ((char *)dest->heap.ptr)[len] = '\0';
@@ -35,7 +35,7 @@ static Err split_copy_buffer(String *dest, const char *src, usize len) {
 
 Err string_split(String *s, char delimiter, String *out_s1, String *out_s2) {
         assert(!s || !s->heap.ptr || !out_s1 || !out_s2);
-        if (s->length == 0) return werr(-1, "String is empty");
+        if (s->length == 0) return eStringIsEmpty;
 
         const char *ptr = (const char *)s->heap.ptr;
         usize i = 0;
@@ -43,8 +43,8 @@ Err string_split(String *s, char delimiter, String *out_s1, String *out_s2) {
                 i++;
 
         Err err;
-        string_e tmp_s1_err;
-        string_e tmp_s2_err;
+        eString tmp_s1_err;
+        eString tmp_s2_err;
         String tmp_s1;
         String tmp_s2;
 
@@ -80,7 +80,7 @@ Err string_split(String *s, char delimiter, String *out_s1, String *out_s2) {
 
 Err string_rsplit(String *s, char delimiter, String *out_s1, String *out_s2) {
         assert(!s || !s->heap.ptr || !out_s1 || !out_s2);
-        if (s->length == 0) return werr(-1, "String is empty");
+        if (s->length == 0) return eStringIsEmpty;
 
         const char *ptr = (const char *)s->heap.ptr;
         usize i = s->length;
@@ -91,8 +91,8 @@ Err string_rsplit(String *s, char delimiter, String *out_s1, String *out_s2) {
 
         if (ptr[i] == delimiter) {
                 Err err;
-                string_e err_tmp_s1;
-                string_e err_tmp_s2;
+                eString err_tmp_s1;
+                eString err_tmp_s2;
                 String tmp_s1;
                 String tmp_s2;
 
@@ -115,16 +115,14 @@ Err string_rsplit(String *s, char delimiter, String *out_s1, String *out_s2) {
                 tmp_s1 = err_tmp_s1.value;
                 tmp_s2 = err_tmp_s2.value;
 
-                err = split_copy_buffer(out_s1, tmp_s1.heap.ptr,
-                                         tmp_s1.length);
+                err = split_copy_buffer(out_s1, tmp_s1.heap.ptr, tmp_s1.length);
                 if (err.code != 0) {
                         string_free(&tmp_s1);
                         string_free(&tmp_s2);
                         return err;
                 }
 
-                err = split_copy_buffer(out_s2, tmp_s1.heap.ptr,
-                                         tmp_s2.length);
+                err = split_copy_buffer(out_s2, tmp_s1.heap.ptr, tmp_s2.length);
                 if (err.code != 0) {
                         string_free(&tmp_s1);
                         string_free(&tmp_s2);
@@ -135,6 +133,6 @@ Err string_rsplit(String *s, char delimiter, String *out_s1, String *out_s2) {
                 string_free(&tmp_s2);
                 return ok();
         } else {
-                return werr(-1, "String s doesn't contain the delimiter");
+                return eStringDelimiterNotFound;
         }
 }

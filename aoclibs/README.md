@@ -43,15 +43,15 @@ And, of course, you could wrap an enum or defines to get over with these magic e
 Now, solving another problem, where a function has to return a value, but it can fail. There are a plenty of `[T]err` types defined in `error.h`, which include all classic types and my own aliased types. Whenever a library requires a different type, such a struct, it's straight-forward to add a new type. Here is an example:
 
 ```c
-typedef struct { Err err; char value; }  char_e;
-typedef struct { Err err; char* value; } str_e;
-typedef struct { Err err; double value; } double_e;
-typedef struct { Err err; float value; } float_e;
-typedef struct { Err err; int value; } int_e;
-typedef struct { Err err; long value; }  long_e;
-typedef struct { Err err; long long value; }  longlong_e;
-typedef struct { Err err; short value; } short_e;
-typedef struct { Err err; void* value; } void_e;
+typedef struct { Err err; char value; }  echar;
+typedef struct { Err err; char* value; } estr;
+typedef struct { Err err; double value; } edouble;
+typedef struct { Err err; float value; } efloat;
+typedef struct { Err err; int value; } eint;
+typedef struct { Err err; long value; }  elong;
+typedef struct { Err err; long long value; }  elonglong;
+typedef struct { Err err; short value; } eshort;
+typedef struct { Err err; void* value; } evoid;
 ```
 
 Although, it's easy to add a new type, but it's boring to add a macro or function to write each type, so I had to came with a easier way for `[T]err` types only:
@@ -66,7 +66,7 @@ I personally recommend to build the structure like above, rather than using a ma
 
 I've already covered `err` and `ok`, but there are still a little more to cover.
 
-`err_print` and `err_println` are a clean way to write just the error message to the output you want, but for more sophisticated writes, use the `err.msg` directly.
+`rerr` and `rerrln` are a clean way to write just the error message to the output you want, but for more sophisticated writes, use the `err.msg` directly.
 
 Another useful error utility is `panic`. Panic will write the line, file and function that called panic and will abort the program. With the same implementation comes the `unreachable` macro, which calls `panic` with "unreachable" message.
 

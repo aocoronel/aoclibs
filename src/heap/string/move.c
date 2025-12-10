@@ -11,7 +11,7 @@ Err string_push(String *s, char c) {
         usize needed = s->length + 2;
         if (needed > s->heap.cap) {
                 Err err = string_realloc(s, needed);
-                if (err.code != ERR_SUCCESS) return err;
+                if (err.code != Ok) return err;
         }
 
         ((char *)s->heap.ptr)[s->length] = c;
@@ -22,7 +22,7 @@ Err string_push(String *s, char c) {
 
 Err string_pop(String *s) {
         assert(!s || !s->heap.ptr);
-        if (s->length == 0) return werr(-1, "String is empty");
+        if (s->length == 0) return eStringIsEmpty;
 
         s->length--;
         ((char *)s->heap.ptr)[s->length] = '\0';
@@ -31,7 +31,7 @@ Err string_pop(String *s) {
 
 Err string_drop(String *s, usize index) {
         assert(!s || !s->heap.ptr);
-        if (index > s->length) return werr(-1, "Out of bounds memory access");
+        if (index > s->length) return eStringOutOfBounds;
 
         char *ptr = (char *)s->heap.ptr;
         memmove(&ptr[index], &ptr[index + 1], s->length - index);

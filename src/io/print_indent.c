@@ -1,3 +1,4 @@
+#include <aoclibs/int.h>
 #include <aoclibs/mem/str.h>
 #include <aoclibs/io/print.h>
 #include <ctype.h>
@@ -5,40 +6,40 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-void io_print_indent(const char *msg, int indent) {
+void io_print_indent(const char *msg, i32 indent) {
         struct winsize w;
         if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 || w.ws_col == 0) {
                 w.ws_col = 80;
         }
-        int width = w.ws_col;
+        const i32 WIDTH = w.ws_col;
 
         fprintf(stderr, "%-*s", indent, "");
         int line_pos = indent;
 
-        const char *start = msg;
-        const char *end = msg;
+        const char *START = msg;
+        const char *END = msg;
 
-        while (*end) {
-                while (isspace((unsigned char)*end))
-                        end++;
+        while (*END) {
+                while (isspace((unsigned char)*END))
+                        END++;
 
-                if (*end == ' ') break;
+                if (*END == ' ') break;
 
-                start = end;
-                while (*end && !isspace((unsigned char)*end))
-                        end++;
+                START = END;
+                while (*END && !isspace((unsigned char)*END))
+                        END++;
 
-                int word_len = end - start;
+                int word_len = END - START;
 
-                if (line_pos + word_len > width && line_pos > indent) {
+                if (line_pos + word_len > WIDTH && line_pos > indent) {
                         fprintf(stderr, " %*s", indent, "");
                         line_pos = indent;
                 }
 
-                fprintf(stderr, "%.*s", word_len, start);
+                fprintf(stderr, "%.*s", word_len, START);
                 line_pos += word_len;
 
-                if (*end && line_pos < width) {
+                if (*END && line_pos < WIDTH) {
                         fputc(' ', stderr);
                         line_pos++;
                 }

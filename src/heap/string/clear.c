@@ -7,10 +7,10 @@
 // === Flush ===
 
 static Err flush_shrink_to_fit(String *s) {
-        usize needed = s->length + 1;
-        if (needed < s->heap.cap) {
-                Err err = heap_realloc(&s->heap, needed);
-                if (err.code != ERR_SUCCESS) return err;
+        const usize NEEDED = s->length + 1;
+        if (NEEDED < s->heap.cap) {
+                Err err = heap_realloc(&s->heap, NEEDED);
+                if (err.code != Ok) return err;
         }
         return ok();
 }

@@ -11,7 +11,7 @@ static void (*std_free)(void *) = NULL;
 
 static void init_std_functions(void) {
         if (!std_malloc) {
-                std_malloc = malloc; // Use current malloc (system's)
+                std_malloc = malloc;
                 std_calloc = calloc;
                 std_realloc = realloc;
                 std_free = free;

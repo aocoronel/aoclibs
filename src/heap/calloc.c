@@ -10,7 +10,7 @@
 #endif
 
 #ifdef DEBUG_HEAP
-#include <a_debug_heap.h>
+#include <aoclibs/debug/heap.h>
 #endif
 
 Err heap_calloc(Heap *h, usize count, usize size) {
@@ -18,8 +18,8 @@ Err heap_calloc(Heap *h, usize count, usize size) {
         void *tmp = calloc(count, size);
         if (!tmp) {
                 ptrace("[heap_calloc] %s [Requested: %zu bytes]\n",
-                      strerror(errno), count * size);
-                return werr(errno, "calloc failed");
+                       strerror(errno), count * size);
+                return eHeapAllocFailed;
         }
         h->ptr = tmp;
         h->cap = count * size;

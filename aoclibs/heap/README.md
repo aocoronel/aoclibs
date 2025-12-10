@@ -45,10 +45,10 @@ typedef struct {
 typedef struct {
         Err err;
         String value;
-} string_e;
+} eString;
 ```
 
-`string_e` is a type used to return an Error and a String Type from a function. If you want to know more about the Error type, read the error module [README](../README.md).
+`eString` is a type used to return an Error and a String Type from a function. If you want to know more about the Error type, read the error module [README](../README.md).
 
 Under the hood, String stores the pointer in the `Heap.ptr` and its length in `length`.
 

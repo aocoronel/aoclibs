@@ -1,5 +1,6 @@
 -std=c99
 -I.
+-DDEBUG_HEAP
 -Itunit/include
 -DTUNIT
 -DTUNIT_FUZZ

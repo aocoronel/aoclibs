@@ -50,14 +50,14 @@ TEST(strcpy) {
 TEST(strtok) {
         char str1[128] = "Hello, world";
 
-        i32_e pos = a_strtok(str1, ',');
+        ei32 pos = a_strtok(str1, ',');
         ASSERT(pos.value == 5);
 }
 
 TEST(strrtok) {
         char str1[128] = "Hello, world";
 
-        i32_e pos = a_strrtok(str1, ',');
+        ei32 pos = a_strrtok(str1, ',');
         ASSERT(pos.value == 5);
 }
 

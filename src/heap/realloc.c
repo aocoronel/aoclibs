@@ -10,7 +10,7 @@
 #endif
 
 #ifdef DEBUG_HEAP
-#include <a_debug_heap.h>
+#include <aoclibs/debug/heap.h>
 #endif
 
 Err heap_realloc(Heap *h, usize new_size) {
@@ -19,8 +19,8 @@ Err heap_realloc(Heap *h, usize new_size) {
         void *tmp = realloc(h->ptr, new_size);
         if (!tmp) {
                 ptrace("[heap_realloc] %s [Current: %zu bytes, Requested: %zu bytes]\n",
-                      strerror(errno), h->cap, new_size);
-                return werr(errno, "realloc failed");
+                       strerror(errno), h->cap, new_size);
+                return eHeapAllocFailed;
         }
         h->ptr = tmp;
         h->cap = new_size;

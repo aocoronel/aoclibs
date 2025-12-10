@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #ifdef DEBUG_HEAP
-#include <a_debug_heap.h>
+#include <aoclibs/debug/heap.h>
 #endif
 
 void heap_free(Heap *h) {

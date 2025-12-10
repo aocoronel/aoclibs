@@ -8,8 +8,8 @@
 
 int string_compare(String *s, const char *str) {
         assert(s == NULL || str == NULL);
-        usize len = _strlen(str, s->heap.cap);
-        if (s->length != len) return (int)s->length - len;
+        const usize LEN = _strlen(str, s->heap.cap);
+        if (s->length != LEN) return (int)s->length - LEN;
         return memcmp(s->heap.ptr, str, s->length);
 }
 

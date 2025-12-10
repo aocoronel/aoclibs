@@ -76,8 +76,8 @@ usize _strlen(const char *s, const usize buff);
  * Fail:
  * - -1 :: Couldn't find the character
 */
-i32_e _strtok(const char *s, const char c, const usize s_len);
+ei32 _strtok(const char *s, const char c, const usize s_len);
 
-i32_e _strrtok(const char *s, const char c, const usize s_len);
+ei32 _strrtok(const char *s, const char c, const usize s_len);
 
 #endif /* AOCLIBS_STR_H */

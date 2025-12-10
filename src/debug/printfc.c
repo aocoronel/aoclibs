@@ -4,43 +4,43 @@
 #include <stdio.h>
 
 void printfc(LogLevel level, const char *fmt, ...) {
-        const char *color;
-        const char *label;
+        const char *COLOR;
+        const char *LABEL;
 
         switch (level) {
         case FATAL:
-                color = COLOR_RED;
-                label = "FATAL";
+                COLOR = COLOR_RED;
+                LABEL = "FATAL";
                 break;
         case ERROR:
-                color = COLOR_RED;
-                label = "ERROR";
+                COLOR = COLOR_RED;
+                LABEL = "ERROR";
                 break;
         case WARN:
-                color = COLOR_YELLOW;
-                label = "WARNING";
+                COLOR = COLOR_YELLOW;
+                LABEL = "WARNING";
                 break;
         case INFO:
-                color = COLOR_GREEN;
-                label = "INFO";
+                COLOR = COLOR_GREEN;
+                LABEL = "INFO";
                 break;
         case DEBUG:
-                color = COLOR_CYAN;
-                label = "DEBUG";
+                COLOR = COLOR_CYAN;
+                LABEL = "DEBUG";
                 break;
         case TRACE:
-                color = COLOR_MAGENTA;
-                label = "TRACE";
+                COLOR = COLOR_MAGENTA;
+                LABEL = "TRACE";
                 break;
         case CRITICAL:
-                color = COLOR_RED;
-                label = "CRITICAL";
+                COLOR = COLOR_RED;
+                LABEL = "CRITICAL";
                 break;
         }
 
         va_list args;
         va_start(args, fmt);
-        fprintf(stderr, "%s[%s]:%s ", color, label, COLOR_RESET);
+        fprintf(stderr, "%s[%s]:%s ", COLOR, LABEL, COLOR_RESET);
         vfprintf(stderr, fmt, args);
         va_end(args);
 }
