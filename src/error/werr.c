@@ -26,8 +26,8 @@ eu8     werr_u8(Err err, u8 value)      { return (eu8){err, value}; }
 eu16    werr_u16(Err err, u16 value)    { return (eu16){err, value}; }
 eu32    werr_u32(Err err, u32 value)    { return (eu32){err, value}; }
 eu64    werr_u64(Err err, u64 value)    { return (eu64){err, value}; }
-ef32    werr_f32(Err err, float value)       { return (ef32){err, value}; }
-ef64    werr_f64(Err err, double value)      { return (ef64){err, value}; }
+ef32    werr_f32(Err err, f32 value)       { return (ef32){err, value}; }
+ef64    werr_f64(Err err, f64 value)      { return (ef64){err, value}; }
 eisize  werr_isize(Err err, intptr_t value)  { return (eisize){err, value}; }
 eusize  werr_usize(Err err, uintptr_t value) { return (eusize){err, value}; }
 

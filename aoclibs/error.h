@@ -88,8 +88,8 @@ eu8 werr_u8(Err err, u8 value);
 eu16 werr_u16(Err err, u16 value);
 eu32 werr_u32(Err err, u32 value);
 eu64 werr_u64(Err err, u64 value);
-ef32 werr_f32(Err err, float value);
-ef64 werr_f64(Err err, double value);
+ef32 werr_f32(Err err, f32 value);
+ef64 werr_f64(Err err, f64 value);
 
 eisize werr_isize(Err err, intptr_t value);
 eusize werr_usize(Err err, uintptr_t value);
