@@ -1,7 +1,8 @@
 #include <stddef.h>
-#include <aoclibs/printh.h>
+#include <aoclibs/io/print.h>
+#include "../../src/cli/printh.h"
 
-struct ProgramCommands commands[] = {
+struct CmdMetadata commands[] = {
         { "bulk", NULL, "Edit the database using an EDITOR" },
         { "delete", "ID|URL|TAG",
           "Delete a bookmark or tag by ID, URL or TAG" },
@@ -17,7 +18,7 @@ struct ProgramCommands commands[] = {
         { "version", NULL, "Display current version" }
 };
 
-struct ProgramFlag flags[] = {
+struct OptionMetadata flags[] = {
         { NULL, "--note", "note", "Query for NOTE" },
         { NULL, "--tag", "tag", "Query for TAG" },
         { NULL, "--title", "title", "Query for TITLE" },

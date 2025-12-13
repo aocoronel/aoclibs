@@ -2,8 +2,8 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <a_mem_fn_strlen.h>
-#include <a_mem_fn_strcmp.h>
+#include <aoclibs/io/print.h>
+#include <aoclibs/mem/str.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
@@ -11,46 +11,6 @@
 
 static void print_header(const char *msg, const char *style) {
         fprintf(stderr, "%s%s%s", style, msg, PRINTH_RESET);
-}
-
-static int print_term_aligned(const char *desc, int indent) {
-    struct winsize w;
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 || w.ws_col == 0) {
-        w.ws_col = 80;
-    }
-    int width = w.ws_col;
-
-    fprintf(stderr, "%-*s", indent, "");
-    int line_pos = indent;
-
-    const char *start = desc;
-    const char *end = desc;
-
-    while (*end) {
-        while (isspace((unsigned char)*end)) end++;
-
-        if (*end == ' ') break;
-
-        start = end;
-        while (*end && !isspace((unsigned char)*end)) end++;
-
-        int word_len = end - start;
-
-        if (line_pos + word_len > width && line_pos > indent) {
-            fprintf(stderr, " %*s", indent, "");
-            line_pos = indent;
-        }
-
-        fprintf(stderr, "%.*s", word_len, start);
-        line_pos += word_len;
-
-        if (*end && line_pos < width) {
-            fputc(' ', stderr);
-            line_pos++;
-        }
-    }
-    fputc(' ', stderr);
-    return 0;
 }
 
 static void get_cmd_full(const CmdMetadata *cmd, char *buffer, size_t size) {
@@ -120,7 +80,7 @@ void printh(ProgramInfo program_info) {
 
         if (has_commands(program_info) != 0) {
                 print_header("Commands:", PRINTH_BOLD_UNDERLINE);
-                fprintf(out, "\n");
+                fputc('\n', stdout);
 
                 for (int i = 0; i < program_info.cmdc; i++) {
                         const char *cmd = program_info.commands[i].cmd;
@@ -140,15 +100,16 @@ void printh(ProgramInfo program_info) {
 
                         fprintf(out, "  %s\n", cmd_full);
                         if (desc && a_strlen(desc) > 0) {
-                                print_term_aligned(desc, PRINTH_DESC_INDENT);
+                                io_print_indent(desc, PRINTH_DESC_INDENT);
+                                fputc('\n', stdout);
                         }
                 }
-                fprintf(out, "\n");
+                fputc('\n', stdout);
         }
 
         if (has_options(program_info) != 0) {
                 print_header("Options:", PRINTH_BOLD_UNDERLINE);
-                fprintf(out, "\n");
+                fputc('\n', stdout);
 
                 for (int i = 0; i < program_info.flagc; i++) {
                         const char *short_opt = program_info.flags[i].short_opt;
@@ -179,20 +140,15 @@ void printh(ProgramInfo program_info) {
                                         upper_arg[j] = (char)toupper(arg[j]);
                                 }
 
-                                strncat(flag_buffer, " <",
-                                        sizeof(flag_buffer) -
-                                                strlen(flag_buffer) - 1);
-                                strncat(flag_buffer, upper_arg,
-                                        sizeof(flag_buffer) -
-                                                strlen(flag_buffer) - 1);
-                                strncat(flag_buffer, ">",
-                                        sizeof(flag_buffer) -
-                                                strlen(flag_buffer) - 1);
+                                a_strcat(flag_buffer, " <");
+                                a_strcat(flag_buffer, upper_arg);
+                                a_strcat(flag_buffer, ">");
                         }
 
                         fprintf(out, "  %s\n", flag_buffer);
-                        if (desc && strlen(desc) > 0) {
-                                print_term_aligned(desc, PRINTH_DESC_INDENT);
+                        if (desc && a_strlen(desc) > 0) {
+                                io_print_indent(desc, PRINTH_DESC_INDENT);
+                                fputc('\n', stdout);
                         }
                 }
         }

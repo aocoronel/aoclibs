@@ -12,32 +12,32 @@
  * Define the program command details
  */
 typedef struct CmdMetadata {
-  const char *args;
-  const char *cmd;
-  const char *desc;
+        const char *cmd;
+        const char *args;
+        const char *desc;
 } CmdMetadata;
 
 /*
  * Define the program flag details
  */
 typedef struct OptionMetadata {
-  const char *args;
-  const char *desc;
-  const char *long_opt;
-  const char *short_opt;
+        const char *short_opt;
+        const char *long_opt;
+        const char *args;
+        const char *desc;
 } OptionMetadata;
 
 /*
  * Define the program info
  */
 typedef struct {
-  int flagc;
-  int cmdc;
-  const char *name;
-  const char *desc;
-  const char *usage;
-  CmdMetadata *commands;
-  OptionMetadata *flags;
+        int flagc;
+        int cmdc;
+        const char *name;
+        const char *desc;
+        const char *usage;
+        CmdMetadata *commands;
+        OptionMetadata *flags;
 } ProgramInfo;
 
 /*

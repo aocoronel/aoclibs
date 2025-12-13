@@ -32,7 +32,7 @@ void io_print_indent(const char *msg, i32 indent) {
                 int word_len = END - START;
 
                 if (line_pos + word_len > WIDTH && line_pos > indent) {
-                        fprintf(stderr, " %*s", indent, "");
+                        fprintf(stderr, "\n%*s", indent, "");
                         line_pos = indent;
                 }
 
