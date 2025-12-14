@@ -1,5 +1,5 @@
-#include "aoclibs/cli/program_info.h"
 #include <aoclibs/cli/printh.h>
+#include <aoclibs/cli/bashgen.h>
 #include <aoclibs/common.h>
 #include <aoclibs/io/print.h>
 #include <stddef.h>
@@ -23,14 +23,14 @@ enum {
                        The url is mandatory"
 
 CLIArgument args[] = {
-        [ArgDel] = clarg("id|url|tag", "Either id, url or tag", NULL, ReqArg),
-        [ArgEdit] = clarg("field=val metadata", NULL, NULL, ReqArg),
-        [ArgIns] = clarg("metadata", METADATA_DESC, NULL, ReqArg),
-        [ArgNote] = clarg("note", NULL, NULL, ReqArg),
-        [ArgPath] = clarg("path", NULL, NULL, ReqArg),
-        [ArgTag] = clarg("tag", NULL, NULL, ReqArg),
-        [ArgTitle] = clarg("title", NULL, NULL, ReqArg),
-        [ArgURL] = clarg("url", NULL, NULL, ReqArg),
+        [ArgDel] = clarg("del", "id|url|tag", "Either id, url or tag", "find \"$BMARK_DB_DIR\" -type f", ReqArg),
+        [ArgEdit] = clarg("field", "field=val metadata", NULL, NULL, ReqArg),
+        [ArgIns] = clarg("metadata", "metadata", METADATA_DESC, NULL, ReqArg),
+        [ArgNote] = clarg("note", "note", NULL, NULL, ReqArg),
+        [ArgPath] = clarg("path", "path", NULL, "ls", ReqArg),
+        [ArgTag] = clarg("tag", "tag", NULL, "find \"$BMARK_DB_DIR\" -type f", ReqArg),
+        [ArgTitle] = clarg("title", "title", NULL, NULL, ReqArg),
+        [ArgURL] = clarg("url", "url", NULL, NULL, ReqArg),
 };
 
 CLICommand commands[] = {
@@ -58,8 +58,13 @@ CLIOption flags[] = {
         { "-u", "--url",      &args[ArgURL],   "Query url"                        },
 };
 
+CLIEnv env[] = {
+        { "BMARK_FILE", "${BMARK_FILE:-bookmark.db}" },
+        { "BMARK_DB_DIR", "${BMARK_DB_DIR:-$HOME/.local/share/bookmarks}" }
+};
+
 // Usage:
 int main() {
-        printh(commands, args, flags);
+        bashgen(commands, args, flags, env, ARRAY_LEN(env));
         return 0;
 }
