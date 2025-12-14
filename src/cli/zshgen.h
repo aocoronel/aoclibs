@@ -40,7 +40,7 @@ typedef struct {
         const char *usage;
         struct ProgramCommands *commands;
         struct ProgramFlag *flags;
-} ProgramInfo;
+} CLIProgram;
 #endif // !PROGRAM_VAR
 
 #ifndef BZ_COMPLETION
@@ -68,10 +68,10 @@ struct ProgramEnv {
 /*
  * Includes the program info and program arguments
  *
- * ProgramInfo, ProgramArguments
+ * CLIProgram, ProgramArguments
 */
 typedef struct {
-        ProgramInfo *info;
+        CLIProgram *info;
         int argc;
         int envc;
         struct ProgramArguments *args;

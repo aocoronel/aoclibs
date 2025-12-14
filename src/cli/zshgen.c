@@ -14,7 +14,7 @@ const char *find_comparg_zsh(const char *arg_name,
 }
 
 void generate_zsh_completion(const CompletionInfo *info) {
-        const ProgramInfo *pinfo = info->info;
+        const CLIProgram *pinfo = info->info;
         // Header
         printf("#compdef %s\n\n", pinfo->name);
         // Environment defaults

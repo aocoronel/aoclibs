@@ -1,45 +1,65 @@
-#include <stddef.h>
-#include <aoclibs/io/print.h>
+#include "aoclibs/cli/program_info.h"
 #include <aoclibs/cli/printh.h>
+#include <aoclibs/common.h>
+#include <aoclibs/io/print.h>
+#include <stddef.h>
 
-CmdMetadata commands[] = {
-        { "bulk", NULL, "Edit the database using an EDITOR" },
-        { "delete", "ID|URL|TAG",
-          "Delete a bookmark or tag by ID, URL or TAG" },
-        { "edit", "field=val URL TAG TITLE NOTES",
-          "Edit a bookmark FIELD=VALUE URL TAG TITLE NOTES" },
-        { "export", NULL, "Export bookmarks to an HTML file" },
-        { "import", NULL, "Import bookmarks from an HTML file" },
-        { "insert", "URL TAG TITLE NOTES",
-          "Insert a new bookmark URL TAG TITLE NOTES" },
-        { "list", "URL TAG TITLE NOTES",
-          "List all bookmarks URL TAG TITLE NOTES" },
-        { "setup", NULL, "Manually create a new database" },
-        { "version", NULL, "Display current version" }
+#define PROGRAM_NAME "bmark"
+#define PROGRAM_DESC "A simple bookmark manager"
+#define PROGRAM_USAGE "<OPTION> [COMMAND]"
+
+enum {
+        ArgDel,
+        ArgEdit,
+        ArgIns,
+        ArgNote,
+        ArgPath,
+        ArgTag,
+        ArgTitle,
+        ArgURL,
 };
 
-OptionMetadata flags[] = {
-        { NULL, "--note", "note", "Query for NOTE" },
-        { NULL, "--tag", "tag", "Query for TAG" },
-        { NULL, "--title", "title", "Query for TITLE" },
-        { "-u", "--url", "url", "Query for URL" },
-        { NULL, "--database", "string", "Use an alternative database" },
-        { "-h", "--help", NULL, "Displays this message and exits" },
-        { "-r", NULL, NULL, "List only the URL" },
-        { "-s", "--strict", NULL, "List will strictly match given query" }
+#define METADATA_DESC "<url> [tag] [title] [note]\n \
+                       The url is mandatory"
+
+CLIArgument args[] = {
+        [ArgDel] = clarg("id|url|tag", "Either id, url or tag", NULL, ReqArg),
+        [ArgEdit] = clarg("field=val metadata", NULL, NULL, ReqArg),
+        [ArgIns] = clarg("metadata", METADATA_DESC, NULL, ReqArg),
+        [ArgNote] = clarg("note", NULL, NULL, ReqArg),
+        [ArgPath] = clarg("path", NULL, NULL, ReqArg),
+        [ArgTag] = clarg("tag", NULL, NULL, ReqArg),
+        [ArgTitle] = clarg("title", NULL, NULL, ReqArg),
+        [ArgURL] = clarg("url", NULL, NULL, ReqArg),
 };
 
-ProgramInfo program_info = {
-        .flagc = sizeof(flags) / sizeof(flags[0]),
-        .cmdc = sizeof(commands) / sizeof(commands[0]),
-        .name = "bmark",
-        .desc = "A simple bookmark manager",
-        .usage = "<FLAG> [COMMAND]",
-        .commands = commands,
-        .flags = flags,
+CLICommand commands[] = {
+        // command   argument        description
+        { "bulk",    NULL,           "Edit the database using an EDITOR"  },
+        { "delete",  &args[ArgDel],  "Delete a bookmark or tag"           },
+        { "edit",    &args[ArgEdit], "Edit a bookmark"                    },
+        { "export",  NULL,           "Export bookmarks to an HTML file"   },
+        { "import",  NULL,           "Import bookmarks from an HTML file" },
+        { "insert",  &args[ArgIns],  "Insert a new bookmark"              },
+        { "list",    &args[ArgIns],  "List all bookmarks"                 },
+        { "setup",   NULL,           "Manually create a new database"     },
+        { "version", NULL,           "Display current version"            },
 };
 
+CLIOption flags[] = {
+        // short & long opts  argument      description
+        { "-h", "--help",     NULL,            "Displays this message and exits"      },
+        { NULL, "--database", &args[ArgPath],  "Use an alternative database"          },
+        { NULL, "--note",     &args[ArgNote],  "Query note"                           },
+        { NULL, "--tag",      &args[ArgTag],   "Query tag"                            },
+        { NULL, "--title",    &args[ArgTitle], "Query title"                          },
+        { "-r", NULL,         NULL,            "List only the url"                    },
+        { "-s", "--strict",   NULL,            "List will strictly match given query" },
+        { "-u", "--url",      &args[ArgURL],   "Query url"                        },
+};
+
+// Usage:
 int main() {
-        printh(program_info);
+        printh(commands, args, flags);
         return 0;
 }

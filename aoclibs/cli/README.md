@@ -77,7 +77,7 @@ struct ProgramFlag flags[] = {
 Provide program metadata:
 
 ```c
-ProgramInfo program_info = {
+CLIProgram program_info = {
         .flagc = sizeof(flags) / sizeof(flags[0]),
         .cmdc = sizeof(commands) / sizeof(commands[0]),
         .name = "bmark",

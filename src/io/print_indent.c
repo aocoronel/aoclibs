@@ -20,6 +20,13 @@ void io_print_indent(const char *msg, i32 indent) {
         const char *END = msg;
 
         while (*END) {
+                if (*END == '\n') {
+                        fputc('\n', stderr);
+                        fprintf(stderr, "%*s", indent, "");
+                        line_pos = indent;
+                        END++;
+                        continue;
+                }
                 while (isspace((unsigned char)*END))
                         END++;
 
