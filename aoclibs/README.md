@@ -68,7 +68,7 @@ I personally recommend to build the structure like above, rather than using a ma
 
 I've already covered `err` and `ok`, but there are still a little more to cover.
 
-`rerr` and `rerrln` are a clean way to write (or "read error") just the error message to the output you want, but for more sophisticated writes, use the `err.msg` directly.
+`read_err` and `read_errln` are a clean way to write (or "read error") just the error message to the output you want, but for more sophisticated writes, use the `err.msg` directly.
 
 Another useful error utility is `panic`. Panic will write the line, file and function that called panic and will abort the program. With the same implementation comes the `unreachable` macro, which calls `panic` with "unreachable" message.
 

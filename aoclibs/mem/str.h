@@ -13,10 +13,10 @@
 #define strcpy(s1, s2) _strcpy(s1, s2, sizeof(s1), strlen(s2))
 
 #define strcmp(s1, s2) _strcmp(s1, s2, strlen(s1), strlen(s2))
-#define a_strrcmp(s1, s2) _strrcmp(s1, s2, strlen(s1), strlen(s2))
+#define strrcmp(s1, s2) _strrcmp(s1, s2, strlen(s1), strlen(s2))
 
 #define strtok(s, c) _strtok(s, c, strlen(s))
-#define a_strrtok(s, c) _strrtok(s, c, strlen(s))
+#define strrtok(s, c) _strrtok(s, c, strlen(s))
 
 /* === Functions === */
 

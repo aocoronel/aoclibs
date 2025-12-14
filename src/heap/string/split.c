@@ -55,7 +55,7 @@ Err string_split(String *s, char delimiter, String *out_s1, String *out_s2) {
                 tmp_s2 = tmp_s2_err.value;
         } else {
                 tmp_s1_err = _string_from(ptr, s->length);
-                tmp_s2_err = a_string_from("");
+                tmp_s2_err = string_from("");
                 tmp_s1 = tmp_s1_err.value;
                 tmp_s2 = tmp_s2_err.value;
         }

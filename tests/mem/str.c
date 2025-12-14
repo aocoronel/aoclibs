@@ -21,7 +21,7 @@ TEST(strcmp) {
 TEST(strrcmp) {
         char str1[128] = "Hello, world!";
         char str2[86] = "Hello, world!";
-        i32 result = a_strrcmp(str1, str2);
+        i32 result = strrcmp(str1, str2);
 
         ASSERT(result == 0);
 }
@@ -57,7 +57,7 @@ TEST(strtok) {
 TEST(strrtok) {
         char str1[128] = "Hello, world";
 
-        ei32 pos = a_strrtok(str1, ',');
+        ei32 pos = strrtok(str1, ',');
         ASSERT(pos.value == 5);
 }
 

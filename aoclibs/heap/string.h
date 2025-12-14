@@ -2,8 +2,6 @@
 #define AOCLIBS_HEAP_STRING_H
 
 #include <aoclibs/heap/heap.h>
-#include <aoclibs/error.h>
-#include <aoclibs/int.h>
 
 /*
  * Define heap allocated strings.
@@ -346,9 +344,9 @@ void string_trim_trailing(String *s);
 
 /* === Macros === */
 
-#define a_string_copy(s1, s2) string_copy((s1), (s2), (sizeof(s2)))
-#define a_string_from(s) _string_from(s, sizeof(s))
-#define a_string_garbage(s) _string_garbage(s, s.length)
+#define string_copy(s1, s2) _string_copy((s1), (s2), (sizeof(s2)))
+#define string_from(s) _string_from(s, sizeof(s))
+#define string_garbage(s) _string_garbage(s, s.length)
 
 /* Errors */
 

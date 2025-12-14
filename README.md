@@ -24,7 +24,7 @@ The documentation for each function is available in the header file. The documen
 
 ### Macros
 
-Whenever a macro starts with `a_`, it means they are an abstraction to a function of a similar name.
+Whenever a function starts with `_`, it means there is a macro which adds an abstraction to this function, and it's meant to be used.
 
 ### Tests
 

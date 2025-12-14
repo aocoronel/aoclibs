@@ -1,8 +1,7 @@
 #ifndef AOCLIBS_HEAP_H
 #define AOCLIBS_HEAP_H
 
-#include <aoclibs/error.h>
-#include <aoclibs/int.h>
+#include <aoclibs/common.h>
 
 /*
  * Defines a pointer used for heap allocation, which is followed by it's size.

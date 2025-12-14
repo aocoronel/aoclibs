@@ -19,7 +19,7 @@ Err heap_realloc(Heap *h, usize new_size) {
         void *tmp = realloc(h->ptr, new_size);
         if (!tmp) {
                 PTRACE("[heap_realloc] %s [Current: %zu bytes, Requested: %zu bytes]\n",
-                       strerror(errno), h->cap, new_size);
+                       stread_error(errno), h->cap, new_size);
                 return eHeapAllocFailed;
         }
         h->ptr = tmp;
