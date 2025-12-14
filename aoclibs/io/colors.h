@@ -3,6 +3,10 @@
 
 #define COLOR_RESET "\x1b[0m"
 
+#define COLOR_BOLD "\x1b[1m"
+#define COLOR_UNDERLINE "\x1b[4m"
+#define COLOR_BOLD_UNDERLINE "\x1b[1;4m"
+
 #define COLOR_BLACK "\x1b[30m"
 #define COLOR_RED "\x1b[31m"
 #define COLOR_GREEN "\x1b[32m"
