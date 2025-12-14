@@ -4,7 +4,7 @@
 #include <aoclibs/cli/program_info.h>
 
 #define PRINTH_DESC_INDENT 10
-#define PRINTH_CMD_BUFFER 256
+#define PRINTH_BUFFER 128
 
 #define printh(cmds, arguments, options) \
     do { \
