@@ -115,12 +115,12 @@ _Noreturn void _panic(const char *__file, int __line, const char *__func,
 /*
  * Prints error message
 */
-Err rerr(Err error, FILE *output);
+Err read_err(Err error, FILE *output);
 
 /*
  * Prints error message, and appends a new line
 */
-Err rerrln(Err err, FILE *output);
+Err read_errln(Err err, FILE *output);
 
 /* === Asserts === */
 
