@@ -1,7 +1,7 @@
 #ifndef AOCLIBS_CLI_PROGRAM_INFO_H
 #define AOCLIBS_CLI_PROGRAM_INFO_H
 
-#define clarg(a, d, c, t) { .name = a, .desc = d, .completion = c, .type = t }
+#define clarg(i, a, d, c, t) { .id = i, .name = a, .desc = d, .completion = c, .type = t }
 
 enum CLIArgumentType {
         ReqArg,
@@ -10,8 +10,9 @@ enum CLIArgumentType {
 
 /*
  * Define the program argument details
- */
+*/
 typedef struct {
+        const char *id;
         const char *name;
         const char *desc;
         const char *completion;
@@ -20,7 +21,7 @@ typedef struct {
 
 /*
  * Define the program command details
- */
+*/
 typedef struct {
         const char *cmd;
         const CLIArgument *args;
@@ -29,7 +30,7 @@ typedef struct {
 
 /*
  * Define the program flag details
- */
+*/
 typedef struct {
         const char *short_opt;
         const char *long_opt;
@@ -39,7 +40,7 @@ typedef struct {
 
 /*
  * Define the program info
- */
+*/
 typedef struct {
         int flagc; // Flag count
         int cmdc; // Command count
