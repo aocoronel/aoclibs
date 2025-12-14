@@ -1,8 +1,8 @@
 #include <stddef.h>
 #include <aoclibs/io/print.h>
-#include "../../src/cli/printh.h"
+#include <aoclibs/cli/printh.h>
 
-struct CmdMetadata commands[] = {
+CmdMetadata commands[] = {
         { "bulk", NULL, "Edit the database using an EDITOR" },
         { "delete", "ID|URL|TAG",
           "Delete a bookmark or tag by ID, URL or TAG" },
@@ -18,7 +18,7 @@ struct CmdMetadata commands[] = {
         { "version", NULL, "Display current version" }
 };
 
-struct OptionMetadata flags[] = {
+OptionMetadata flags[] = {
         { NULL, "--note", "note", "Query for NOTE" },
         { NULL, "--tag", "tag", "Query for TAG" },
         { NULL, "--title", "title", "Query for TITLE" },
