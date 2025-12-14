@@ -75,12 +75,11 @@ void printh(ProgramInfo program_info) {
         fprintf(out, "%s | %s\n\n", program_info.name, program_info.desc);
 
         print_header("Usage:", PRINTH_BOLD_UNDERLINE);
-        fprintf(out, "  %s%s%s", PRINTH_BOLD, program_info.name, PRINTH_RESET);
-        fprintf(out, " %s\n\n", program_info.usage);
+        fprintf(out, "  %s%s%s %s\n\n", PRINTH_BOLD, program_info.name,
+                PRINTH_RESET, program_info.usage);
 
         if (has_commands(program_info) != 0) {
-                print_header("Commands:", PRINTH_BOLD_UNDERLINE);
-                fputc('\n', stdout);
+                print_header("Commands:\n", PRINTH_BOLD_UNDERLINE);
 
                 for (int i = 0; i < program_info.cmdc; i++) {
                         const char *cmd = program_info.commands[i].cmd;
@@ -108,8 +107,7 @@ void printh(ProgramInfo program_info) {
         }
 
         if (has_options(program_info) != 0) {
-                print_header("Options:", PRINTH_BOLD_UNDERLINE);
-                fputc('\n', stdout);
+                print_header("Options:\n", PRINTH_BOLD_UNDERLINE);
 
                 for (int i = 0; i < program_info.flagc; i++) {
                         const char *short_opt = program_info.flags[i].short_opt;
