@@ -18,7 +18,7 @@ The header guards are defined as follows: `AOCLIBS_MODULE_FILENAME_H`.
 
 ### Functions
 
-Functions will _almost_ start with the module name, followed by a short, yet descriptive name. Some functions may not follow this convention, and will, however, receive the filename as it's name. Another case, where this convention doesn't apply, is when a function starts with underscore. This means the function has a **must-use** macro by appending the letter `a`, like `a_strlen`.
+Functions will _almost_ start with the module name, followed by a short, yet descriptive name. Some functions may not follow this convention, and will, however, receive the filename as it's name. Another case, where this convention doesn't apply, is when a function starts with underscore. This means the function has a **must-use** macro by appending the letter `a`, like `strlen`.
 
 The documentation for each function is available in the header file. The documentation must describe what each function does, what defines can be set to apply special behavior, and describe the expected returned values or errors, if applicable.
 
@@ -39,7 +39,7 @@ To run tests, [tunit](https://codeberg.org/aocoronel/tunit) is required.
 | Functions                                          | snake_case           | io_print_indent() |
 | Variables                                          | snake_case           | count             |
 | Constant                                           | SCREAMING_SNAKE_CASE | TERM_WIDTH        |
-| Function-like macro                                | snake_case           | a_strlen()        |
+| Function-like macro                                | snake_case           | strlen()        |
 | Function-like macro, when #define changes behavior | SCREAMING_SNAKE_CASE | ASSERT_OK()       |
 | Macros (#define)                                   | SCREAMING_SNAKE_CASE | AOCLIBS_ERROR_H   |
 | Global variables                                   | snake_case           | error_count       |

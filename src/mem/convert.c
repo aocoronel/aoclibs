@@ -36,8 +36,8 @@ f64 convert_strtod(const char *str, const f64 _default) {
 
 bool convert_strtob(const char *str, const bool _default) {
         assert(str != NULL);
-        if (a_strcmp(str, "true") == 0 || a_strcmp(str, "1") == 0) return true;
-        if (a_strcmp(str, "false") == 0 || a_strcmp(str, "0") == 0)
+        if (strcmp(str, "true") == 0 || strcmp(str, "1") == 0) return true;
+        if (strcmp(str, "false") == 0 || strcmp(str, "0") == 0)
                 return false;
         return _default;
 }

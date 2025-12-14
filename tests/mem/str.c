@@ -5,7 +5,7 @@
 
 TEST(strlen) {
         char str1[128] = "Hello, world!";
-        i32 str_len = a_strlen(str1);
+        i32 str_len = strlen(str1);
 
         ASSERT(str_len == 13);
 }
@@ -13,7 +13,7 @@ TEST(strlen) {
 TEST(strcmp) {
         char str1[128] = "Hello, world!";
         char str2[86] = "Hello, world!";
-        i32 result = a_strcmp(str1, str2);
+        i32 result = strcmp(str1, str2);
 
         ASSERT(result == 0);
 }
@@ -29,28 +29,28 @@ TEST(strrcmp) {
 TEST(strcat) {
         char str1[128] = "Hello";
         char str2[86] = ", world!";
-        a_strcat(str1, str2);
+        strcat(str1, str2);
 
-        ASSERT(a_strlen(str1) == 5 + 8);
-        ASSERT(str1[a_strlen(str1)] == '\0');
+        ASSERT(strlen(str1) == 5 + 8);
+        ASSERT(str1[strlen(str1)] == '\0');
 
-        ASSERT(a_strcmp(str1, "Hello, world!") == 0);
+        ASSERT(strcmp(str1, "Hello, world!") == 0);
 }
 
 TEST(strcpy) {
         char str1[128] = "Hello";
         char str2[86] = ", world!";
-        a_strcpy(str1, str2);
+        strcpy(str1, str2);
 
-        ASSERT(a_strlen(str1) == a_strlen(str2));
+        ASSERT(strlen(str1) == strlen(str2));
 
-        ASSERT(a_strcmp(str1, ", world!") == 0);
+        ASSERT(strcmp(str1, ", world!") == 0);
 }
 
 TEST(strtok) {
         char str1[128] = "Hello, world";
 
-        ei32 pos = a_strtok(str1, ',');
+        ei32 pos = strtok(str1, ',');
         ASSERT(pos.value == 5);
 }
 

@@ -19,8 +19,8 @@ Err dir_walker(const char *path, bool recurse, dw_dir isdir, dw_reg isreg,
         char fullpath[DIR_WALKER_BUFF];
 
         while ((entry = readdir(dir)) != NULL) {
-                if (a_strcmp(entry->d_name, ".") == 0 ||
-                    a_strcmp(entry->d_name, "..") == 0)
+                if (strcmp(entry->d_name, ".") == 0 ||
+                    strcmp(entry->d_name, "..") == 0)
                         continue;
 
                 snprintf(fullpath, sizeof(fullpath), "%s/%s", path,

@@ -6,17 +6,17 @@
 
 /* === Macros === */
 
-#define a_strlen(s) _strlen(s, sizeof(s))
+#define strlen(s) _strlen(s, sizeof(s))
 
-#define a_strcat(s1, s2) _strcat(s1, s2, sizeof(s1), a_strlen(s1), a_strlen(s2))
+#define strcat(s1, s2) _strcat(s1, s2, sizeof(s1), strlen(s1), strlen(s2))
 
-#define a_strcpy(s1, s2) _strcpy(s1, s2, sizeof(s1), a_strlen(s2))
+#define strcpy(s1, s2) _strcpy(s1, s2, sizeof(s1), strlen(s2))
 
-#define a_strcmp(s1, s2) _strcmp(s1, s2, a_strlen(s1), a_strlen(s2))
-#define a_strrcmp(s1, s2) _strrcmp(s1, s2, a_strlen(s1), a_strlen(s2))
+#define strcmp(s1, s2) _strcmp(s1, s2, strlen(s1), strlen(s2))
+#define a_strrcmp(s1, s2) _strrcmp(s1, s2, strlen(s1), strlen(s2))
 
-#define a_strtok(s, c) _strtok(s, c, a_strlen(s))
-#define a_strrtok(s, c) _strrtok(s, c, a_strlen(s))
+#define strtok(s, c) _strtok(s, c, strlen(s))
+#define a_strrtok(s, c) _strrtok(s, c, strlen(s))
 
 /* === Functions === */
 

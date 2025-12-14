@@ -24,4 +24,4 @@ For that, all functions requires the size of the string. Each function has a mac
 
 ## Functions
 
-All the functions defined in this module can be used directly, like `_strlen`, or using a macro, which is the most appropriate way: `a_strlen`. All macros expect the string to have a size known at compile-time, so don't use the macro, if you have a pointer and you know it's size.
+All the functions defined in this module can be used directly, like `_strlen`, or using a macro, which is the most appropriate way: `strlen`. All macros expect the string to have a size known at compile-time, so don't use the macro, if you have a pointer and you know it's size.
