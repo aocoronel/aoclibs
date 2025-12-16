@@ -1,14 +1,14 @@
-#ifndef AOCLIBS_CLI_BASHGEN_H
-#define AOCLIBS_CLI_BASHGEN_H
+#ifndef AOCLIBS_CLI_ZSHGEN_H
+#define AOCLIBS_CLI_ZSHGEN_H
 
 #include <aoclibs/int.h>
 #include <aoclibs/cli/program_info.h>
 
-#define BASHGEN_ARG_BUFFER 64
+#define ZSHGEN_ARG_BUFFER 64
 
-#define bashgen(cmds, arguments, options, env, envc) \
+#define zshgen(cmds, arguments, options, env, envc) \
     do { \
-        _bashgen((CLIProgram){ \
+        _zshgen((CLIProgram){ \
             .flagc  = ARRAY_LEN(options), \
             .cmdc   = ARRAY_LEN(cmds), \
             .argc   = ARRAY_LEN(arguments), \
@@ -34,6 +34,5 @@ typedef struct {
 /*
  * Generates bash completions for commands, flags and arguments
 */
-void _bashgen(CLIProgram prog, const CLIEnv *env, usize envc);
-
+void _zshgen(CLIProgram prog, const CLIEnv *env, usize envc);
 #endif

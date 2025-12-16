@@ -1,4 +1,3 @@
-#include "aoclibs/cli/program_info.h"
 #include <aoclibs/cli/printh.h>
 #include <aoclibs/common.h>
 #include <aoclibs/io/print.h>
@@ -23,17 +22,18 @@ enum {
         "<url> [tag] [title] [note]\n \
                        The url is mandatory"
 
+#define FIND_BMARK_DIR "find \"$BMARK_DB_DIR\" -type f"
+
 CLIArgument args[] = {
-        [ArgDel] = clarg("del", "id|url|tag", "Either id, url or tag",
-                         "find \"$BMARK_DB_DIR\" -type f", ReqArg),
-        [ArgEdit] = clarg("field", "field=val metadata", NULL, NULL, ReqArg),
-        [ArgIns] = clarg("metadata", "metadata", METADATA_DESC, NULL, ReqArg),
-        [ArgNote] = clarg("note", "note", NULL, NULL, ReqArg),
-        [ArgPath] = clarg("path", "path", NULL, "ls", ReqArg),
-        [ArgTag] = clarg("tag", "tag", NULL, "find \"$BMARK_DB_DIR\" -type f",
-                         ReqArg),
-        [ArgTitle] = clarg("title", "title", NULL, NULL, ReqArg),
-        [ArgURL] = clarg("url", "url", NULL, NULL, ReqArg),
+        [ArgDel] = { "id|url|tag",         "Either id, url or tag", FIND_BMARK_DIR,
+                    ReqArg                                                                                   },
+        [ArgEdit] = { "field=val metadata", NULL,                    NULL,                             ReqArg },
+        [ArgIns] = { "metadata",           METADATA_DESC,           NULL,                             ReqArg },
+        [ArgNote] = { "note",               NULL,                    NULL,                             ReqArg },
+        [ArgPath] = { "path",               NULL,                    "ls",                             ReqArg },
+        [ArgTag] = { "tag",                NULL,                    "find \"$BMARK_DB_DIR\" -type f", ReqArg },
+        [ArgTitle] = { "title",              NULL,                    NULL,                             ReqArg },
+        [ArgURL] = { "url",                NULL,                    NULL,                             ReqArg },
 };
 
 CLICommand commands[] = {
