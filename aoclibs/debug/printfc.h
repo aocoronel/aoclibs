@@ -5,23 +5,43 @@
 #define PDBG(...) ((void)0)
 #define PTRACE(...) ((void)0)
 #else
-#define PDBG(...) printfc(DEBUG, __VA_ARGS__)
-#define PTRACE(...) printfc(TRACE, __VA_ARGS__)
+#define PDBG(...) printfc_debug(__VA_ARGS__)
+#define PTRACE(...) printfc_trace(__VA_ARGS__)
 #endif // NDEBUG
 
-typedef enum {
-        TRACE,
-        DEBUG,
-        INFO,
-        WARN,
-        ERROR,
-        CRITICAL,
-        FATAL
-} LogLevel;
+/*
+ * Print fatal formatted message to stderr
+*/
+void printfc_fatal(const char *fmt, ...);
 
 /*
- * Print colored and formatted messages to stderr, based on LogLevel
+ * Print error formatted message to stderr
 */
-void printfc(LogLevel level, const char *fmt, ...);
+void printfc_error(const char *fmt, ...);
+
+/*
+ * Print warning formatted message to stderr
+*/
+void printfc_warn(const char *fmt, ...);
+
+/*
+ * Print info formatted message to stderr
+*/
+void printfc_info(const char *fmt, ...);
+
+/*
+ * Print debug formatted message to stderr
+*/
+void printfc_debug(const char *fmt, ...);
+
+/*
+ * Print trace formatted message to stderr
+*/
+void printfc_trace(const char *fmt, ...);
+
+/*
+ * Print critical formatted message to stderr
+*/
+void printfc_critical(const char *fmt, ...);
 
 #endif
