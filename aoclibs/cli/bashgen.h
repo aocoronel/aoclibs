@@ -9,9 +9,9 @@
 #define bashgen(cmds, arguments, options, env, envc) \
     do { \
         _bashgen((CLIProgram){ \
-            .flagc  = ARRAY_LEN(options), \
-            .cmdc   = ARRAY_LEN(cmds), \
-            .argc   = ARRAY_LEN(arguments), \
+            .flagc  = array_len(options), \
+            .cmdc   = array_len(cmds), \
+            .argc   = array_len(arguments), \
             .name   = PROGRAM_NAME, \
             .desc   = PROGRAM_DESC, \
             .usage  = PROGRAM_USAGE, \

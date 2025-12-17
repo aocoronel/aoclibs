@@ -67,6 +67,6 @@ CLIEnv env[] = {
 
 // Usage:
 int main() {
-        zshgen(commands, args, flags, env, ARRAY_LEN(env));
+        zshgen(commands, args, flags, env, array_len(env));
         return 0;
 }
