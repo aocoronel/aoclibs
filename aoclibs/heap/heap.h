@@ -83,29 +83,4 @@ Err heap_calloc(Heap *h, usize count, usize size);
  */
 Err heap_realloc(Heap *h, usize new_size);
 
-/* Errors */
-
-#define HEAP_ERROR_LIST                 \
-        X(AllocFailed, "allocation failed")
-
-typedef enum {
-#define X(enum_name, msg) Heap##enum_name,
-        HEAP_ERROR_LIST
-#undef X
-} _HeapErr;
-
-const char *const _HeapErrMsg[] = {
-#define X(enum_name, msg) msg,
-        HEAP_ERROR_LIST
-#undef X
-};
-
-#define X(enum_name, m)                                 \
-        const Err eHeap##enum_name = {                \
-                .code = Heap##enum_name,              \
-                .msg = _HeapErrMsg[Heap##enum_name] \
-        };
-HEAP_ERROR_LIST
-#undef X
-
 #endif

@@ -1,6 +1,6 @@
 #include <aoclibs/common.h>
 #include <aoclibs/heap/heap.h>
-#include <assert.h>
+#include <aoclibs/assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,12 +14,14 @@
 #endif
 
 Err heap_calloc(Heap *h, usize count, usize size) {
-        assert(h != NULL);
+        ASSERT(h != NULL, "pointer cannot be NULL");
+        ASSERT(size > 0, "size cannot be negative");
+
         void *tmp = calloc(count, size);
         if (!tmp) {
                 PTRACE("[heap_calloc] %s [Requested: %zu bytes]\n",
-                       stread_error(errno), count * size);
-                return eHeapAllocFailed;
+                       strerror(errno), count * size);
+                return werr(errno, strerror(errno));
         }
         h->ptr = tmp;
         h->cap = count * size;
