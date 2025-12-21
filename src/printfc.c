@@ -1,9 +1,10 @@
+#include <aoclibs/common.h>
+#include <aoclibs/printfc.h>
 #include <aoclibs/io/colors.h>
-#include <aoclibs/debug/printfc.h>
 #include <stdarg.h>
 #include <stdio.h>
 
-void printfc_fatal(const char *fmt, ...) {
+void printfc_fatal(const char *_Nonnull fmt, ...) {
         va_list args;
         va_start(args, fmt);
         fprintf(stderr, "%s[%s]:%s ", COLOR_RED, "FATAL", COLOR_RESET);
@@ -11,7 +12,7 @@ void printfc_fatal(const char *fmt, ...) {
         va_end(args);
 }
 
-void printfc_error(const char *fmt, ...) {
+void printfc_error(const char *_Nonnull fmt, ...) {
         va_list args;
         va_start(args, fmt);
         fprintf(stderr, "%s[%s]:%s ", COLOR_RED, "ERROR", COLOR_RESET);
@@ -19,7 +20,7 @@ void printfc_error(const char *fmt, ...) {
         va_end(args);
 }
 
-void printfc_warn(const char *fmt, ...) {
+void printfc_warn(const char *_Nonnull fmt, ...) {
         va_list args;
         va_start(args, fmt);
         fprintf(stderr, "%s[%s]:%s ", COLOR_YELLOW, "WARNING", COLOR_RESET);
@@ -27,7 +28,7 @@ void printfc_warn(const char *fmt, ...) {
         va_end(args);
 }
 
-void printfc_info(const char *fmt, ...) {
+void printfc_info(const char *_Nonnull fmt, ...) {
         va_list args;
         va_start(args, fmt);
         fprintf(stderr, "%s[%s]:%s ", COLOR_GREEN, "INFO", COLOR_RESET);
@@ -35,7 +36,7 @@ void printfc_info(const char *fmt, ...) {
         va_end(args);
 }
 
-void printfc_debug(const char *fmt, ...) {
+void printfc_debug(const char *_Nonnull fmt, ...) {
         va_list args;
         va_start(args, fmt);
         fprintf(stderr, "%s[%s]:%s ", COLOR_CYAN, "DEBUG", COLOR_RESET);
@@ -43,7 +44,7 @@ void printfc_debug(const char *fmt, ...) {
         va_end(args);
 }
 
-void printfc_trace(const char *fmt, ...) {
+void printfc_trace(const char *_Nonnull fmt, ...) {
         va_list args;
         va_start(args, fmt);
         fprintf(stderr, "%s[%s]:%s ", COLOR_MAGENTA, "TRACE", COLOR_RESET);
@@ -51,7 +52,7 @@ void printfc_trace(const char *fmt, ...) {
         va_end(args);
 }
 
-void printfc_critical(const char *fmt, ...) {
+void printfc_critical(const char *_Nonnull fmt, ...) {
         va_list args;
         va_start(args, fmt);
         fprintf(stderr, "%s[%s]:%s ", COLOR_RED, "CRITICAL", COLOR_RESET);
