@@ -1,12 +1,9 @@
 #include <aoclibs/common.h>
 #include <aoclibs/heap/string.h>
-#include <aoclibs/error.h>
-#include <aoclibs/int.h>
-#include <assert.h>
 
 // === Flush ===
 
-static Err flush_shrink_to_fit(String *s) {
+static Err flush_shrink_to_fit(String *_Nonnull s) {
         const usize NEEDED = s->length + 1;
         if (NEEDED < s->heap.cap) {
                 Err err = heap_realloc(&s->heap, NEEDED);
@@ -15,8 +12,9 @@ static Err flush_shrink_to_fit(String *s) {
         return ok();
 }
 
-Err string_flush(String *s) {
-        assert(!s || !s->heap.ptr);
+Err string_flush(String *_Nonnull s) {
+        ASSERT(s != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT(s->heap.ptr != NULL, "%s", "string heap pointer is NULL");
 
         string_trim_trailing(s);
         return flush_shrink_to_fit(s);
@@ -24,14 +22,18 @@ Err string_flush(String *s) {
 
 // END === Flush ===
 
-void string_clear(String *s) {
-        assert(!s || !s->heap.ptr);
+void string_clear(String *_Nonnull s) {
+        ASSERT(s != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT(s->heap.ptr != NULL, "%s", "string heap pointer is NULL");
+
         ((char *)s->heap.ptr)[0] = '\0';
         s->length = 0;
 }
 
-void string_garbage(String *s, usize len) {
-        assert(!s->heap.ptr);
+void _string_garbage(String *_Nonnull s, usize len) {
+        ASSERT(s != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT(s->heap.ptr != NULL, "%s", "string heap pointer is NULL");
+
         volatile unsigned char *p = s->heap.ptr;
         while (len--)
                 *p++ = 0;

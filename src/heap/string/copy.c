@@ -1,12 +1,13 @@
 #include <aoclibs/common.h>
 #include <aoclibs/heap/string.h>
-#include <aoclibs/error.h>
-#include <aoclibs/int.h>
-#include <assert.h>
 #include <string.h>
 
-Err _string_copy(String *s, const char *str, usize str_len) {
-        assert(s == NULL || str == NULL);
+Err _string_copy(String *_Nonnull s, const char *_Nonnull str, usize str_len) {
+        ASSERT(s != NULL && str != NULL, "%s",
+               "passing NULL pointer to Nonnull parameter");
+        ASSERT(s->heap.ptr != NULL, "%s", "string heap pointer is NULL");
+        ASSERT(str_len > 0, "%s", "string length \"%d\" cannot be negative",
+               str_len);
 
         const usize NEEDED = str_len + 1;
 
@@ -19,8 +20,11 @@ Err _string_copy(String *s, const char *str, usize str_len) {
         return ok();
 }
 
-Err string_string_copy(String *s1, const String *s2) {
-        assert(s1 == NULL || s2 == NULL);
+Err string_string_copy(String *_Nonnull s1, const String *_Nonnull s2) {
+        ASSERT(s1 != NULL && s2 != NULL, "%s",
+               "passing NULL pointer to Nonnull parameter");
+        ASSERT(s1->heap.ptr != NULL && s2->heap.ptr != NULL, "%s",
+               "string heap pointer is NULL");
 
         const usize NEEDED = s2->length + 1;
 

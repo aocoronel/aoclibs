@@ -1,11 +1,11 @@
 #include <aoclibs/common.h>
 #include <aoclibs/heap/string.h>
-#include <aoclibs/int.h>
-#include <assert.h>
 #include <ctype.h>
 
-void string_trim_trailing(String *s) {
-        assert(!s || !s->heap.ptr);
+void string_trim_trailing(String *_Nonnull s) {
+        ASSERT(s != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT(s->heap.ptr != NULL, "%s", "string heap pointer is NULL");
+
         if (s->length == 0) return;
 
         char *ptr = (char *)s->heap.ptr;

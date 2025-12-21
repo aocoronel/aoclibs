@@ -1,12 +1,10 @@
 #include <aoclibs/common.h>
-#include <aoclibs/error.h>
 #include <aoclibs/heap/string.h>
-#include <aoclibs/int.h>
-#include <assert.h>
 #include <string.h>
 
-Err string_push(String *s, char c) {
-        assert(!s || !s->heap.ptr);
+Err string_push(String *_Nonnull s, char c) {
+        ASSERT(s != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT(s->heap.ptr != NULL, "%s", "string heap pointer is NULL");
 
         usize needed = s->length + 2;
         if (needed > s->heap.cap) {
@@ -20,18 +18,23 @@ Err string_push(String *s, char c) {
         return ok();
 }
 
-Err string_pop(String *s) {
-        assert(!s || !s->heap.ptr);
-        if (s->length == 0) return eStringIsEmpty;
+Err string_pop(String *_Nonnull s) {
+        ASSERT(s != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT(s->heap.ptr != NULL, "%s", "string heap pointer is NULL");
+
+        if (s->length == 0) return ErrElementIsEmpty;
 
         s->length--;
         ((char *)s->heap.ptr)[s->length] = '\0';
         return ok();
 }
 
-Err string_drop(String *s, usize index) {
-        assert(!s || !s->heap.ptr);
-        if (index > s->length) return eStringOutOfBounds;
+Err string_drop(String *_Nonnull s, usize index) {
+        ASSERT(s != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT(s->heap.ptr != NULL, "%s", "string heap pointer is NULL");
+        ASSERT(index > 0, "%s", "index \"%d\" cannot be negative", index);
+
+        if (index > s->length) return ErrOutOfBounds;
 
         char *ptr = (char *)s->heap.ptr;
         memmove(&ptr[index], &ptr[index + 1], s->length - index);
