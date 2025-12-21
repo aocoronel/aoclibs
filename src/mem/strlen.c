@@ -1,12 +1,10 @@
 #include <aoclibs/common.h>
 #include <aoclibs/mem/str.h>
-#include <assert.h>
-#include <stddef.h>
 
-usize _strlen(const char *s, const usize buff) {
-        assert(s != NULL);
-        for (i32 i = 0; i < buff - 1; i++) {
-                if (s[i] == '\0') return i;
-        }
-        return buff;
+usize _mem_strlen(const char *_Nonnull s, const usize s_buff) {
+        ASSERT(s != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        usize i = 0;
+        while (i < s_buff && s[i] != '\0')
+                i++;
+        return i;
 }

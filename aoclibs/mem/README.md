@@ -4,15 +4,15 @@ Many functions from `string.h` are considereed unsafe. The reason is because the
 
 This module aims to address these problems by utilizing of a convention, instead of just a function implementation.
 
-This module is still in development, and currently has important functions like `strlen`, `strcpy`, `strtok`, `strcmp` and `strcat` in my own implementation.
+This module is still in development, and currently has important functions like `strlen`, `strcpy`, `strcmp` and `strcat` in my own implementation.
 
-Off of these functions, there is `convert.c`, which it's not yet proven, but aims to handle string conversion to other types in a simple way, and by returning a default value in case an error fails.
+Off of these functions, there are `strtol`, `strtod`, `strtof` and `strtod`, that aims to handle string conversion to other types in a simple way, and by returning a default value in case an error fails.
 
 ## Defining strings
 
 In the `heap` module there is an API to handle strings based in the heap, and strings created with the String type are supposed to be used only by functions fully designed to handle the String type.
 
-As a convention, all other strings should be declare as a constant with a compile-time known size:
+As a convention, all other strings may be declare as a constant with a compile-time known size:
 
 ```c
 const char my_string[128];
@@ -24,4 +24,4 @@ For that, all functions requires the size of the string. Each function has a mac
 
 ## Functions
 
-All the functions defined in this module can be used directly, like `_strlen`, or using a macro, which is the most appropriate way: `strlen`. All macros expect the string to have a size known at compile-time, so don't use the macro, if you have a pointer and you know it's size.
+All the functions defined in this module can be used directly, like `_mem_strlen`, or using a macro, which is the most appropriate way: `mem_strlen`. All macros expect the string to have a size known at compile-time, so don't use the macro, if you have a pointer and you know its size.
