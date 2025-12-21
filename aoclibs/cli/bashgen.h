@@ -4,11 +4,9 @@
 #include <aoclibs/int.h>
 #include <aoclibs/cli/program_info.h>
 
-#define BASHGEN_ARG_BUFFER 64
-
-#define bashgen(cmds, arguments, options, env, envc) \
+#define cli_bashgen(cmds, arguments, options, env, envc) \
     do { \
-        _bashgen((CLIProgram){ \
+        _cli_bashgen((CLIProgram){ \
             .flagc  = array_len(options), \
             .cmdc   = array_len(cmds), \
             .argc   = array_len(arguments), \
@@ -34,6 +32,6 @@ typedef struct {
 /*
  * Generates bash completions for commands, flags and arguments
 */
-void _bashgen(CLIProgram prog, const CLIEnv *env, usize envc);
+void _cli_bashgen(CLIProgram prog, const CLIEnv *env, usize envc);
 
 #endif

@@ -4,11 +4,9 @@
 #include <aoclibs/int.h>
 #include <aoclibs/cli/program_info.h>
 
-#define ZSHGEN_ARG_BUFFER 64
-
-#define zshgen(cmds, arguments, options, env, envc) \
+#define cli_zshgen(cmds, arguments, options, env, envc) \
     do { \
-        _zshgen((CLIProgram){ \
+        _cli_zshgen((CLIProgram){ \
             .flagc  = array_len(options), \
             .cmdc   = array_len(cmds), \
             .argc   = array_len(arguments), \
@@ -34,5 +32,5 @@ typedef struct {
 /*
  * Generates bash completions for commands, flags and arguments
 */
-void _zshgen(CLIProgram prog, const CLIEnv *env, usize envc);
+void _cli_zshgen(CLIProgram prog, const CLIEnv *env, usize envc);
 #endif

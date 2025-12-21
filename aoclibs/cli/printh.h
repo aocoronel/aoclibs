@@ -6,9 +6,9 @@
 #define PRINTH_DESC_INDENT 10
 #define PRINTH_BUFFER 128
 
-#define printh(cmds, arguments, options) \
+#define cli_printh(cmds, arguments, options) \
     do { \
-        _printh((CLIProgram){ \
+        _cli_printh((CLIProgram){ \
             .flagc  = array_len(options), \
             .cmdc   = array_len(cmds), \
             .argc   = array_len(arguments), \
@@ -24,6 +24,6 @@
 /*
  * Prints help message
 */
-void _printh(CLIProgram program_info);
+void _cli_printh(CLIProgram prog);
 
 #endif

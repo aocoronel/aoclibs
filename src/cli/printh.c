@@ -1,5 +1,5 @@
-#include "aoclibs/cli/program_info.h"
 #include <aoclibs/cli/printh.h>
+#include <aoclibs/cli/program_info.h>
 #include <aoclibs/io/colors.h>
 #include <aoclibs/io/print.h>
 #include <aoclibs/mem/str.h>
@@ -11,14 +11,14 @@
 /*
  * Helper to print headings
 */
-static void print_header(const char *msg, const char *style) {
+static inline void print_header(const char *msg, const char *style) {
         fprintf(stderr, "%s%s%s", style, msg, COLOR_RESET);
 }
 
 /*
  * Helper qsort to sort commands
 */
-static int qsort_compare_cmd(const void *a, const void *b) {
+static inline i32 qsort_compare_cmd(const void *a, const void *b) {
         const CLICommand *CMD_A = (const CLICommand *)a;
         const CLICommand *CMD_B = (const CLICommand *)b;
 
@@ -26,10 +26,10 @@ static int qsort_compare_cmd(const void *a, const void *b) {
         snprintf(fullA, sizeof(fullA), "%s", CMD_A->cmd);
         snprintf(fullB, sizeof(fullB), "%s", CMD_B->cmd);
 
-        return strcmp(fullA, fullB);
+        return mem_streq(fullA, fullB);
 }
 
-static const char *qsort_get_opt(const CLIOption *flag) {
+static inline const char *qsort_get_opt(const CLIOption *flag) {
         if (flag->short_opt) return flag->short_opt;
         if (flag->long_opt) return flag->long_opt;
         return "";
@@ -38,29 +38,29 @@ static const char *qsort_get_opt(const CLIOption *flag) {
 /*
  * Helper qsort to sort options
 */
-static int qsort_compare_opts(const void *a, const void *b) {
+static inline i32 qsort_compare_opts(const void *a, const void *b) {
         const CLIOption *FLAG_A = (const CLIOption *)a;
         const CLIOption *FLAG_B = (const CLIOption *)b;
 
-        return strcmp(qsort_get_opt(FLAG_A), qsort_get_opt(FLAG_B));
+        return mem_streq(qsort_get_opt(FLAG_A), qsort_get_opt(FLAG_B));
 }
 
-static bool has_commands(CLIProgram info) {
-        for (int i = 0; i < info.cmdc; i++) {
+static inline bool has_commands(CLIProgram info) {
+        for (usize i = 0; i < info.cmdc; i++) {
                 if (info.commands->cmd != NULL) return true;
         }
         return false;
 }
 
-static bool has_args(CLIProgram info) {
-        for (int i = 0; i < info.cmdc; i++) {
+static inline bool has_args(CLIProgram info) {
+        for (usize i = 0; i < info.cmdc; i++) {
                 if (info.args->name != NULL) return true;
         }
         return false;
 }
 
-static bool has_options(CLIProgram info) {
-        for (int i = 0; i < info.flagc; i++) {
+static inline bool has_options(CLIProgram info) {
+        for (usize i = 0; i < info.flagc; i++) {
                 if (info.flags->long_opt != NULL ||
                     info.flags->short_opt != NULL)
                         return true;
@@ -73,9 +73,9 @@ static bool has_options(CLIProgram info) {
 //       Description
 //   arg2
 //       Description
-static void printh_arguments(CLIProgram *prog) {
+static inline void printh_arguments(CLIProgram *prog) {
         print_header("Arguments:\n", COLOR_BOLD_UNDERLINE);
-        for (int i = 0; i < prog->argc; i++) {
+        for (usize i = 0; i < prog->argc; i++) {
                 const char *ARG_NAME = prog->args[i].name;
                 const char *ARG_DESC = prog->args[i].desc;
 
@@ -85,7 +85,7 @@ static void printh_arguments(CLIProgram *prog) {
                         snprintf(arg_full, sizeof(arg_full), "%s%s%s",
                                  COLOR_BOLD, ARG_NAME, COLOR_RESET);
                         fprintf(stderr, "  %s\n", arg_full);
-                        if (ARG_DESC && strlen(ARG_DESC) > 0) {
+                        if (ARG_DESC && mem_strlen(ARG_DESC) > 0) {
                                 io_print_indent(ARG_DESC, PRINTH_DESC_INDENT);
                                 fputc('\n', stderr);
                         }
@@ -99,10 +99,10 @@ static void printh_arguments(CLIProgram *prog) {
 //       Description
 //   cmd2 [ARG]
 //       Description
-static void printh_commands(CLIProgram *prog) {
+static inline void printh_commands(CLIProgram *prog) {
         print_header("Commands:\n", COLOR_BOLD_UNDERLINE);
 
-        for (int i = 0; i < prog->cmdc; i++) {
+        for (usize i = 0; i < prog->cmdc; i++) {
                 const char *CMD = prog->commands[i].cmd;
                 const char *ARG = (prog->commands[i].args) ?
                                           prog->commands[i].args->name :
@@ -130,7 +130,7 @@ static void printh_commands(CLIProgram *prog) {
                 }
 
                 fprintf(stderr, "  %s\n", cmd_full);
-                if (DESC && strlen(DESC) > 0) {
+                if (DESC && mem_strlen(DESC) > 0) {
                         io_print_indent(DESC, PRINTH_DESC_INDENT);
                         fputc('\n', stderr);
                 }
@@ -143,10 +143,10 @@ static void printh_commands(CLIProgram *prog) {
 //   -l, --long <ARG>
 //   -h, --help
 //       Description
-static void printh_options(CLIProgram *prog) {
+static inline void printh_options(CLIProgram *prog) {
         print_header("Options:\n", COLOR_BOLD_UNDERLINE);
 
-        for (int i = 0; i < prog->flagc; i++) {
+        for (usize i = 0; i < prog->flagc; i++) {
                 const char *SHORT_OPT = prog->flags[i].short_opt;
                 const char *LONG_OPT = prog->flags[i].long_opt;
                 const char *ARG = (prog->flags[i].args) ?
@@ -172,27 +172,27 @@ static void printh_options(CLIProgram *prog) {
                 if (ARG) {
                         switch (prog->flags->args->type) {
                         case ReqArg:
-                                strcat(flag_buffer, " <");
-                                strcat(flag_buffer, ARG);
-                                strcat(flag_buffer, ">");
+                                mem_strcat(flag_buffer, " <");
+                                mem_strcat(flag_buffer, ARG);
+                                mem_strcat(flag_buffer, ">");
                                 break;
                         case NReqArg:
-                                strcat(flag_buffer, " [");
-                                strcat(flag_buffer, ARG);
-                                strcat(flag_buffer, "]");
+                                mem_strcat(flag_buffer, " [");
+                                mem_strcat(flag_buffer, ARG);
+                                mem_strcat(flag_buffer, "]");
                                 break;
                         }
                 }
 
                 fprintf(stderr, "  %s\n", flag_buffer);
-                if (DESC && strlen(DESC) > 0) {
+                if (DESC && mem_strlen(DESC) > 0) {
                         io_print_indent(DESC, PRINTH_DESC_INDENT);
                         fputc('\n', stderr);
                 }
         }
 }
 
-void _printh(CLIProgram prog) {
+void _cli_printh(CLIProgram prog) {
         qsort(prog.commands, prog.cmdc, sizeof(CLICommand), qsort_compare_cmd);
         qsort(prog.flags, prog.flagc, sizeof(CLIOption), qsort_compare_opts);
 

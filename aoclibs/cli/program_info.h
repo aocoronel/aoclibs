@@ -1,6 +1,8 @@
 #ifndef AOCLIBS_CLI_PROGRAM_INFO_H
 #define AOCLIBS_CLI_PROGRAM_INFO_H
 
+#include <aoclibs/common.h>
+
 enum CLIArgumentType {
         ReqArg,
         NReqArg,
@@ -39,9 +41,9 @@ typedef struct {
  * Define the program info
 */
 typedef struct {
-        int flagc; // Flag count
-        int cmdc; // Command count
-        int argc; // Argument count
+        usize flagc; // Flag count
+        usize cmdc; // Command count
+        usize argc; // Argument count
         const char *name;
         const char *desc;
         const char *usage;

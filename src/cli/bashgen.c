@@ -4,16 +4,18 @@
 #include <stddef.h>
 #include <stdio.h>
 
-static void bashgen_shebang(void) {
+#define BASHGEN_ARG_BUFFER 64
+
+static inline void bashgen_shebang(void) {
         puts("#!/usr/bin/env bash");
 }
 
-static void bashgen_env(const CLIEnv *env, usize envc) {
+static inline void bashgen_env(const CLIEnv *env, usize envc) {
         for (usize i = 0; i < envc; i++)
                 printf("%s=%s\n", env[i].name, env[i].value);
 }
 
-static void bashgen_argument(const CLIArgument *args) {
+static inline void bashgen_argument(const CLIArgument *args) {
         char ARG[BASHGEN_ARG_BUFFER];
         if (args && args->completion)
                 cli_normalize_shell_name(ARG, args->name, BASHGEN_ARG_BUFFER);
@@ -22,7 +24,7 @@ static void bashgen_argument(const CLIArgument *args) {
         printf("_%s() {\n  %s\n}\n", ARG, args->completion);
 }
 
-static void bashgen_flags(const CLIProgram *prog) {
+static inline void bashgen_flags(const CLIProgram *prog) {
         putchar(' ');
         for (usize i = 0; i < prog->flagc; i++) {
                 if (prog->flags[i].long_opt != NULL)
@@ -32,15 +34,17 @@ static void bashgen_flags(const CLIProgram *prog) {
         }
 }
 
-static void bashgen_commands(const CLIProgram *prog) {
+static inline void bashgen_commands(const CLIProgram *prog) {
         for (usize i = 0; i < prog->cmdc; i++)
                 printf(" %s", prog->commands[i].cmd);
 }
 
-static void bashgen_flag_cases(const CLIProgram *prog, const CLIOption *flags) {
+static inline void bashgen_flag_cases(const CLIProgram *prog,
+                                      const CLIOption *flags) {
         char ARG[BASHGEN_ARG_BUFFER];
         if (flags->args && flags->args->completion)
-                cli_normalize_shell_name(ARG, prog->args->name, BASHGEN_ARG_BUFFER);
+                cli_normalize_shell_name(ARG, prog->args->name,
+                                         BASHGEN_ARG_BUFFER);
         else
                 return;
         const char *SHORT_FLAG = flags->short_opt;
@@ -58,11 +62,12 @@ static void bashgen_flag_cases(const CLIProgram *prog, const CLIOption *flags) {
         printf("    return 0\n    ;;\n");
 }
 
-static void bashgen_command_cases(const CLIProgram *prog,
-                                  const CLICommand *commands) {
+static inline void bashgen_command_cases(const CLIProgram *prog,
+                                         const CLICommand *commands) {
         char ARG[BASHGEN_ARG_BUFFER];
         if (commands->args && commands->args->completion)
-                cli_normalize_shell_name(ARG, prog->args->name, BASHGEN_ARG_BUFFER);
+                cli_normalize_shell_name(ARG, prog->args->name,
+                                         BASHGEN_ARG_BUFFER);
         else
                 return;
         printf("  %s)\n", commands->cmd);
@@ -71,7 +76,7 @@ static void bashgen_command_cases(const CLIProgram *prog,
         printf("    return 0\n    ;;\n");
 }
 
-void _bashgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
+void _cli_bashgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
         bashgen_shebang();
         bashgen_env(env, envc);
         for (usize i = 0; i < prog.argc; i++) {

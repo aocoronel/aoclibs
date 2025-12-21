@@ -1,9 +1,11 @@
 #include <aoclibs/cli/zshgen.h>
 #include <stdio.h>
 
+#define ZSHGEN_ARG_BUFFER 64
+
 void cli_normalize_shell_name(char *out, const char *in, size_t max_len);
 
-static void zshgen_print_arg_autocomplete(const CLIProgram *prog, const CLIArgument *args) {
+static inline void zshgen_print_arg_autocomplete(const CLIProgram *prog, const CLIArgument *args) {
         char ARG[ZSHGEN_ARG_BUFFER] = { 0 };
         if (args)
                 cli_normalize_shell_name(ARG, args->name, ZSHGEN_ARG_BUFFER);
@@ -56,7 +58,7 @@ static void zshgen_print_flag_arg(const CLIProgram *prog,
         }
 }
 
-static void zshgen_print_command_case(const CLIProgram *prog,
+static inline void zshgen_print_command_case(const CLIProgram *prog,
                                       const CLICommand *cmd) {
         char ARG[ZSHGEN_ARG_BUFFER];
         if (cmd->args)
@@ -72,7 +74,7 @@ static void zshgen_print_command_case(const CLIProgram *prog,
         printf("          ;;\n");
 }
 
-static void zshgen_print_flag_case(const CLIProgram *prog,
+static inline void zshgen_print_flag_case(const CLIProgram *prog,
                                    const CLIOption *flag) {
         char ARG[ZSHGEN_ARG_BUFFER];
         const char *SHORT_FLAG = flag->short_opt;
@@ -97,12 +99,12 @@ static void zshgen_print_flag_case(const CLIProgram *prog,
         printf("          ;;\n");
 }
 
-void _zshgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
+void _cli_zshgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
         // Header
         printf("#compdef %s\n\n", prog.name);
 
         // Environment defaults
-        for (int i = 0; i < envc; i++) {
+        for (usize i = 0; i < envc; i++) {
                 printf("%s=%s\n", env[i].name, env[i].value);
         }
 
@@ -112,7 +114,7 @@ void _zshgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
 
         // Define Subcommands
         printf("  subcommands=(\n");
-        for (int i = 0; i < prog.cmdc; i++) {
+        for (usize i = 0; i < prog.cmdc; i++) {
                 printf("    \"%s:%s\"\n", prog.commands[i].cmd,
                        prog.commands[i].desc);
         }
@@ -121,7 +123,7 @@ void _zshgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
         // Define arguments
         printf("  _arguments -C \\\n");
         printf("    '1:command:->subcmds' \\\n");
-        for (int i = 0; i < prog.flagc; i++) {
+        for (usize i = 0; i < prog.flagc; i++) {
                 zshgen_print_flag_arg(&prog, &prog.flags[i]);
         }
         printf("    '*::args:->command_args'\n\n");
@@ -136,11 +138,11 @@ void _zshgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
         printf("      case $words[1] in\n");
 
         // Autocomplete arguments from commands
-        for (int i = 0; i < prog.cmdc; i++) {
+        for (usize i = 0; i < prog.cmdc; i++) {
                 zshgen_print_command_case(&prog, &prog.commands[i]);
         }
         // Autocomplete arguments from flags
-        for (int i = 0; i < prog.flagc; i++) {
+        for (usize i = 0; i < prog.flagc; i++) {
                 zshgen_print_flag_case(&prog, &prog.flags[i]);
         }
         printf("      esac\n");
@@ -149,7 +151,7 @@ void _zshgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
         printf("}\n\n");
 
         // Define helper functions to autocomplete arguments
-        for (int i = 0; i < prog.argc; i++) {
+        for (usize i = 0; i < prog.argc; i++) {
                 zshgen_print_arg_autocomplete(&prog, &prog.args[i]);
         }
 
