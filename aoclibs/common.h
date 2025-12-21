@@ -6,5 +6,6 @@
 #include <aoclibs/error.h>
 #include <aoclibs/int.h>
 #include <aoclibs/macros.h>
+#include <aoclibs/tunit.h>
 
 #endif

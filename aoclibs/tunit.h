@@ -28,9 +28,9 @@ void tunit_log(const char *fmt, ...);
 // === Macros ===
 
 #ifndef TUNIT
-#define TEST(...) ((void)0)
-#define TASSERT(...) ((void)0)
-#define SKIP_TEST(...) ((void)0)
+#define TEST(...)
+#define TASSERT(...)
+#define SKIP_TEST(...)
 #else
 #define TEST(desc)                                                       \
         static void test_##desc(void);                                   \
