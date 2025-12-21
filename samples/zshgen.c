@@ -1,4 +1,4 @@
-#include <aoclibs/cli/bashgen.h>
+#include <aoclibs/cli/zshgen.h>
 #include <aoclibs/common.h>
 #include <stddef.h>
 
@@ -66,7 +66,7 @@ CLIEnv env[] = {
 };
 
 // Usage:
-int main() {
-        bashgen(commands, args, flags, env, array_len(env));
+int main(void) {
+        cli_zshgen(commands, args, flags, env, array_len(env));
         return 0;
 }

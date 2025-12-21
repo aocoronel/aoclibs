@@ -47,9 +47,14 @@ build: setup
 buildf: reconfigure
   meson compile -C build
 
-# === Dependencies ===
+# === Testing ===
 
-# Gets all dependencies
-[group: 'deps']
-deps:
-  sh scripts/get_dependency.sh
+[group: 'test']
+[working-directory: 'tests']
+test:
+  export ASAN_OPTIONS=halt_on_error=1:abort_on_error=1:print_summary=1
+  export UBSAN_OPTIONS=halt_on_error=1:abort_on_error=1:print_summary=1:print_stacktrace=1
+  export MSAN_OPTIONS=halt_on_error=1:abort_on_error=1:print_summary=1:print_stacktrace=1
+  export MALLOC_PERTURB_=$((RANDOM % 255 + 1))
+  make
+  ./test

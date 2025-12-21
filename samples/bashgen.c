@@ -1,6 +1,5 @@
-#include <aoclibs/cli/printh.h>
+#include <aoclibs/cli/bashgen.h>
 #include <aoclibs/common.h>
-#include <aoclibs/io/print.h>
 #include <stddef.h>
 
 #define PROGRAM_NAME "bmark"
@@ -61,8 +60,13 @@ CLIOption flags[] = {
         { "-u", "--url",      &args[ArgURL],   "Query url"                            },
 };
 
+CLIEnv env[] = {
+        { "BMARK_FILE",   "${BMARK_FILE:-bookmark.db}"                    },
+        { "BMARK_DB_DIR", "${BMARK_DB_DIR:-$HOME/.local/share/bookmarks}" }
+};
+
 // Usage:
-int main() {
-        printh(commands, args, flags);
+int main(void) {
+        cli_bashgen(commands, args, flags, env, array_len(env));
         return 0;
 }

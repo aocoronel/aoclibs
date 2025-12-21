@@ -1,7 +1,7 @@
 #include <aoclibs/cli/normalize_shell_name.h>
 #include <stdio.h>
 
-int main() {
+int main(void) {
     char funcname[64];
     const char *TEST_CASES[] = {
         "id|url|tag",

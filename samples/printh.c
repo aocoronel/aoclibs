@@ -1,5 +1,6 @@
-#include <aoclibs/cli/zshgen.h>
+#include <aoclibs/cli/printh.h>
 #include <aoclibs/common.h>
+#include <aoclibs/io/print.h>
 #include <stddef.h>
 
 #define PROGRAM_NAME "bmark"
@@ -60,13 +61,8 @@ CLIOption flags[] = {
         { "-u", "--url",      &args[ArgURL],   "Query url"                            },
 };
 
-CLIEnv env[] = {
-        { "BMARK_FILE",   "${BMARK_FILE:-bookmark.db}"                    },
-        { "BMARK_DB_DIR", "${BMARK_DB_DIR:-$HOME/.local/share/bookmarks}" }
-};
-
 // Usage:
-int main() {
-        zshgen(commands, args, flags, env, array_len(env));
+int main(void) {
+        cli_printh(commands, args, flags);
         return 0;
 }

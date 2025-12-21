@@ -1,8 +1,8 @@
-#include <assert.h>
+#include <aoclibs/debug/heap.h>
+#include <aoclibs/tunit.h>
 #include <stdlib.h>
-#include <a_debug_heap.h>
 
-int main(int argc, char *argv[]) {
+TEST(debug_heap) {
         int *dog = malloc(10 * sizeof(int));
         free(dog);
         int *cat = malloc(10 * sizeof(int));
@@ -11,7 +11,6 @@ int main(int argc, char *argv[]) {
         char *horse = realloc(cat, 10);
         int *p = malloc(10);
         free(p);
-        print_memory_summary();
-        assert(count_leaks() == 2);
-        return EXIT_SUCCESS;
+        debug_memory_summary(TUNIT_LOG_FILE);
+        TASSERT(debug_count_leaks() == 2, "this should have two leaks");
 }
