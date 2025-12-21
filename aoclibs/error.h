@@ -3,28 +3,20 @@
 
 /* === Types === */
 
+#include <aoclibs/attributes.h>
+#include <aoclibs/int.h>
 #include <stdio.h>
-
-#define Ok 0
 
 // clang-format off
 
 /*
  * Stores the error code and its message
 */
-typedef struct { int code; const char *msg; } Err;
+typedef struct { int code; const char *_Nullable msg; } Err;
 
 typedef struct { Err err; char value; }  echar;
 typedef struct { Err err; char* value; } estr;
-typedef struct { Err err; double value; } edouble;
-typedef struct { Err err; float value; } efloat;
-typedef struct { Err err; int value; } eint;
-typedef struct { Err err; long value; }  elong;
-typedef struct { Err err; long long value; }  elonglong;
-typedef struct { Err err; short value; } eshort;
 typedef struct { Err err; void* value; } evoid;
-
-#ifdef AOCLIBS_TYPES_H
 typedef struct { Err err; bool value; } ebool;
 
 typedef struct { Err err; i8 value; } ei8;
@@ -42,9 +34,24 @@ typedef struct { Err err; f64 value; } ef64;
 
 typedef struct { Err err; isize value; } eisize;
 typedef struct { Err err; usize value; } eusize;
-#endif
 
 // clang-format on
+
+// === Error Enum ===
+
+enum {
+#define E(name, msg) name,
+        Ok = 0,
+#include <aoclibs/__errno.h>
+#undef E
+        _ErrMax
+} FN_PACKED;
+
+extern const char *const ErrNo[_ErrMax];
+
+#define E(name, msg) extern const Err Err##name;
+#include <aoclibs/__errno.h>
+#undef E
 
 /* === Functions === */
 
@@ -68,15 +75,7 @@ Err ok(void);
 
 echar werr_char(Err err, char value);
 estr werr_str(Err err, char *value);
-edouble werr_double(Err err, double value);
-efloat werr_float(Err err, float value);
-eint werr_int(Err err, int value);
-elong werr_long(Err err, long value);
-elonglong werr_longlong(Err err, long long value);
-eshort werr_short(Err err, short value);
 evoid werr_void(Err err, void *value);
-
-#ifdef AOCLIBS_TYPES_H
 ebool werr_bool(Err err, bool value);
 
 ei8 werr_i8(Err err, i8 value);
@@ -88,20 +87,19 @@ eu8 werr_u8(Err err, u8 value);
 eu16 werr_u16(Err err, u16 value);
 eu32 werr_u32(Err err, u32 value);
 eu64 werr_u64(Err err, u64 value);
+
 ef32 werr_f32(Err err, f32 value);
 ef64 werr_f64(Err err, f64 value);
 
 eisize werr_isize(Err err, intptr_t value);
 eusize werr_usize(Err err, uintptr_t value);
-#endif
-
-#undef panic
 
 /*
  * Used to panic, when an unreachable code runs
 */
 #define unreachable() _panic(__FILE__, __LINE__, __func__, "unreachable code")
 
+#undef panic
 #define panic(msg) _panic(__FILE__, __LINE__, __func__, msg)
 
 /*
@@ -109,18 +107,28 @@ eusize werr_usize(Err err, uintptr_t value);
  *
  * Should not be used directly. Use the panic macro, instead.
 */
-_Noreturn void _panic(const char *__file, int __line, const char *__func,
-                      const char *msg);
+void _panic(const char *__file, int __line, const char *__func,
+                      const char *msg) FN_ABORTS;
 
 /*
  * Prints error message
+ *
+ * Failure: errno << fprintf
 */
-Err read_err(Err error, FILE *output);
+Err read_err(Err err, FILE *_Nonnull fd);
 
 /*
  * Prints error message, and appends a new line
+ *
+ * Failure: errno << fprintf
 */
-Err read_errln(Err err, FILE *output);
+Err read_errln(Err err, FILE *_Nonnull fd);
+
+#define ErrErrno (Err){.code = errno, .msg = strerror(errno)}
+
+#define DEFINE_ERR(def_name, err_code)                \
+        const Err Err##err_code = { .code = err_code, \
+                                    .msg = def_name[err_code] }
 
 /* === Asserts === */
 

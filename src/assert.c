@@ -1,10 +1,10 @@
-#include <aoclibs/assert.h>
+#include <aoclibs/common.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 void _assert(const char *expr, const char *file, unsigned line,
-             const char *func, const char *fmt, ...) {
+             const char *func, const char *fmt, ...) FN_ABORTS {
         va_list args;
         va_start(args, fmt);
         fprintf(stderr, "Assertion failed: ");
