@@ -3,6 +3,7 @@
 #define AOCLIBS_DEBUG_HEAP_H
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #define malloc(x) debug_malloc(x, __func__, __FILE__, __LINE__)
 #define calloc(n, x) debug_calloc(n, x, __func__, __FILE__, __LINE__)
@@ -31,7 +32,7 @@ void debug_free(void *ptr, const char *func, const char *file, int line);
  * Prints allocation and free count.
  * If there was a leak, print the source of the leak
 */
-void debug_memory_summary(void);
+void debug_memory_summary(FILE *_Nonnull fd);
 
 /*
  * Returns how many leaks found

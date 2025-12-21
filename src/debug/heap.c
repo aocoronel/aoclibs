@@ -1,4 +1,5 @@
 #ifdef DEBUG_HEAP
+#include <aoclibs/common.h>
 #include <aoclibs/debug/heap.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,18 +11,18 @@ static void *(*std_realloc)(void *, size_t) = NULL;
 static void (*std_free)(void *) = NULL;
 
 static void init_std_functions(void) {
-        if (!std_malloc) {
-                std_malloc = malloc;
-                std_calloc = calloc;
-                std_realloc = realloc;
-                std_free = free;
-        }
+        if (std_malloc) return;
+        std_malloc = malloc;
+        std_calloc = calloc;
+        std_realloc = realloc;
+        std_free = free;
 }
 
-static void add_entry(void *ptr, size_t size, const char *func, const char *file,
-               int line) {
+static void add_entry(void *ptr, size_t size, const char *func,
+                      const char *file, int line) {
         init_std_functions();
-        debug_mem_entry *entry = (debug_mem_entry *)std_malloc(sizeof(debug_mem_entry));
+        debug_mem_entry *entry =
+                (debug_mem_entry *)std_malloc(sizeof(debug_mem_entry));
         if (!entry) return;
 
         entry->ptr = ptr;
@@ -106,21 +107,22 @@ int debug_count_leaks(void) {
         return debug_alloc_count - debug_free_count;
 }
 
-void debug_memory_summary(void) {
+void debug_memory_summary(FILE *_Nonnull fd) {
         debug_mem_entry *curr = head;
         int leaks_found = 0;
-        printf("===== Memory Summary Report =====\n");
-        printf("Total allocations: %d\n", debug_alloc_count);
-        printf("Total frees: %d\n", debug_free_count);
-        printf("Active allocations (leaks): %d\n", debug_alloc_count - debug_free_count);
+        fprintf(fd, "===== Memory Summary Report =====\n");
+        fprintf(fd, "Total allocations: %d\n", debug_alloc_count);
+        fprintf(fd, "Total frees: %d\n", debug_free_count);
+        fprintf(fd, "Active allocations (leaks): %d\n",
+               debug_alloc_count - debug_free_count);
         while (curr) {
-                printf("%zu bytes at %s() in %s:%d (ptr: %p)\n", curr->size,
+                fprintf(fd, "%zu bytes at %s() in %s:%d (ptr: %p)\n", curr->size,
                        curr->func, curr->file, curr->line, curr->ptr);
                 leaks_found += curr->size;
                 curr = curr->next;
         }
         if (debug_alloc_count == debug_free_count) {
-                printf("No memory leaks detected.\n");
+                fprintf(fd, "No memory leaks detected.\n");
         }
 }
 #endif /* DEBUG_HEAP */
