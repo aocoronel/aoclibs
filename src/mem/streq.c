@@ -19,7 +19,7 @@ bool _mem_streq(const char *_Nonnull s1, const char *_Nonnull s2,
         return 0;
 }
 
-bool _strreq(const char *_Nonnull s1, const char *_Nonnull s2,
+bool _mem_strreq(const char *_Nonnull s1, const char *_Nonnull s2,
              const usize s1_len, const usize s2_len) {
         ASSERT(s1 != NULL && s2 != NULL, "%s",
                "passing NULL pointer to Nonnull parameter");
