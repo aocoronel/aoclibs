@@ -1,26 +1,31 @@
 #include <aoclibs/common.h>
-#include <aoclibs/fs/types.h>
-#include <aoclibs/fs/file.h>
 #include <aoclibs/fs/dir.h>
+#include <aoclibs/fs/file.h>
+#include <aoclibs/fs/types.h>
 #include <aoclibs/mem/str.h>
 #include <dirent.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #define DIR_WALKER_BUFF 4096
 
-Err dir_walker(const char *path, bool recurse, dw_dir isdir, dw_reg isreg,
-               dw_lnk islnk, dw_null isnull) {
+Err dir_walker(const char *_Nonnull path, bool recurse, dw_dir isdir, dw_reg isreg,
+               dw_lnk islnk, dw_null isnull, dw_empty isempty) {
+        ASSERT(path != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+
         DIR *dir = opendir(path);
-        if (!dir) werr(errno, "failed to open directory");
+        if (!dir) return ErrErrno;
+
+        u8 empty = 0;
 
         struct dirent *entry;
         char fullpath[DIR_WALKER_BUFF];
 
         while ((entry = readdir(dir)) != NULL) {
-                if (strcmp(entry->d_name, ".") == 0 ||
-                    strcmp(entry->d_name, "..") == 0)
+                if (mem_streq(entry->d_name, ".") == 0 ||
+                    mem_streq(entry->d_name, "..") == 0)
                         continue;
 
                 snprintf(fullpath, sizeof(fullpath), "%s/%s", path,
@@ -35,7 +40,7 @@ Err dir_walker(const char *path, bool recurse, dw_dir isdir, dw_reg isreg,
                 case F_DIR:
                         if (recurse)
                                 dir_walker(fullpath, recurse, isdir, isreg,
-                                           islnk, isnull);
+                                           islnk, isnull, isempty);
                         if (isdir != NULL) isdir(fullpath);
                         break;
                 case F_LNK:
@@ -47,7 +52,12 @@ Err dir_walker(const char *path, bool recurse, dw_dir isdir, dw_reg isreg,
                 default:
                         break;
                 }
+
+                empty++;
         }
+
+        if (empty == 0 && isempty != NULL) isempty(path);
+
         closedir(dir);
         return ok();
 }
