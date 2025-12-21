@@ -21,10 +21,9 @@ typedef struct Heap {
  * If h or h.ptr is NULL, returns earlier
  *
  * Defines:
- *
- * - DEBUG_HEAP: Enable memory debugger
+ * - DEBUG_HEAP :: Enable memory debugger
  */
-void heap_free(Heap *h);
+void heap_free(Heap *_Nonnull h);
 
 /*
  * High abstraction to malloc.
@@ -32,16 +31,12 @@ void heap_free(Heap *h);
  * Sets pointer to h.ptr, and it's capacity to h.mem
  *
  * Defines:
+ * - NDEBUG :: Disable asserts
+ * - DEBUG_HEAP :: Enable memory debugger
  *
- * - NDEBUG: Disable debug prints. Disable non null h assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.code:
- *
- * - Success: ok()
- * - Fail: errno
+ * Failure: errno << malloc
  */
-Err heap_malloc(Heap *h, usize size);
+Err heap_malloc(Heap *_Nonnull h, usize size);
 
 /*
  * High abstraction to calloc.
@@ -51,16 +46,12 @@ Err heap_malloc(Heap *h, usize size);
  * Sets pointer to h.ptr, and it's capacity to h.mem
  *
  * Defines:
+ * - NDEBUG :: Disable asserts
+ * - DEBUG_HEAP :: Enable memory debugger
  *
- * - NDEBUG: Disable debug prints. Disable non null h assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.code:
- *
- * - Success: ok()
- * - Fail: errno
+ * Failure: errno << calloc
  */
-Err heap_calloc(Heap *h, usize count, usize size);
+Err heap_calloc(Heap *_Nonnull h, usize count, usize size);
 
 /*
  * High abstraction to realloc.
@@ -72,15 +63,11 @@ Err heap_calloc(Heap *h, usize count, usize size);
  * Sets pointer to h.ptr, and it's capacity to h.mem
  *
  * Defines:
+ * - NDEBUG :: Disable asserts
+ * - DEBUG_HEAP :: Enable memory debugger
  *
- * - NDEBUG: Disable debug prints. Disable non null h assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.code:
- *
- * - Success: ok()
- * - Fail: errno
+ * Failure: errno << realloc
  */
-Err heap_realloc(Heap *h, usize new_size);
+Err heap_realloc(Heap *_Nonnull h, usize new_size);
 
 #endif

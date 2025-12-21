@@ -5,7 +5,10 @@
 
 /*
  * Stat the file and return its type
+ *
+ * Defines:
+ * - NDEBUG :: Disable asserts
 */
-FileType file_check_ft(const char *path);
+FileType file_check_ft(const char *_Nonnull path);
 
 #endif

@@ -1,6 +1,7 @@
 #ifndef AOCLIBS_HEAP_STRING_H
 #define AOCLIBS_HEAP_STRING_H
 
+#include <aoclibs/common.h>
 #include <aoclibs/heap/heap.h>
 
 /*
@@ -25,81 +26,69 @@ eString werr_string(Err err, String s);
  * May reallocate the String if necessary.
  *
  * Defines:
+ * - NDEBUG :: Disable asserts
+ * - DEBUG_HEAP :: Enable memory debugger
  *
- * - NDEBUG: Disable debug prints. Disable non null ptr assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.codes:
- * - Success: ok()
- * - Fail: errno
+ * Failure: errno << realloc
 */
-Err string_append(String *s, const char *str, usize str_len);
+Err string_append(String *_Nonnull s, const char *_Nonnull str, const usize str_len);
 
 /*
  * Appends the contents of String s2 to String s1.
  * May reallocate s1 if necessary.
  *
  * Defines:
+ * - NDEBUG :: Disable asserts
+ * - DEBUG_HEAP :: Enable memory debugger
  *
- * - NDEBUG: Disable debug prints. Disable non null ptr assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.codes:
- * - Success: ok()
- * - Fail: errno
+ * Failure: errno << realloc
 */
-Err string_string_append(String *s1, const String *s2);
+Err string_string_append(String *_Nonnull s1, const String *_Nonnull s2);
 
 /*
  * Clears a String's ending and reallocates to shrink memory.
  * A null-terminated character is set in the last whitespace.
  *
  * Defines:
+ * - NDEBUG :: Disable asserts
+ * - DEBUG_HEAP :: Enable memory debugger
  *
- * - NDEBUG: Disable debug prints. Disable non null ptr assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.codes:
- * - Success: ok()
- * - Fail: errno
+ * Failure: errno << realloc
 */
-Err string_flush(String *s);
+void string_clear(String *_Nonnull s);
 
 /*
  * Clears the string content.
  * Sets a null-terminated character in the first index.
  *
  * Defines:
- *
- * - NDEBUG: Disable non null s assert.
+ * - NDEBUG :: Disable asserts
 */
-void string_clear(String *s);
+void string_clear(String *_Nonnull s);
 
 /*
  * Clears the string content.
  * Sets all characters to 0.
  *
  * Defines:
- *
- * - NDEBUG: Disable non null ptr assert.
+ * - NDEBUG :: Disable asserts
 */
-void _string_garbage(String *s, usize len);
+void _string_garbage(String *_Nonnull s, usize len);
 
 /*
- * Compares a String s to a string literal.
+ * equals a String s to a string literal.
  * Return Values:
  * < 0 - String s is tinier than str
  * 0 - String is equal to str
  * > 0 - String is bigger than str
  *
  * Defines:
- *
- * - NDEBUG: Disable non null s and str assert.
+ * - NDEBUG :: Disable asserts
 */
-int string_compare(String *s, const char *str);
+int string_equal(String *_Nonnull s, const char *_Nonnull str, const usize str_len);
 
 /*
- * Compares a String s1 to a String s2
+ * equals a String s1 to a String s2
  * Return Values:
  * < 0 - String s1 is tinier than String s2
  * 0 - String s1 is equal to String s2
@@ -107,9 +96,9 @@ int string_compare(String *s, const char *str);
  *
  * Defines:
  *
- * - NDEBUG: Disable non null s1 and s2 assert.
+ * - NDEBUG :: Disable asserts
 */
-int string_string_compare(const String *s1, const String *s2);
+int string_string_equal(const String *_Nonnull s1, const String *_Nonnull s2);
 
 /*
  * Copies a string literal str to String s.
@@ -117,17 +106,12 @@ int string_string_compare(const String *s1, const String *s2);
  * May reallocate s1 if necessary.
  *
  * Defines:
+ * - NDEBUG :: Disable asserts
+ * - DEBUG_HEAP :: Enable memory debugger
  *
- * - NDEBUG: Disable debug prints. Disable non null s and str assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.code:
- *
- * - Success: ok()
- *
- * - Fail: errno
+ * Failure: errno << realloc
  */
-Err _string_copy(String *s, const char *str, usize str_len);
+Err _string_copy(String *_Nonnull s, const char *_Nonnull str, usize str_len);
 
 /*
  * Copies the contents of String s2 into String s1.
@@ -135,17 +119,12 @@ Err _string_copy(String *s, const char *str, usize str_len);
  * May reallocate s1 if necessary.
  *
  * Defines:
+ * - NDEBUG :: Disable asserts
+ * - DEBUG_HEAP :: Enable memory debugger
  *
- * - NDEBUG: Disable debug prints. Disable non null s1 and s2 assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.code:
- *
- * - Success: ok()
- *
- * - Fail: errno
+ * Failure: errno << realloc
  */
-Err string_string_copy(String *s1, const String *s2);
+Err string_string_copy(String *_Nonnull s1, const String *_Nonnull s2);
 
 /*
  * Allocates an empty String.
@@ -153,15 +132,10 @@ Err string_string_copy(String *s1, const String *s2);
  * If capacity is 0, sets capacity to 16.
  *
  * Defines:
+ * - NDEBUG :: Disable asserts
+ * - DEBUG_HEAP :: Enable memory debugger
  *
- * - NDEBUG: Disable debug prints.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.code:
- *
- * - Success: ok()
- *
- * - Fail: errno
+ * Failure: errno << malloc
  */
 eString string_create(usize cap);
 
@@ -171,17 +145,12 @@ eString string_create(usize cap);
  * The capacity is inferred by the string length.
  *
  * Defines:
+ * - NDEBUG :: Disable asserts
+ * - DEBUG_HEAP :: Enable memory debugger
  *
- * - NDEBUG: Disable debug prints. Disable non null str assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.code:
- *
- * - Success: ok()
- *
- * - Fail: errno
+ * Failure: errno << malloc
  */
-eString _string_from(const char *str, usize len);
+eString _string_from(const char *_Nonnull str, usize str_len);
 
 /*
  * Frees heap allocated String and HeapPtr.ptr.
@@ -193,8 +162,7 @@ eString _string_from(const char *str, usize len);
  * If h or h.ptr is NULL, returns earlier
  *
  * Defines:
- *
- * - DEBUG_HEAP: Enable memory debugger
+ * - DEBUG_HEAP :: Enable memory debugger
  */
 void string_free(String *s);
 
@@ -202,43 +170,29 @@ void string_free(String *s);
  * Finds the first occurance of c in the String.
  *
  * Defines:
- *
- * - NDEBUG: Disable non null s assert.
+ * - NDEBUG :: Disable asserts
  *
  * Values:
- *
  * - > 0 - returns the position of c.
- *
  * - 0 - c hasn't been found.
  *
- * Err.code:
- *
- * - Success: ok()
- *
- * - Fail: ERROR_FAIL
+ * Failure: ErrValueNotFound
  */
-eusize string_find(String *s, const char c);
+eusize string_find(String *_Nonnull s, const char c);
 
 /*
  * Finds the last occurance of c in the String.
  *
  * Defines:
- *
- * - NDEBUG: Disable non null s assert.
+ * - NDEBUG :: Disable asserts
  *
  * Values:
- *
  * - > 0 - returns the position of c.
- *
  * - 0 - c hasn't been found.
  *
- * Err.code:
- *
- * - Success: ok()
- *
- * - Fail: ERROR_FAIL
+ * Failure: ErrValueNotFound
  */
-eusize string_reverse_find(String *s, const char c);
+eusize string_reverse_find(String *_Nonnull s, const char c);
 
 /*
  * Inserts a character into the String's ending.
@@ -246,134 +200,65 @@ eusize string_reverse_find(String *s, const char c);
  * May reallocate the string if necessary.
  *
  * Defines:
+ * - NDEBUG :: Disable asserts
+ * - DEBUG_HEAP :: Enable memory debugger
  *
- * - NDEBUG: Disable debug prints. Disable non null s and str assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.code:
- *
- * - Success: ok()
- *
- * - Fail: errno
+ * Failure: errno << realloc
  */
 Err string_push(String *s, char c);
 
 /*
  * Removes a character from the String's ending.
  *
+ * Defines:
+ * - NDEBUG :: Disable asserts
+ *
  * Values:
  * - 0 - Last character is removed from the String.
  * - -1 - Removing failed. The String does not exist.
  *
- * Err.code:
- *
- * - Success: ok()
- *
- * - Fail: ERROR_FAIL
+ * Failure: ErrElementIsEmpty
  */
 Err string_pop(String *s);
 
 /*
  * Drops the last character from the String's ending, and resizes the string without reallocating.
  *
+ * Defines:
+ * - NDEBUG :: Disable asserts
+ *
  * Values:
  * - 0 - Character is dropped from the String.
  * - -1 - Dropping failed. The String does not exist.
  *
- * Err.code:
- *
- * - Success: ok()
- *
- * - Fail: ERROR_FAIL
+ * Failure: ErrOutOfBounds
  */
-Err string_drop(String *s, usize index);
+Err string_drop(String *_Nonnull s, usize index);
 
 /*
  * Reallocates the String to a new capacity.
  *
  * Defines:
+ * - NDEBUG :: Disable asserts
+ * - DEBUG_HEAP :: Enable memory debugger
  *
- * - NDEBUG: Disable debug prints. Disable non null h assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.code:
- *
- * - Success: ok()
- *
- * - Fail: errno
+ * Failure: errno << realloc
  */
-Err string_realloc(String *s, usize capacity);
-
-/*
- * Splits a String from in the first occurance of a delimiter.
- *
- * out_s1 and out_s2 will allocate and are mutated to contain the split string
- *
- * Defines:
- *
- * - NDEBUG: Disable debug prints. Disable non null ptr assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.codes:
- * - Success: ok()
- * - Fail: errno
-*/
-Err string_split(String *s, char delimiter, String *out_s1, String *out_s2);
-
-/*
- * Splits a String from in the last occurance of a delimiter.
- *
- * out_s1 and out_s2 will allocate and are mutated to contain the split string
- *
- * Defines:
- *
- * - NDEBUG: Disable debug prints. Disable non null ptr assert.
- * - DEBUG_HEAP: Enable memory debugger
- *
- * Err.codes:
- * - Success: ok()
- * - Fail: errno
-*/
-Err string_rsplit(String *s, char delimiter, String *out_s1, String *out_s2);
+Err string_realloc(String *_Nonnull s, usize capacity);
 
 /*
  * Clears a String's ending without reallocating.
  * A null-terminated character is set in the last whitespace.
+ *
+ * Defines:
+ * - NDEBUG :: Disable asserts
 */
-void string_trim_trailing(String *s);
+void string_trim_trailing(String *_Nonnull s);
 
 /* === Macros === */
 
 #define string_copy(s1, s2) _string_copy((s1), (s2), (sizeof(s2)))
 #define string_from(s) _string_from(s, sizeof(s))
 #define string_garbage(s) _string_garbage(s, s.length)
-
-/* Errors */
-
-#define STRING_ERROR_LIST                 \
-        X(ValNotFound, "value not found") \
-        X(DelimiterNotFound, "delimiter not found") \
-        X(OutOfBounds, "out of bounds access attempt") \
-        X(IsEmpty, "string is empty")
-
-typedef enum {
-#define X(enum_name, msg) String##enum_name,
-        STRING_ERROR_LIST
-#undef X
-} _StringErr;
-
-const char *const _StringErrMsg[] = {
-#define X(enum_name, msg) msg,
-        STRING_ERROR_LIST
-#undef X
-};
-
-#define X(enum_name, m)                                 \
-        const Err eString##enum_name = {                \
-                .code = String##enum_name,              \
-                .msg = _StringErrMsg[String##enum_name] \
-        };
-STRING_ERROR_LIST
-#undef X
 
 #endif // AOCLIBS_HEAP_STRING_H
