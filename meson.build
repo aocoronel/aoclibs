@@ -4,14 +4,6 @@ project('aoclibs', 'c',
   license: 'MIT'
 )
 
-add_project_arguments('-DDEBUG_HEAP', '-DTUNIT', language: 'c')
-
-tunit = static_library('tunit',
-  'src/tunit.c',
-  install: false,
-  include_directories: include_directories('.')
-)
-
 liberror = static_library('error',
   'src/error.c',
   'src/assert.c',
@@ -80,6 +72,7 @@ libfs = static_library('fs',
 libdebug = static_library('debug',
   'src/debug/heap.c',
   install: false,
+  c_args: ['-DDEBUG_HEAP'],
   # version: '1.0.0',
   # soversion: '1',
   include_directories: include_directories('.')
@@ -106,6 +99,13 @@ static_library('aoclibs',
       liberror.extract_all_objects(recursive:true),
       libmem.extract_all_objects(recursive:true)
     ]
+)
+
+tunit = static_library('tunit',
+  'src/tunit.c',
+  install: false,
+  c_args: ['-DTUNIT'],
+  include_directories: include_directories('.')
 )
 
 # info_headers_cmd = run_command(
