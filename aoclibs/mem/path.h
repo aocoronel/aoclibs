@@ -14,6 +14,7 @@
 char *_mem_basename(char *_Nonnull s, usize s_len);
 
 #ifdef TUNIT
+#include <string.h>
 TEST(mem_basename) {
         char test[] = "Hello/world/world2/world3/world_3htree/dog";
         const char *test_basename = mem_basename(test);
