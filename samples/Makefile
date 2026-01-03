@@ -5,7 +5,7 @@ SAMPLE_DIR = .
 INCLUDE = -I../
 
 LIBS = $(SRC_DIR)/libaoclibs.a
-CFLAGS = -Wno-nullability-completeness $(INCLUDE)
+CFLAGS = -Wno-nullability-completeness $(INCLUDE) -g
 
 SRCS = $(wildcard $(SAMPLE_DIR)/*.c)
 BINS = $(SRCS:.c=.out)

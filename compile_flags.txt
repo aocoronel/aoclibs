@@ -1,4 +1,2 @@
 -std=c99
 -I.
--DDEBUG_HEAP
--DTUNIT

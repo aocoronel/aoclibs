@@ -68,5 +68,6 @@ CLIEnv env[] = {
 // Usage:
 int main(void) {
         cli_bashgen(commands, args, flags, env, array_len(env));
+        int t = 10;
         return 0;
 }
