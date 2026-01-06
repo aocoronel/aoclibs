@@ -171,17 +171,16 @@
 #ifdef NDEBUG
 #define ASSERT(...)
 #else
-#define ASSERT(exp, fmt, ...)                                               \
-        (void)((!!(exp)) || (aoc_assert(#exp, __FILE__, __LINE__, __func__, \
-                                        fmt, __VA_ARGS__),                  \
-                             0))
+#define ASSERT(exp, ...) \
+        (void)((!!(exp)) || (aoc_assert(#exp, __FILE__, __LINE__, __func__, __VA_ARGS__), 0))
 #endif
+
+#define ASSERT_REF(exp) ASSERT((exp), "passing NULL pointer to Nonnull parameter")
 
 /*
  * Used to panic, when an unreachable code is ran
 */
-#define not_reachable() \
-        aoc_panic(__FILE__, __LINE__, __func__, "unreachable code reached")
+#define not_reachable() aoc_panic(__FILE__, __LINE__, __func__, "unreachable code reached")
 
 /*
  * Prints message, including metadata and aborts the program
