@@ -132,10 +132,14 @@
 
 #ifndef __clang__
 #define ref
+#define xref
 #define null
+#define xnull
 #else
 #define ref _Nonnull
+#define xref _Nonnull restrict
 #define null _Nullable
+#define xnull _Nullable restrict
 #endif
 
 /*
