@@ -41,10 +41,12 @@
 
 #define FEATURE_DISABLE_COLORS // Disable colors
 
+#define AOCLIBS_ALLOC // Memory allocation implementation
 #define AOCLIBS_ARENA // Arena implementation
 #define AOCLIBS_CLI // CLI implementation
 #define AOCLIBS_DEBUG // Debug utilities
 #define AOCLIBS_FILE // File handling implementation
+#define AOCLIBS_STRING // String implementation
 #define AOCLIBS_VEC // Dynamic arrays implementation
 
 // Enable TUnit :: cc -DTUNIT
@@ -72,6 +74,21 @@
 #ifdef DEBUG_HEAP
 #include <stdio.h>
 #include <stdlib.h>
+#endif
+
+#ifdef AOCLIBS_ALLOC
+#include <stdlib.h>
+#endif
+
+#ifdef AOCLIBS_STRING
+#include <alloca.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #endif
 
 #ifdef AOCLIBS_DEBUG
@@ -365,16 +382,15 @@ enum {
 /*
  * Asserts an expression, and prints a formatted message
 */
-void aoc_assert(const char *expr, const char *file, unsigned line,
-                const char *func, const char *fmt, ...) FN_ABORTS;
+void aoc_assert(const char *expr, const char *file, unsigned line, const char *func,
+                const char *fmt, ...) FN_ABORTS;
 
 /*
  * Prints message, including metadata and aborts the program
  *
  * Should not be used directly. Use the panic macro, instead.
 */
-void aoc_panic(const char *__file, int __line, const char *__func,
-               const char *msg) FN_ABORTS;
+void aoc_panic(const char *__file, int __line, const char *__func, const char *msg) FN_ABORTS;
 
 /*
  * Returns a dot spinner symbol.
@@ -491,8 +507,8 @@ typedef void (*dw_fn)(const char *path);
  *
  * Failure: errno << opendir
 */
-int aoc_dir_walk(const char *ref path, bool recurse, dw_fn isdir, dw_fn isreg,
-                 dw_fn islnk, dw_fn isnull, dw_fn isempty);
+int aoc_dir_walk(const char *ref path, bool recurse, dw_fn isdir, dw_fn isreg, dw_fn islnk,
+                 dw_fn isnull, dw_fn isempty);
 
 /*
  * Stat the file and return its type
@@ -541,8 +557,7 @@ int aoc_vec_realloc(Vec *ref v) FN_WARN_UNUSED;
 void *aoc_vec_at(Vec *ref v, usize index) FN_WARN_UNUSED;
 int aoc_vec_push(Vec *ref v, const void *value) FN_WARN_UNUSED;
 int aoc_vec_pop(Vec *ref v, void *ref output) FN_WARN_UNUSED;
-int aoc_vec_insert(Vec *ref v, usize index,
-                   const void *null value) FN_WARN_UNUSED;
+int aoc_vec_insert(Vec *ref v, usize index, const void *null value) FN_WARN_UNUSED;
 void aoc_vec_swap(Vec *ref v, usize a, usize b);
 usize aoc_vec_partition(Vec *ref v, VecCompare cmp, usize lo, usize hi);
 void aoc_vec_qsort(Vec *ref v, VecCompare cmp, usize lo, usize hi);
@@ -550,9 +565,8 @@ void aoc_vec_sort(Vec *ref v, VecCompare cmp);
 int aoc_vec_shrink_to_fit(Vec *ref v) FN_WARN_UNUSED;
 void aoc_vec_clear(Vec *ref v);
 int aoc_vec_erase(Vec *v, usize index) FN_WARN_UNUSED;
-int aoc_vec_resize(Vec *ref v, usize new_len,
-                   const void *null value) FN_WARN_UNUSED;
-int aoc_vec_copy(Vec *ref restrict dest, Vec *ref restrict src) FN_WARN_UNUSED;
+int aoc_vec_resize(Vec *ref v, usize new_len, const void *null value) FN_WARN_UNUSED;
+int aoc_vec_copy(Vec *xref dest, Vec *xref src) FN_WARN_UNUSED;
 int aoc_vec_equal(Vec *a, Vec *b, VecCompare cmp);
 void aoc_vec_for_each(Vec *v, void (*fn)(void *));
 #endif
@@ -639,8 +653,8 @@ void tunit_log(const char *fmt, ...);
 
 #ifdef AOCLIBS_DEBUG
 
-void aoc_assert(const char *expr, const char *file, unsigned line,
-                const char *func, const char *fmt, ...) FN_ABORTS {
+void aoc_assert(const char *expr, const char *file, unsigned line, const char *func,
+                const char *fmt, ...) FN_ABORTS {
         va_list args;
         va_start(args, fmt);
         fprintf(stderr, "Assertion failed: ");
@@ -651,10 +665,8 @@ void aoc_assert(const char *expr, const char *file, unsigned line,
         abort();
 }
 
-void aoc_panic(const char *__file, int __line, const char *__func,
-               const char *msg) FN_ABORTS {
-        fprintf(stderr, "PANIC: %s at %s:%d (%s) ", msg, __file, __line,
-                __func);
+void aoc_panic(const char *__file, int __line, const char *__func, const char *msg) FN_ABORTS {
+        fprintf(stderr, "PANIC: %s at %s:%d (%s) ", msg, __file, __line, __func);
         fflush(stderr);
         abort();
 }
@@ -718,9 +730,7 @@ void aoc_printfc_critical(const char *ref fmt, ...) {
 #define SPINNER_NUM_SYMBOLS (sizeof(SYMBOLS) / sizeof(SYMBOLS[0]))
 
 const char *aoc_get_spinner(void) {
-        static const char *SYMBOLS[] = {
-                "⠁", "⠈", "⠐", "⠠", "⢀", "⡀", "⠄", "⠂"
-        };
+        static const char *SYMBOLS[] = { "⠁", "⠈", "⠐", "⠠", "⢀", "⡀", "⠄", "⠂" };
         static int_fast8_t counter = 0;
         const char *RESULT = SYMBOLS[counter];
         counter = (counter + 1) % SPINNER_NUM_SYMBOLS;
@@ -802,15 +812,13 @@ int tunit_fd = -1;
 
 void timeout_handler(int sig) {
         TIMEOUT_OCCURRED = 1;
-        fprintf(stderr, "  [TIMEOUT] Test '%s' exceeded time limit (%d)\n",
-                CURRENT_TEST, sig);
+        fprintf(stderr, "  [TIMEOUT] Test '%s' exceeded time limit (%d)\n", CURRENT_TEST, sig);
         TESTS_FAIL++;
         longjmp(JMP_BUFFER, 1);
 }
 
 void segfault_handler(int sig) {
-        fprintf(stderr, "  [CRASH] SEGFAULT (signal %d) in test '%s'\n", sig,
-                CURRENT_TEST);
+        fprintf(stderr, "  [CRASH] SEGFAULT (signal %d) in test '%s'\n", sig, CURRENT_TEST);
         TESTS_FAIL++;
         longjmp(JMP_BUFFER, 1);
 }
@@ -886,27 +894,22 @@ static void run_single_test(TestCase *test) {
                         if (strcmp(result, "OK") == 0) {
                                 clock_gettime(CLOCK_MONOTONIC, &end);
                                 double duration_ms = get_time_diff_ms(&start);
-                                fprintf(stderr, " ✓ %s %.2fms\n", CURRENT_TEST,
-                                        duration_ms);
+                                fprintf(stderr, " ✓ %s %.2fms\n", CURRENT_TEST, duration_ms);
                         } else if (strcmp(result, "SKIP") == 0) {
                                 clock_gettime(CLOCK_MONOTONIC, &end);
                                 double duration_ms = get_time_diff_ms(&start);
-                                fprintf(stderr, " s %s %.2fms\n", CURRENT_TEST,
-                                        duration_ms);
+                                fprintf(stderr, " s %s %.2fms\n", CURRENT_TEST, duration_ms);
                                 TESTS_SKIP++;
                         }
                 } else {
                         clock_gettime(CLOCK_MONOTONIC, &end);
                         double duration_ms = get_time_diff_ms(&start);
                         if (WIFSIGNALED(status)) {
-                                fprintf(stderr,
-                                        " ✗ %s %.2fms (CRASH: signal %d)\n",
-                                        CURRENT_TEST, duration_ms,
-                                        WTERMSIG(status));
+                                fprintf(stderr, " ✗ %s %.2fms (CRASH: signal %d)\n", CURRENT_TEST,
+                                        duration_ms, WTERMSIG(status));
                         } else {
-                                fprintf(stderr,
-                                        " ✗ %s %.2fms (UNKNOWN ERROR)\n",
-                                        CURRENT_TEST, duration_ms);
+                                fprintf(stderr, " ✗ %s %.2fms (UNKNOWN ERROR)\n", CURRENT_TEST,
+                                        duration_ms);
                         }
                         TESTS_FAIL++;
                 }
@@ -958,21 +961,17 @@ void tunit_register_test(const char *desc, void (*func)(void)) {
         TESTS_TAIL = tc;
 }
 
-void tunit_assert(int expr, const char *expr_str, const char *msg,
-                  const char *file, int line) {
+void tunit_assert(int expr, const char *expr_str, const char *msg, const char *file, int line) {
         if (!expr) {
-                fprintf(stderr,
-                        "  [FAIL] Assertion failed: %s in test %s: %s at %s:%d\n",
-                        msg, CURRENT_TEST ? CURRENT_TEST : "(unknown)",
-                        expr_str, file, line);
+                fprintf(stderr, "  [FAIL] Assertion failed: %s in test %s: %s at %s:%d\n", msg,
+                        CURRENT_TEST ? CURRENT_TEST : "(unknown)", expr_str, file, line);
                 TESTS_FAIL++;
                 longjmp(JMP_BUFFER, 1);
         }
 }
 
 void tunit_skip_test(const char *reason) {
-        fprintf(stderr, "  [SKIP] Test '%s' skipped: %s\n", CURRENT_TEST,
-                reason);
+        fprintf(stderr, "  [SKIP] Test '%s' skipped: %s\n", CURRENT_TEST, reason);
         TESTS_SKIP++;
         longjmp(JMP_BUFFER, 2);
 }
@@ -990,8 +989,8 @@ void tunit_run_all_tests(void) {
 
         double suite_duration_ms = get_time_diff_ms(&suite_start);
         fprintf(stderr, " === Test Summary ===\n");
-        fprintf(stderr, "%d succeed, %d failed and %d skipped (%.2fms total)\n",
-                TESTS_RUN, TESTS_FAIL, TESTS_SKIP, suite_duration_ms);
+        fprintf(stderr, "%d succeed, %d failed and %d skipped (%.2fms total)\n", TESTS_RUN,
+                TESTS_FAIL, TESTS_SKIP, suite_duration_ms);
 }
 
 static inline void tunit_init_log(const char *log_path) {
@@ -1064,7 +1063,7 @@ Arena aoc_arena_create(usize cap) {
 }
 
 void aoc_arena_reset(Arena *ref a) {
-        ASSERT(a != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(a != NULL);
         a->offset = 0;
 }
 
@@ -1078,8 +1077,7 @@ void aoc_arena_destroy(Arena *ref a) {
 
 void *aoc_arena_alloc_aligned(Arena *ref a, usize size, usize align) {
         ASSERT(a != NULL, "%s", "double free attempt");
-        ASSERT((align & (align - 1)) == 0, "%s",
-               "alignment is not a power of two");
+        ASSERT((align & (align - 1)) == 0, "%s", "alignment is not a power of two");
 
         usize curr = (usize)(a->buffer + a->offset);
         usize misalignment = curr & (align - 1);
@@ -1130,7 +1128,7 @@ void aoc_vec_free(Vec *ref v) {
 }
 
 int aoc_vec_reserve(Vec *ref v, usize cap) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
 
         if (cap > SIZE_MAX / v->pad) return MaxCapacityReached;
 
@@ -1145,7 +1143,7 @@ int aoc_vec_reserve(Vec *ref v, usize cap) {
 }
 
 int aoc_vec_realloc(Vec *ref v) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
 
         usize new_cap = v->cap ? v->cap * 2 : 8;
 
@@ -1160,14 +1158,14 @@ int aoc_vec_realloc(Vec *ref v) {
 }
 
 void *aoc_vec_at(Vec *ref v, usize index) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
         if (index > v->len) return NULL;
 
         return (char *)v->data + index * v->pad;
 }
 
 int aoc_vec_push(Vec *ref v, const void *value) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
         int err = aoc_vec_reserve(v, v->len + 1);
         if (err != Ok) return err;
         char *dest = (char *)v->data + v->len * v->pad;
@@ -1177,7 +1175,7 @@ int aoc_vec_push(Vec *ref v, const void *value) {
 }
 
 int aoc_vec_pop(Vec *ref v, void *ref output) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
         if (v->len == 0) return ElementIsEmpty;
         v->len--;
         if (output) {
@@ -1187,7 +1185,7 @@ int aoc_vec_pop(Vec *ref v, void *ref output) {
 }
 
 int aoc_vec_insert(Vec *ref v, usize index, const void *null value) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
         if (index > v->len) return IndexNoExist;
         int err = aoc_vec_reserve(v, v->len + 1);
         if (err != Ok) return err;
@@ -1203,7 +1201,7 @@ int aoc_vec_insert(Vec *ref v, usize index, const void *null value) {
 }
 
 void aoc_vec_swap(Vec *ref v, usize a, usize b) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
         if (a == b) return;
 
         char *pa = (char *)v->data + a * v->pad;
@@ -1218,7 +1216,7 @@ void aoc_vec_swap(Vec *ref v, usize a, usize b) {
 }
 
 usize aoc_vec_partition(Vec *ref v, VecCompare cmp, usize lo, usize hi) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
         void *err = aoc_vec_at(v, hi);
         if (err == NULL) return ValueNotFound;
 
@@ -1241,7 +1239,7 @@ usize aoc_vec_partition(Vec *ref v, VecCompare cmp, usize lo, usize hi) {
 }
 
 void aoc_vec_qsort(Vec *ref v, VecCompare cmp, usize lo, usize hi) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
         if (lo >= hi) return;
 
         usize p = aoc_vec_partition(v, cmp, lo, hi);
@@ -1251,12 +1249,12 @@ void aoc_vec_qsort(Vec *ref v, VecCompare cmp, usize lo, usize hi) {
 }
 
 void aoc_vec_sort(Vec *ref v, VecCompare cmp) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
         if (v->len > 1) aoc_vec_qsort(v, cmp, 0, v->len - 1);
 }
 
 int aoc_vec_shrink_to_fit(Vec *ref v) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
         if (v->len >= v->cap) return NothingToDo;
         void *new_data = realloc(v->data, v->len * v->pad);
         if (!new_data) return errno;
@@ -1266,12 +1264,12 @@ int aoc_vec_shrink_to_fit(Vec *ref v) {
 }
 
 void aoc_vec_clear(Vec *ref v) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
         v->len = 0;
 }
 
 int aoc_vec_erase(Vec *v, usize index) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
         if (index > v->len) return IndexNoExist;
         void *dst = (char *)v->data + index * v->pad;
         void *src = (char *)v->data + (index + 1) * v->pad;
@@ -1282,7 +1280,7 @@ int aoc_vec_erase(Vec *v, usize index) {
 }
 
 int aoc_vec_resize(Vec *ref v, usize new_len, const void *null value) {
-        ASSERT(v != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(v != NULL);
         if (new_len > v->len) {
                 int err = aoc_vec_reserve(v, new_len);
                 if (err != Ok) return err;
@@ -1293,7 +1291,7 @@ int aoc_vec_resize(Vec *ref v, usize new_len, const void *null value) {
         return Ok;
 }
 
-int aoc_vec_copy(Vec *ref restrict dest, Vec *ref restrict src) {
+int aoc_vec_copy(Vec *xref dest, Vec *xref src) {
         if (dest->pad != src->pad) return IncompatibleTypes;
         int err = aoc_vec_reserve(dest, src->len);
         if (err == Ok) return err;
@@ -1325,9 +1323,9 @@ void aoc_vec_for_each(Vec *v, void (*fn)(void *)) {
 #endif
 
 #ifdef AOCLIBS_FILE
-int aoc_dir_walk(const char *ref path, bool recurse, dw_fn isdir, dw_fn isreg,
-                 dw_fn islnk, dw_fn isnull, dw_fn isempty) {
-        ASSERT(path != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+int aoc_dir_walk(const char *ref path, bool recurse, dw_fn isdir, dw_fn isreg, dw_fn islnk,
+                 dw_fn isnull, dw_fn isempty) {
+        ASSERT_REF(path != NULL);
 
         DIR *dir = opendir(path);
         if (!dir) return errno;
@@ -1338,12 +1336,9 @@ int aoc_dir_walk(const char *ref path, bool recurse, dw_fn isdir, dw_fn isreg,
         char fullpath[DIR_WALKER_BUFF];
 
         while ((entry = readdir(dir)) != NULL) {
-                if (strcmp(entry->d_name, ".") == 0 ||
-                    strcmp(entry->d_name, "..") == 0)
-                        continue;
+                if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
 
-                snprintf(fullpath, sizeof(fullpath), "%s/%s", path,
-                         entry->d_name);
+                snprintf(fullpath, sizeof(fullpath), "%s/%s", path, entry->d_name);
 
                 FileType file_t = aoc_get_filetype(fullpath);
 
@@ -1353,8 +1348,8 @@ int aoc_dir_walk(const char *ref path, bool recurse, dw_fn isdir, dw_fn isreg,
                         break;
                 case F_DIR:
                         if (recurse)
-                                aoc_dir_walk(fullpath, recurse, isdir, isreg,
-                                             islnk, isnull, isempty);
+                                aoc_dir_walk(fullpath, recurse, isdir, isreg, islnk, isnull,
+                                             isempty);
                         if (isdir != NULL) isdir(fullpath);
                         break;
                 case F_LNK:
@@ -1377,7 +1372,7 @@ int aoc_dir_walk(const char *ref path, bool recurse, dw_fn isdir, dw_fn isreg,
 }
 
 FileType aoc_get_filetype(const char *ref path) {
-        ASSERT(path != NULL, "%s", "passing NULL pointer to Nonnull parameter");
+        ASSERT_REF(path != NULL);
 
         struct stat st;
         if (lstat(path, &st) == -1) return F_NULL;
@@ -1415,10 +1410,8 @@ static inline void bashgen_argument(const CLIArgument *args) {
 static inline void bashgen_flags(const CLIProgram *prog) {
         putchar(' ');
         for (usize i = 0; i < prog->flagc; i++) {
-                if (prog->flags[i].long_opt != NULL)
-                        printf(" %s", prog->flags[i].long_opt);
-                if (prog->flags[i].short_opt != NULL)
-                        printf(" %s", prog->flags[i].short_opt);
+                if (prog->flags[i].long_opt != NULL) printf(" %s", prog->flags[i].long_opt);
+                if (prog->flags[i].short_opt != NULL) printf(" %s", prog->flags[i].short_opt);
         }
 }
 
@@ -1427,8 +1420,7 @@ static inline void bashgen_commands(const CLIProgram *prog) {
                 printf(" %s", prog->commands[i].cmd);
 }
 
-static inline void bashgen_flag_cases(const CLIProgram *prog,
-                                      const CLIOption *flags) {
+static inline void bashgen_flag_cases(const CLIProgram *prog, const CLIOption *flags) {
         char ARG[AOC_CLI_BUFFER];
         if (flags->args && flags->args->completion)
                 cli_normalize_shell_name(ARG, prog->args->name, AOC_CLI_BUFFER);
@@ -1444,21 +1436,18 @@ static inline void bashgen_flag_cases(const CLIProgram *prog,
                 printf("  %s)\n", SHORT_FLAG);
         else
                 return;
-        printf("    mapfile -t COMPREPLY < <(compgen -W \"$(_%s)\" -- \"${cur}\")\n",
-               ARG);
+        printf("    mapfile -t COMPREPLY < <(compgen -W \"$(_%s)\" -- \"${cur}\")\n", ARG);
         printf("    return 0\n    ;;\n");
 }
 
-static inline void bashgen_command_cases(const CLIProgram *prog,
-                                         const CLICommand *commands) {
+static inline void bashgen_command_cases(const CLIProgram *prog, const CLICommand *commands) {
         char ARG[AOC_CLI_BUFFER];
         if (commands->args && commands->args->completion)
                 cli_normalize_shell_name(ARG, prog->args->name, AOC_CLI_BUFFER);
         else
                 return;
         printf("  %s)\n", commands->cmd);
-        printf("    mapfile -t COMPREPLY < <(compgen -W \"$(_%s)\" -- \"${cur}\")\n",
-               ARG);
+        printf("    mapfile -t COMPREPLY < <(compgen -W \"$(_%s)\" -- \"${cur}\")\n", ARG);
         printf("    return 0\n    ;;\n");
 }
 
@@ -1587,9 +1576,7 @@ static inline bool has_args(CLIProgram info) {
 
 static inline bool has_options(CLIProgram info) {
         for (usize i = 0; i < info.flagc; i++) {
-                if (info.flags->long_opt != NULL ||
-                    info.flags->short_opt != NULL)
-                        return true;
+                if (info.flags->long_opt != NULL || info.flags->short_opt != NULL) return true;
         }
         return false;
 }
@@ -1608,8 +1595,8 @@ static inline void printh_arguments(CLIProgram *prog) {
                 char arg_full[AOC_CLI_BUFFER] = { 0 };
 
                 if (ARG_NAME) {
-                        snprintf(arg_full, sizeof(arg_full), "%s%s%s",
-                                 COLOR_BOLD, ARG_NAME, COLOR_RESET);
+                        snprintf(arg_full, sizeof(arg_full), "%s%s%s", COLOR_BOLD, ARG_NAME,
+                                 COLOR_RESET);
                         fprintf(stderr, "  %s\n", arg_full);
                         if (ARG_DESC && strlen(ARG_DESC) > 0) {
                                 aoc_iprint(ARG_DESC, PRINTH_DESC_INDENT);
@@ -1630,9 +1617,7 @@ static inline void printh_commands(CLIProgram *prog) {
 
         for (usize i = 0; i < prog->cmdc; i++) {
                 const char *CMD = prog->commands[i].cmd;
-                const char *ARG = (prog->commands[i].args) ?
-                                          prog->commands[i].args->name :
-                                          NULL;
+                const char *ARG = (prog->commands[i].args) ? prog->commands[i].args->name : NULL;
                 const char *DESC = prog->commands[i].desc;
 
                 char cmd_full[AOC_CLI_BUFFER] = { 0 };
@@ -1640,19 +1625,17 @@ static inline void printh_commands(CLIProgram *prog) {
                 if (ARG) {
                         switch (prog->commands[i].args->type) {
                         case ReqArg:
-                                snprintf(cmd_full, sizeof(cmd_full),
-                                         "%s%s%s <%s>", COLOR_BOLD, CMD,
+                                snprintf(cmd_full, sizeof(cmd_full), "%s%s%s <%s>", COLOR_BOLD, CMD,
                                          COLOR_RESET, ARG);
                                 break;
                         case NReqArg:
-                                snprintf(cmd_full, sizeof(cmd_full),
-                                         "%s%s%s [%s]", COLOR_BOLD, CMD,
+                                snprintf(cmd_full, sizeof(cmd_full), "%s%s%s [%s]", COLOR_BOLD, CMD,
                                          COLOR_RESET, ARG);
                                 break;
                         }
                 } else {
-                        snprintf(cmd_full, sizeof(cmd_full), "%s%s%s",
-                                 COLOR_BOLD, CMD, COLOR_RESET);
+                        snprintf(cmd_full, sizeof(cmd_full), "%s%s%s", COLOR_BOLD, CMD,
+                                 COLOR_RESET);
                 }
 
                 fprintf(stderr, "  %s\n", cmd_full);
@@ -1675,24 +1658,20 @@ static inline void printh_options(CLIProgram *prog) {
         for (usize i = 0; i < prog->flagc; i++) {
                 const char *SHORT_OPT = prog->flags[i].short_opt;
                 const char *LONG_OPT = prog->flags[i].long_opt;
-                const char *ARG = (prog->flags[i].args) ?
-                                          prog->flags[i].args->name :
-                                          NULL;
+                const char *ARG = (prog->flags[i].args) ? prog->flags[i].args->name : NULL;
                 const char *DESC = prog->flags[i].desc;
 
                 char flag_buffer[AOC_CLI_BUFFER] = { 0 };
 
                 if (SHORT_OPT && LONG_OPT) {
-                        snprintf(flag_buffer, sizeof(flag_buffer),
-                                 "%s%s%s, %s%s%s", COLOR_BOLD, SHORT_OPT,
-                                 COLOR_RESET, COLOR_BOLD, LONG_OPT,
-                                 COLOR_RESET);
+                        snprintf(flag_buffer, sizeof(flag_buffer), "%s%s%s, %s%s%s", COLOR_BOLD,
+                                 SHORT_OPT, COLOR_RESET, COLOR_BOLD, LONG_OPT, COLOR_RESET);
                 } else if (LONG_OPT) {
-                        snprintf(flag_buffer, sizeof(flag_buffer), "%s%s%s",
-                                 COLOR_BOLD, LONG_OPT, COLOR_RESET);
+                        snprintf(flag_buffer, sizeof(flag_buffer), "%s%s%s", COLOR_BOLD, LONG_OPT,
+                                 COLOR_RESET);
                 } else if (SHORT_OPT) {
-                        snprintf(flag_buffer, sizeof(flag_buffer), "%s%s%s",
-                                 COLOR_BOLD, SHORT_OPT, COLOR_RESET);
+                        snprintf(flag_buffer, sizeof(flag_buffer), "%s%s%s", COLOR_BOLD, SHORT_OPT,
+                                 COLOR_RESET);
                 }
 
                 if (ARG) {
@@ -1727,8 +1706,7 @@ void _aoc_printh(CLIProgram prog) {
 
         // Usage: program usage
         print_header("Usage:", COLOR_BOLD_UNDERLINE);
-        fprintf(stderr, "  %s%s%s %s\n\n", COLOR_BOLD, prog.name, COLOR_RESET,
-                prog.usage);
+        fprintf(stderr, "  %s%s%s %s\n\n", COLOR_BOLD, prog.name, COLOR_RESET, prog.usage);
 
         if (has_args(prog)) printh_arguments(&prog);
         if (has_commands(prog)) printh_commands(&prog);
@@ -1737,8 +1715,7 @@ void _aoc_printh(CLIProgram prog) {
 
 // Zshgen
 
-static inline void zshgen_print_arg_autocomplete(const CLIProgram *prog,
-                                                 const CLIArgument *args) {
+static inline void zshgen_print_arg_autocomplete(const CLIProgram *prog, const CLIArgument *args) {
         char ARG[AOC_CLI_BUFFER] = { 0 };
         if (args)
                 cli_normalize_shell_name(ARG, args->name, AOC_CLI_BUFFER);
@@ -1748,15 +1725,13 @@ static inline void zshgen_print_arg_autocomplete(const CLIProgram *prog,
         if (COMPLETIONS != NULL) {
                 printf("_%s_get_%s() {\n", prog->name, ARG);
                 printf("  local results\n");
-                printf("  results=(${(f)\"$(%s 2>/dev/null)\"})\n",
-                       COMPLETIONS);
+                printf("  results=(${(f)\"$(%s 2>/dev/null)\"})\n", COMPLETIONS);
                 printf("  compadd -Q -a results\n");
                 printf("}\n\n");
         }
 }
 
-static void zshgen_print_flag_arg(const CLIProgram *prog,
-                                  const CLIOption *flag) {
+static void zshgen_print_flag_arg(const CLIProgram *prog, const CLIOption *flag) {
         char ARG[AOC_CLI_BUFFER];
         const char *SHORT_FLAG = flag->short_opt;
         const char *LONG_FLAG = flag->long_opt;
@@ -1791,8 +1766,7 @@ static void zshgen_print_flag_arg(const CLIProgram *prog,
         }
 }
 
-static inline void zshgen_print_command_case(const CLIProgram *prog,
-                                             const CLICommand *cmd) {
+static inline void zshgen_print_command_case(const CLIProgram *prog, const CLICommand *cmd) {
         char ARG[AOC_CLI_BUFFER];
         if (cmd->args)
                 cli_normalize_shell_name(ARG, cmd->args->name, AOC_CLI_BUFFER);
@@ -1807,8 +1781,7 @@ static inline void zshgen_print_command_case(const CLIProgram *prog,
         printf("          ;;\n");
 }
 
-static inline void zshgen_print_flag_case(const CLIProgram *prog,
-                                          const CLIOption *flag) {
+static inline void zshgen_print_flag_case(const CLIProgram *prog, const CLIOption *flag) {
         char ARG[AOC_CLI_BUFFER];
         const char *SHORT_FLAG = flag->short_opt;
         const char *LONG_FLAG = flag->long_opt;
@@ -1848,8 +1821,7 @@ void _aoc_zshgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
         // Define Subcommands
         printf("  subcommands=(\n");
         for (usize i = 0; i < prog.cmdc; i++) {
-                printf("    \"%s:%s\"\n", prog.commands[i].cmd,
-                       prog.commands[i].desc);
+                printf("    \"%s:%s\"\n", prog.commands[i].cmd, prog.commands[i].desc);
         }
         printf("  )\n\n");
 
@@ -1923,8 +1895,7 @@ static debug_entry *head = NULL;
 static int debug_alloc_count = 0;
 static int debug_free_count = 0;
 
-static void add_entry(void *ptr, size_t size, const char *func,
-                      const char *file, int line) {
+static void add_entry(void *ptr, size_t size, const char *func, const char *file, int line) {
         init_std_functions();
         debug_entry *entry = (debug_entry *)std_malloc(sizeof(debug_entry));
         if (!entry) return;
@@ -1963,8 +1934,7 @@ void *debug_malloc(size_t size, const char *func, const char *file, int line) {
         return ptr;
 }
 
-void *debug_calloc(size_t nmemb, size_t size, const char *func,
-                   const char *file, int line) {
+void *debug_calloc(size_t nmemb, size_t size, const char *func, const char *file, int line) {
         init_std_functions();
         void *ptr = std_calloc(nmemb, size);
         if (ptr) {
@@ -1973,8 +1943,7 @@ void *debug_calloc(size_t nmemb, size_t size, const char *func,
         return ptr;
 }
 
-void *debug_realloc(void *ptr, size_t size, const char *func, const char *file,
-                    int line) {
+void *debug_realloc(void *ptr, size_t size, const char *func, const char *file, int line) {
         init_std_functions();
         if (ptr == NULL) {
                 void *new_ptr = std_malloc(size);
@@ -2017,12 +1986,10 @@ void debug_memory_summary(FILE *ref fd) {
         fprintf(fd, "===== Memory Summary Report =====\n");
         fprintf(fd, "Total allocations: %d\n", debug_alloc_count);
         fprintf(fd, "Total frees: %d\n", debug_free_count);
-        fprintf(fd, "Active allocations (leaks): %d\n",
-                debug_alloc_count - debug_free_count);
+        fprintf(fd, "Active allocations (leaks): %d\n", debug_alloc_count - debug_free_count);
         while (curr) {
-                fprintf(fd, "%zu bytes at %s() in %s:%d (ptr: %p)\n",
-                        curr->size, curr->func, curr->file, curr->line,
-                        curr->ptr);
+                fprintf(fd, "%zu bytes at %s() in %s:%d (ptr: %p)\n", curr->size, curr->func,
+                        curr->file, curr->line, curr->ptr);
                 leaks_found += curr->size;
                 curr = curr->next;
         }
