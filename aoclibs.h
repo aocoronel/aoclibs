@@ -223,7 +223,7 @@
 /*
  * TEST(my_test_name) :: Register a test
  * TASSERT(1 == 1) :: TUnit specific asserts
- * SKIP_TEST(my_test_name) :: Skip registering test
+ * SKIP_TEST("this must be implemented first") :: Skip registering test
 */
 
 #ifndef TUNIT
