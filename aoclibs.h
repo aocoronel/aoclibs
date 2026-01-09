@@ -1,4 +1,3 @@
-#include <sys/cdefs.h>
 #define AOCLIBS_IMPLEMENTATION
 #ifdef AOCLIBS_IMPLEMENTATION
 
@@ -54,6 +53,10 @@
 
 // === Includes ===
 
+#ifdef AOCLIBS_CLI
+#define _GETOPT_CORE_H
+#endif
+
 #ifdef TUNIT
 #define _XOPEN_SOURCE 600
 #include <setjmp.h>
@@ -67,7 +70,6 @@
 #include <sys/wait.h>
 #include <sys/wait.h>
 #include <time.h>
-#include <unistd.h>
 #include <unistd.h>
 #endif
 
@@ -549,16 +551,10 @@ void aoc_vec_for_each(Vec *v, void (*fn)(void *));
 // CLI Helpers
 
 #ifdef AOCLIBS_CLI
-enum CLIArgumentType {
-        ReqArg, // Required Argument
-        NReqArg, // Not Required Argument
-};
-
 typedef struct {
         const char *name;
         const char *desc;
         const char *completion;
-        enum CLIArgumentType type;
 } CLIArgument;
 
 typedef struct {
@@ -594,7 +590,7 @@ typedef struct {
 /*
  * Generates bash completions for commands, flags and arguments
 */
-void _aoc_bashgen(CLIProgram prog, const CLIEnv *env, usize envc);
+void aoc_bashgen(CLIProgram prog, const CLIEnv *env, usize envc);
 
 /*
  * Normalizes a strstrg strto a valid shell function name, by replacstrg
@@ -612,7 +608,7 @@ void _aoc_printh(CLIProgram prog);
 /*
  * Generates bash completions for commands, flags and arguments
 */
-void _aoc_zshgen(CLIProgram prog, const CLIEnv *env, usize envc);
+void aoc_zshgen(CLIProgram prog, const CLIEnv *env, usize envc);
 #endif
 
 // TUnit -- Test Unit
@@ -625,6 +621,458 @@ void tunit_log(const char *fmt, ...);
 #endif
 
 // === Function Definitions ===
+
+#ifdef AOCLIBS_ALLOC
+void Free(void *ref ptr) {
+        ASSERT(ptr != NULL, "double free attempt");
+        free(ptr);
+}
+
+void *xnull Calloc(usize count, usize size) {
+        void *tmp = calloc(count, size);
+        if (!tmp) {
+                PTRACE("[calloc] %s [Requested: %zu bytes] (%s:%s)\n", strerror(errno),
+                       count * size);
+                return NULL;
+        }
+        return tmp;
+}
+
+void *xnull Malloc(usize cap) {
+        void *tmp = malloc(cap);
+        if (!tmp) {
+                PTRACE("[calloc] %s [Requested: %zu bytes]\n", strerror(errno), cap);
+                return NULL;
+        }
+        return tmp;
+}
+
+void *null Realloc(void *null ptr, usize cap) {
+        void *tmp = realloc(ptr, cap);
+        if (!tmp) {
+                PTRACE("[realloc] %s [Requested: %zu bytes]\n", strerror(errno), cap);
+                return NULL;
+        }
+        return tmp;
+}
+#endif
+
+#ifdef AOCLIBS_STRING
+#define StrError ((size_t)-1)
+
+typedef enum {
+        StringHeap,
+        StringStack,
+        StringLiteral,
+} StringType;
+
+#define get_slice(s) (s.len), (s.slice)
+typedef struct {
+        const char *slice;
+        int len;
+} StrSlice;
+
+typedef struct {
+        char *str;
+        size_t len;
+        size_t cap;
+        StringType type;
+} str;
+
+#define str_to_slice(s, x, y) cstr_to_slice((s.str), (x), (y))
+StrSlice cstr_to_slice(const char *ref s, size_t start, size_t end) {
+        ASSERT_REF(s != NULL);
+        return (StrSlice){ .slice = s + start, .len = end - start };
+}
+
+bool str_can_mut(const str *null s) {
+        if (!s) return false;
+        if (s->type == StringLiteral) return false;
+        return true;
+}
+
+bool str_is_null(const str *null s) {
+        return !s || !s->str || s->len == 0;
+}
+
+bool str_is_null_assert(const str *null s) {
+        return !(!s || !s->str);
+}
+
+#define cstr_dup(s, len) _cstr_dup((s), (len + 1))
+char *xnull _cstr_dup(const char *ref s, const size_t len) {
+        ASSERT_REF(s != NULL);
+        char *d = malloc(len);
+        if (!d) return NULL;
+        return memcpy(d, s, len);
+}
+
+str str_dup(const str *ref s) {
+        ASSERT_REF(str_is_null_assert(s));
+        ASSERT(s->type == StringHeap, "string is not heap allocated");
+        return (str){
+                .str = _cstr_dup(s->str, s->cap),
+                .len = s->len,
+                .cap = s->cap,
+                .type = StringHeap,
+        };
+}
+
+void cstr_to_lower(char *ref s, const size_t len) {
+        ASSERT_REF(s != NULL);
+        for (size_t i = 0; i < len; i++) {
+                s[i] = tolower(s[i]);
+        }
+}
+
+#define str_eq(s1, s2) cstr_eq((s1.str), (s2.str))
+#define str_eq_case(s1, s2) cstr_eq_case((s1.str), (s2.str))
+
+bool cstr_eq(const char *xref s1, const char *xref s2) {
+        if (!s1 || !s2) return s1 == s2;
+        const unsigned char *s1_tmp = (void *)s1;
+        const unsigned char *s2_tmp = (void *)s2;
+        while (*s1_tmp && *s2_tmp && *s1_tmp == *s2_tmp) {
+                s1_tmp++;
+                s2_tmp++;
+        }
+        return *s1_tmp == *s2_tmp;
+}
+
+bool cstr_eq_case(const char *xref s1, const char *xref s2) {
+        if (!s1 || !s2) return s1 == s2;
+        const unsigned char *s1_tmp = (void *)s1;
+        const unsigned char *s2_tmp = (void *)s2;
+        while (*s1_tmp && *s2_tmp && tolower(*s1_tmp) == tolower(*s2_tmp)) {
+                s1_tmp++;
+                s2_tmp++;
+        }
+        return tolower(*s1_tmp) == tolower(*s2_tmp);
+}
+
+#define str_len_comptime(s) ((sizeof((" " s " ")) / sizeof((s)[0])) - sizeof((s)[0]))
+
+size_t str_len(const char *null s, const size_t buff) {
+        if (s == NULL) return 0;
+        const char *s_tmp = memchr(s, 0, buff);
+        return s_tmp ? s_tmp - s : buff;
+}
+
+#define str_new_stack(cap) _str_new_stack(alloca((cap)), cap)
+str _str_new_stack(char *ref s, const size_t cap) {
+        ASSERT_REF(s != NULL);
+        return (str){ .str = s, .len = 0, .cap = cap, .type = StringStack };
+}
+
+#define str_new_comptime(s) _str_new_comptime((" " s " "), str_len_comptime(s))
+str _str_new_comptime(char *ref s, const size_t len) {
+        ASSERT_REF(s != NULL);
+        return (str){ .str = s, .len = 0, .cap = len, .type = StringLiteral };
+}
+
+#define str_new_heap(s, cap) _str_new_heap((s), cap)
+str _str_new_heap(char *null s, const size_t cap) {
+        return (str){
+                .str = s,
+                .len = 0,
+                .cap = cap,
+                .type = StringHeap,
+        };
+}
+
+int str_resize(str *ref s, size_t cap) {
+        ASSERT_REF(str_is_null_assert(s));
+        ASSERT(s->type == StringHeap, "string is not heap allocated");
+        void *tmp = realloc(s->str, cap);
+        if (tmp == NULL) return -1;
+        s->str = tmp;
+        return 0;
+}
+
+void str_free(str *ref s) {
+        ASSERT(str_is_null_assert(s), "double free attempt");
+        ASSERT(s->type == StringHeap, "string is not heap allocated");
+        free(s->str);
+        s->len = 0;
+        s->cap = 0;
+        s = NULL;
+}
+
+void str_free_array(str *ref s[], size_t len) {
+        for (size_t i = 0; i < len; i++) {
+                str_free(s[i]);
+        }
+}
+
+void str_erase(str *ref s) {
+        ASSERT(str_is_null_assert(s), "double free attempt");
+        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
+        for (size_t i = 0; i < s->cap; i++) {
+                s->str[i] = '\0';
+        }
+        if (s->type == StringHeap) str_free(s);
+}
+
+void str_clear(str *ref s) {
+        ASSERT_REF(str_is_null_assert(s));
+        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
+        s->str[0] = '\0';
+        s->len = 0;
+}
+
+#define cstr_begins_with(s, begin, begin_len, s_len) \
+        cstr_match_pos((s), (begin), (begin_len), (s_len), 0)
+#define cstr_ends_with(s, end, end_len, s_len) \
+        cstr_match_pos((s), (end), (end_len), (s_len), (s_len) - (end_len))
+bool cstr_match_pos(const char *xnull s, const char *xnull pattern, size_t pattern_len,
+                    size_t s_len, size_t offset) {
+        if (!s || pattern_len > s_len || offset > s_len - pattern_len) return false;
+
+        size_t i = offset + pattern_len;
+        size_t j = pattern_len;
+
+        while (j > 0) {
+                i--;
+                j--;
+                if (s[i] != pattern[j]) return false;
+        }
+        return true;
+}
+
+#define str_overwrite(s1, s2) str_copy((s1), (s2), 0)
+#define str_cat(s1, s2) str_copy((s1), (s2), s1.len)
+#define str_append(s1, s2) str_copy((s1), (s2), (s1.len + 1))
+int str_copy(str *xref s1, const str *xref s2, const size_t s1_offset) {
+        ASSERT_REF(str_is_null_assert(s1));
+        ASSERT_REF(str_is_null_assert(s2));
+        ASSERT(s1->type != StringLiteral, "attempt to modify string literal");
+        if (!str_can_mut(s1) || str_is_null_assert(s2)) return -1;
+
+        size_t avail = s1->cap - s1_offset;
+        size_t needed = s2->len + 1;
+
+        if (needed > avail) {
+                if (s1->type != StringHeap) return -1;
+
+                if (str_resize(s1, s1_offset + needed) != 0) return -1;
+        }
+
+        memcpy(s1->str + s1_offset, s2->str, s2->len);
+        s1->str[s1_offset + s2->len] = '\0';
+
+        s1->len = s1_offset + s2->len;
+
+        return 0;
+}
+
+int str_push(str *ref s, char c) {
+        ASSERT_REF(str_is_null_assert(s));
+        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
+
+        usize needed = s->len + 2;
+        if (needed > s->cap) {
+                if (str_resize(s, needed) != 0) return -1;
+        }
+
+        ((char *)s->str)[s->len] = c;
+        ((char *)s->str)[s->len + 1] = '\0';
+        s->len++;
+        return 0;
+}
+
+int str_pop(str *ref s) {
+        ASSERT_REF(str_is_null_assert(s));
+        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
+
+        if (s->len == 0) return -1;
+
+        s->len--;
+        ((char *)s->str)[s->len] = '\0';
+        return 0;
+}
+
+int str_drop(str *ref s, usize index) {
+        ASSERT_REF(str_is_null_assert(s));
+        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
+        if (index >= s->len) return -1;
+
+        char *ptr = (char *)s->str;
+
+        memmove(&ptr[index], &ptr[index + 1], s->len - index);
+
+        s->len--;
+        ptr[s->len] = '\0';
+
+        return 0;
+}
+
+#define cster_overwrite(s1, s2, s2_len) cstr_copy((s1), (s2), 0, s2_len)
+#define cster_overwrite_comptime(s1, s2) cstr_copy((s1), (s2), 0, str_len_comptime(s2))
+#define cstr_cat(s1, s2) cstr_copy((s1), (s2), s1.len, str_len((s2)))
+#define cstr_cat_comptime(s1, s2) cstr_copy((s1), (s2), s1.len, str_len_comptime((s2)))
+#define cstr_append(s1, s2) cstr_copy((s1), (s2), (s1.len + 1), str_len((s2)))
+#define cstr_append_comptime(s1, s2) cstr_copy((s1), (s2), (s1.len + 1), str_len_comptime((s2)))
+#define str_null_terminate(s) cstr_copy((s), "\0", (*s.len), 1)
+int cstr_copy(str *xref s1, const char *xref s2, const size_t s1_offset, size_t s2_len) {
+        ASSERT_REF(str_is_null_assert(s1));
+        ASSERT_REF(s2 != NULL);
+        ASSERT(s1->type != StringLiteral, "attempt to modify string literal");
+        if (!str_can_mut(s1) || !s2) return -1;
+
+        size_t avail = s1->cap - s1_offset;
+        size_t needed = s2_len + 1;
+
+        if (needed > avail) {
+                if (s1->type != StringHeap) return -1;
+                if (str_resize(s1, s1_offset + needed) != 0) return -1;
+        }
+
+        memcpy(s1->str + s1_offset, s2, s2_len);
+        s1->str[s1_offset + s2_len] = '\0';
+
+        s1->len = s1_offset + s2_len;
+
+        return 0;
+}
+
+int cstr_copy_fmt(str *xref s, const char *xref fmt, ...) {
+        ASSERT_REF(str_is_null_assert(s));
+        ASSERT_REF(fmt != NULL);
+        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
+        if (!str_can_mut(s) || !fmt) return -1;
+
+        int needed_len = 0, allocated_len = 0;
+
+        va_list args;
+        va_start(args, fmt);
+        needed_len = vsnprintf(s->str, 0, fmt, args);
+        va_end(args);
+
+        if (needed_len < 0) return -1;
+
+        if ((size_t)needed_len >= s->cap) {
+                if (s->type == StringHeap)
+                        if (str_resize(s, needed_len + 1) != 0) return -1;
+                va_start(args, fmt);
+                allocated_len = vsnprintf(s->str, s->cap, fmt, args);
+                va_end(args);
+                if (allocated_len < 0) return -1;
+        }
+
+        s->len = allocated_len;
+        return 0;
+}
+
+bool match_delim_rec(const char *xnull s, size_t s_len, const char *xnull delim, size_t delim_len,
+                     size_t pos, size_t j) {
+        if (!s || !delim) return false;
+        if (j == delim_len) return true;
+        if (pos + j >= s_len) return false;
+        if (s[pos + j] != delim[j]) return false;
+        return match_delim_rec(s, s_len, delim, delim_len, pos, j + 1);
+}
+
+size_t str_chr_str(const str *xref s, const char *xref delim, const size_t delim_len) {
+        ASSERT_REF(str_is_null_assert(s));
+        ASSERT_REF(delim != NULL);
+
+        for (size_t i = 0; i < s->len; i++) {
+                if (match_delim_rec(s->str, s->len, delim, delim_len, i, 0)) {
+                        return (size_t)i;
+                }
+        }
+
+        return StrError;
+}
+
+size_t str_chr(const str *ref s, char delim) {
+        ASSERT_REF(str_is_null_assert(s));
+
+        for (size_t i = 0; i < s->len; i++) {
+                if (s->str[i] == delim) return i;
+        }
+
+        return StrError;
+}
+
+const char *null str_tok_str_const(const str *xref s, const char *xref delim,
+                                   const size_t delim_len) {
+        ASSERT_REF(str_is_null_assert(s));
+        ASSERT_REF(delim != NULL);
+
+        size_t pos = str_chr_str(s, delim, delim_len);
+        if (pos == StrError) return NULL;
+
+        return s->str + pos + delim_len;
+}
+
+const char *null str_tok(const str *ref s, char delim) {
+        ASSERT_REF(str_is_null_assert(s));
+
+        size_t pos = str_chr(s, delim);
+        if (pos == StrError) return NULL;
+
+        return s->str + pos + 1;
+}
+
+size_t cstr_trim_whitespace(char *ref s, const size_t len) {
+        ASSERT_REF(s != NULL);
+
+        if (len == 0) return 0;
+
+        usize i = len;
+        while (i > 0 && isspace((unsigned char)s[i - 1])) {
+                i--;
+        }
+        s[i] = '\0';
+        return len;
+}
+
+void str_trim_whitespace(str *ref s) {
+        ASSERT_REF(str_is_null_assert(s));
+        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
+
+        size_t len = cstr_trim_whitespace(s->str, s->len);
+        s->len = len;
+}
+
+double cstr_to_double(const char *ref s, const double _default) {
+        ASSERT_REF(s != NULL);
+        char *endptr;
+        double val = strtod(s, &endptr);
+        if (*endptr != '\0') {
+                return _default;
+        }
+        return val;
+}
+
+bool cstr_to_bool(const char *ref s, const bool _default) {
+        ASSERT_REF(s != NULL);
+        if (cstr_eq_case(s, "true") || cstr_eq(s, "1")) return true;
+        if (cstr_eq_case(s, "false") || cstr_eq(s, "0")) return false;
+        return _default;
+}
+
+float cstr_to_float(const char *ref s, const float _default) {
+        ASSERT_REF(s != NULL);
+        char *endptr;
+        float val = strtof(s, &endptr);
+        if (*endptr != '\0') {
+                return _default;
+        }
+        return val;
+}
+
+long cstr_to_long(const char *ref s, const long _default) {
+        ASSERT_REF(s != NULL);
+        char *endptr;
+        long val = strtol(s, &endptr, 10);
+        if (*endptr != '\0') {
+                return _default;
+        }
+        return val;
+}
+#endif
 
 #ifdef AOCLIBS_DEBUG
 
@@ -1426,7 +1874,7 @@ static inline void bashgen_command_cases(const CLIProgram *prog, const CLIComman
         printf("    return 0\n    ;;\n");
 }
 
-void _aoc_bashgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
+void aoc_bashgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
         bashgen_shebang();
         bashgen_env(env, envc);
         for (usize i = 0; i < prog.argc; i++) {
@@ -1598,16 +2046,8 @@ static inline void printh_commands(CLIProgram *prog) {
                 char cmd_full[AOC_CLI_BUFFER] = { 0 };
 
                 if (ARG) {
-                        switch (prog->commands[i].args->type) {
-                        case ReqArg:
-                                snprintf(cmd_full, sizeof(cmd_full), "%s%s%s <%s>", COLOR_BOLD, CMD,
-                                         COLOR_RESET, ARG);
-                                break;
-                        case NReqArg:
-                                snprintf(cmd_full, sizeof(cmd_full), "%s%s%s [%s]", COLOR_BOLD, CMD,
-                                         COLOR_RESET, ARG);
-                                break;
-                        }
+                        snprintf(cmd_full, sizeof(cmd_full), "%s%s%s [%s]", COLOR_BOLD, CMD,
+                                 COLOR_RESET, ARG);
                 } else {
                         snprintf(cmd_full, sizeof(cmd_full), "%s%s%s", COLOR_BOLD, CMD,
                                  COLOR_RESET);
@@ -1650,18 +2090,10 @@ static inline void printh_options(CLIProgram *prog) {
                 }
 
                 if (ARG) {
-                        switch (prog->flags->args->type) {
-                        case ReqArg:
-                                strcat(flag_buffer, " <");
-                                strcat(flag_buffer, ARG);
-                                strcat(flag_buffer, ">");
-                                break;
-                        case NReqArg:
-                                strcat(flag_buffer, " [");
-                                strcat(flag_buffer, ARG);
-                                strcat(flag_buffer, "]");
-                                break;
-                        }
+                        strcat(flag_buffer, " [");
+                        strcat(flag_buffer, ARG);
+                        strcat(flag_buffer, "]");
+                        break;
                 }
 
                 fprintf(stderr, "  %s\n", flag_buffer);
@@ -1780,7 +2212,7 @@ static inline void zshgen_print_flag_case(const CLIProgram *prog, const CLIOptio
         printf("          ;;\n");
 }
 
-void _aoc_zshgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
+void zshgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
         // Header
         printf("#compdef %s\n\n", prog.name);
 
@@ -1837,6 +2269,55 @@ void _aoc_zshgen(const CLIProgram prog, const CLIEnv *env, usize envc) {
 
         // Assign function to program
         printf("compdef _%s %s\n", prog.name, prog.name);
+}
+
+// CLI Argument Parser
+
+int optind = 0;
+char *optarg = NULL;
+char *optopt = NULL;
+
+char *get_arg(char *argv[], int argc) {
+        if (optind >= argc) return NULL;
+        return argv[optind++];
+}
+
+#define ArgMissingOptarg -1
+#define ArgNotOpt -2
+#define ArgNotDefined -3
+#define ArgNoOptAvailable -4
+int parse_option(char *argv[], int argc, const CLIProgram *opts) {
+        const char *arg = get_arg(argv, argc);
+        optopt = (char *)arg;
+        if (!arg || arg[0] != '-') return ArgNotOpt;
+
+        const CLIOption *opt = opts->flags;
+        if (opt == NULL) return ArgNoOptAvailable;
+
+        for (size_t i = 0; i < opts->flagc; i++) {
+                const char *long_opt = opt[i].long_opt;
+                const char *short_opt = opt[i].short_opt;
+                const CLIArgument *flag_arg = opt[i].args;
+
+                if (long_opt != NULL && cstr_eq(arg, long_opt)) {
+                        if (flag_arg != NULL) {
+                                optarg = get_arg(argv, argc);
+                                if (optarg == NULL) return ArgMissingOptarg;
+                                if (optarg[0] == '-') return ArgMissingOptarg;
+                        }
+                        return i; // Success
+                }
+
+                if (short_opt != NULL && cstr_eq(arg, short_opt)) {
+                        if (flag_arg != NULL) {
+                                optarg = get_arg(argv, argc);
+                                if (optarg == NULL) return ArgMissingOptarg;
+                                if (optarg[0] == '-') return ArgMissingOptarg;
+                        }
+                        return i; // Success
+                }
+        }
+        return ArgNotDefined;
 }
 #endif
 
@@ -1978,458 +2459,6 @@ void debug_memory_summary(FILE *ref fd) {
 #define realloc(p, x) debug_realloc(p, x, __func__, __FILE__, __LINE__)
 #define free(x) debug_free(x, __func__, __FILE__, __LINE__)
 #endif /* DEBUG_HEAP */
-
-#ifdef AOCLIBS_ALLOC
-void Free(void *ref ptr) {
-        ASSERT(ptr != NULL, "double free attempt");
-        free(ptr);
-}
-
-void *xnull Calloc(usize count, usize size) {
-        void *tmp = calloc(count, size);
-        if (!tmp) {
-                PTRACE("[calloc] %s [Requested: %zu bytes] (%s:%s)\n", strerror(errno),
-                       count * size);
-                return NULL;
-        }
-        return tmp;
-}
-
-void *xnull Malloc(usize cap) {
-        void *tmp = malloc(cap);
-        if (!tmp) {
-                PTRACE("[calloc] %s [Requested: %zu bytes]\n", strerror(errno), cap);
-                return NULL;
-        }
-        return tmp;
-}
-
-void *null Realloc(void *null ptr, usize cap) {
-        void *tmp = realloc(ptr, cap);
-        if (!tmp) {
-                PTRACE("[realloc] %s [Requested: %zu bytes]\n", strerror(errno), cap);
-                return NULL;
-        }
-        return tmp;
-}
-#endif
-
-#ifdef AOCLIBS_STRING
-#define StrError ((size_t)-1)
-
-typedef enum {
-        StringHeap,
-        StringStack,
-        StringLiteral,
-} StringType;
-
-#define get_slice(s) (s.len), (s.slice)
-typedef struct {
-        const char *slice;
-        int len;
-} StrSlice;
-
-typedef struct {
-        char *str;
-        size_t len;
-        size_t cap;
-        StringType type;
-} str;
-
-#define str_to_slice(s, x, y) cstr_to_slice((s.str), (x), (y))
-StrSlice cstr_to_slice(const char *ref s, size_t start, size_t end) {
-        ASSERT_REF(s != NULL);
-        return (StrSlice){ .slice = s + start, .len = end - start };
-}
-
-bool str_can_mut(const str *null s) {
-        if (!s) return false;
-        if (s->type == StringLiteral) return false;
-        return true;
-}
-
-bool str_is_null(const str *null s) {
-        return !s || !s->str || s->len == 0;
-}
-
-bool str_is_null_assert(const str *null s) {
-        return !(!s || !s->str);
-}
-
-#define cstr_dup(s, len) _cstr_dup((s), (len + 1))
-char *xnull _cstr_dup(const char *ref s, const size_t len) {
-        ASSERT_REF(s != NULL);
-        char *d = malloc(len);
-        if (!d) return NULL;
-        return memcpy(d, s, len);
-}
-
-str str_dup(const str *ref s) {
-        ASSERT_REF(str_is_null_assert(s));
-        ASSERT(s->type == StringHeap, "string is not heap allocated");
-        return (str){
-                .str = _cstr_dup(s->str, s->cap),
-                .len = s->len,
-                .cap = s->cap,
-                .type = StringHeap,
-        };
-}
-
-void cstr_to_lower(char *ref s, const size_t len) {
-        ASSERT_REF(s != NULL);
-        for (size_t i = 0; i < len; i++) {
-                s[i] = tolower(s[i]);
-        }
-}
-
-#define str_eq(s1, s2) cstr_eq((s1.str), (s2.str))
-#define str_eq_case(s1, s2) cstr_eq_case((s1.str), (s2.str))
-
-bool cstr_eq(const char *xref s1, const char *xref s2) {
-        if (!s1 || !s2) return s1 == s2;
-        const unsigned char *s1_tmp = (void *)s1;
-        const unsigned char *s2_tmp = (void *)s2;
-        while (*s1_tmp && *s2_tmp && *s1_tmp == *s2_tmp) {
-                s1_tmp++;
-                s2_tmp++;
-        }
-        return *s1_tmp == *s2_tmp;
-}
-
-bool cstr_eq_case(const char *xref s1, const char *xref s2) {
-        if (!s1 || !s2) return s1 == s2;
-        const unsigned char *s1_tmp = (void *)s1;
-        const unsigned char *s2_tmp = (void *)s2;
-        while (*s1_tmp && *s2_tmp && tolower(*s1_tmp) == tolower(*s2_tmp)) {
-                s1_tmp++;
-                s2_tmp++;
-        }
-        return tolower(*s1_tmp) == tolower(*s2_tmp);
-}
-
-#define str_len_comptime(s) ((sizeof((" " s " ")) / sizeof((s)[0])) - sizeof((s)[0]))
-
-size_t str_len(const char *null s, const size_t buff) {
-        if (s == NULL) return 0;
-        const char *s_tmp = memchr(s, 0, buff);
-        return s_tmp ? s_tmp - s : buff;
-}
-
-#define str_new_stack(cap) _str_new_stack(alloca((cap)), cap)
-str _str_new_stack(char *ref s, const size_t cap) {
-        ASSERT_REF(s != NULL);
-        return (str){ .str = s, .len = 0, .cap = cap, .type = StringStack };
-}
-
-#define str_new_comptime(s) _str_new_comptime((" " s " "), str_len_comptime(s))
-str _str_new_comptime(char *ref s, const size_t len) {
-        ASSERT_REF(s != NULL);
-        return (str){ .str = s, .len = 0, .cap = len, .type = StringLiteral };
-}
-
-#define str_new_heap(s, cap) _str_new_heap((s), cap)
-str _str_new_heap(char *null s, const size_t cap) {
-        return (str){
-                .str = s,
-                .len = 0,
-                .cap = cap,
-                .type = StringHeap,
-        };
-}
-
-int str_resize(str *ref s, size_t cap) {
-        ASSERT_REF(str_is_null_assert(s));
-        ASSERT(s->type == StringHeap, "string is not heap allocated");
-        void *tmp = realloc(s->str, cap);
-        if (tmp == NULL) return -1;
-        s->str = tmp;
-        return 0;
-}
-
-void str_free(str *ref s) {
-        ASSERT(str_is_null_assert(s), "double free attempt");
-        ASSERT(s->type == StringHeap, "string is not heap allocated");
-        free(s->str);
-        s->len = 0;
-        s->cap = 0;
-        s = NULL;
-}
-
-void str_free_array(str *ref s[], size_t len) {
-        for (size_t i = 0; i < len; i++) {
-                str_free(s[i]);
-        }
-}
-
-void str_erase(str *ref s) {
-        ASSERT(str_is_null_assert(s), "double free attempt");
-        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
-        for (size_t i = 0; i < s->cap; i++) {
-                s->str[i] = '\0';
-        }
-        if (s->type == StringHeap) str_free(s);
-}
-
-void str_clear(str *ref s) {
-        ASSERT_REF(str_is_null_assert(s));
-        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
-        s->str[0] = '\0';
-        s->len = 0;
-}
-
-#define cstr_begins_with(s, begin, begin_len, s_len) \
-        cstr_match_pos((s), (begin), (begin_len), (s_len), 0)
-#define cstr_ends_with(s, end, end_len, s_len) \
-        cstr_match_pos((s), (end), (end_len), (s_len), (s_len) - (end_len))
-bool cstr_match_pos(const char *xnull s, const char *xnull pattern, size_t pattern_len,
-                    size_t s_len, size_t offset) {
-        if (!s || pattern_len > s_len || offset > s_len - pattern_len) return false;
-
-        size_t i = offset + pattern_len;
-        size_t j = pattern_len;
-
-        while (j > 0) {
-                i--;
-                j--;
-                if (s[i] != pattern[j]) return false;
-        }
-        return true;
-}
-
-#define str_overwrite(s1, s2) str_copy((s1), (s2), 0)
-#define str_cat(s1, s2) str_copy((s1), (s2), s1.len)
-#define str_append(s1, s2) str_copy((s1), (s2), (s1.len + 1))
-int str_copy(str *xref s1, const str *xref s2, const size_t s1_offset) {
-        ASSERT_REF(str_is_null_assert(s1));
-        ASSERT_REF(str_is_null_assert(s2));
-        ASSERT(s1->type != StringLiteral, "attempt to modify string literal");
-        if (!str_can_mut(s1) || str_is_null_assert(s2)) return -1;
-
-        size_t avail = s1->cap - s1_offset;
-        size_t needed = s2->len + 1;
-
-        if (needed > avail) {
-                if (s1->type != StringHeap) return -1;
-
-                if (str_resize(s1, s1_offset + needed) != 0) return -1;
-        }
-
-        memcpy(s1->str + s1_offset, s2->str, s2->len);
-        s1->str[s1_offset + s2->len] = '\0';
-
-        s1->len = s1_offset + s2->len;
-
-        return 0;
-}
-
-int str_push(str *ref s, char c) {
-        ASSERT_REF(str_is_null_assert(s));
-        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
-
-        usize needed = s->len + 2;
-        if (needed > s->cap) {
-                if (str_resize(s, needed) != 0) return -1;
-        }
-
-        ((char *)s->str)[s->len] = c;
-        ((char *)s->str)[s->len + 1] = '\0';
-        s->len++;
-        return 0;
-}
-
-int str_pop(str *ref s) {
-        ASSERT_REF(str_is_null_assert(s));
-        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
-
-        if (s->len == 0) return -1;
-
-        s->len--;
-        ((char *)s->str)[s->len] = '\0';
-        return 0;
-}
-
-int str_drop(str *ref s, usize index) {
-        ASSERT_REF(str_is_null_assert(s));
-        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
-        if (index >= s->len) return -1;
-
-        char *ptr = (char *)s->str;
-
-        memmove(&ptr[index], &ptr[index + 1], s->len - index);
-
-        s->len--;
-        ptr[s->len] = '\0';
-
-        return 0;
-}
-
-#define cster_overwrite(s1, s2, s2_len) cstr_copy((s1), (s2), 0, s2_len)
-#define cster_overwrite_comptime(s1, s2) cstr_copy((s1), (s2), 0, str_len_comptime(s2))
-#define cstr_cat(s1, s2) cstr_copy((s1), (s2), s1.len, str_len((s2)))
-#define cstr_cat_comptime(s1, s2) cstr_copy((s1), (s2), s1.len, str_len_comptime((s2)))
-#define cstr_append(s1, s2) cstr_copy((s1), (s2), (s1.len + 1), str_len((s2)))
-#define cstr_append_comptime(s1, s2) cstr_copy((s1), (s2), (s1.len + 1), str_len_comptime((s2)))
-#define str_null_terminate(s) cstr_copy((s), "\0", (*s.len), 1)
-int cstr_copy(str *xref s1, const char *xref s2, const size_t s1_offset, size_t s2_len) {
-        ASSERT_REF(str_is_null_assert(s1));
-        ASSERT_REF(s2 != NULL);
-        ASSERT(s1->type != StringLiteral, "attempt to modify string literal");
-        if (!str_can_mut(s1) || !s2) return -1;
-
-        size_t avail = s1->cap - s1_offset;
-        size_t needed = s2_len + 1;
-
-        if (needed > avail) {
-                if (s1->type != StringHeap) return -1;
-                if (str_resize(s1, s1_offset + needed) != 0) return -1;
-        }
-
-        memcpy(s1->str + s1_offset, s2, s2_len);
-        s1->str[s1_offset + s2_len] = '\0';
-
-        s1->len = s1_offset + s2_len;
-
-        return 0;
-}
-
-int cstr_copy_fmt(str *xref s, const char *xref fmt, ...) {
-        ASSERT_REF(str_is_null_assert(s));
-        ASSERT_REF(fmt != NULL);
-        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
-        if (!str_can_mut(s) || !fmt) return -1;
-
-        int needed_len = 0, allocated_len = 0;
-
-        va_list args;
-        va_start(args, fmt);
-        needed_len = vsnprintf(s->str, 0, fmt, args);
-        va_end(args);
-
-        if (needed_len < 0) return -1;
-
-        if ((size_t)needed_len >= s->cap) {
-                if (s->type == StringHeap)
-                        if (str_resize(s, needed_len + 1) != 0) return -1;
-                va_start(args, fmt);
-                allocated_len = vsnprintf(s->str, s->cap, fmt, args);
-                va_end(args);
-                if (allocated_len < 0) return -1;
-        }
-
-        s->len = allocated_len;
-        return 0;
-}
-
-bool match_delim_rec(const char *xnull s, size_t s_len, const char *xnull delim, size_t delim_len,
-                     size_t pos, size_t j) {
-        if (!s || !delim) return false;
-        if (j == delim_len) return true;
-        if (pos + j >= s_len) return false;
-        if (s[pos + j] != delim[j]) return false;
-        return match_delim_rec(s, s_len, delim, delim_len, pos, j + 1);
-}
-
-size_t str_chr_str(const str *xref s, const char *xref delim, const size_t delim_len) {
-        ASSERT_REF(str_is_null_assert(s));
-        ASSERT_REF(delim != NULL);
-
-        for (size_t i = 0; i < s->len; i++) {
-                if (match_delim_rec(s->str, s->len, delim, delim_len, i, 0)) {
-                        return (size_t)i;
-                }
-        }
-
-        return StrError;
-}
-
-size_t str_chr(const str *ref s, char delim) {
-        ASSERT_REF(str_is_null_assert(s));
-
-        for (size_t i = 0; i < s->len; i++) {
-                if (s->str[i] == delim) return i;
-        }
-
-        return StrError;
-}
-
-const char *null str_tok_str_const(const str *xref s, const char *xref delim,
-                                   const size_t delim_len) {
-        ASSERT_REF(str_is_null_assert(s));
-        ASSERT_REF(delim != NULL);
-
-        size_t pos = str_chr_str(s, delim, delim_len);
-        if (pos == StrError) return NULL;
-
-        return s->str + pos + delim_len;
-}
-
-const char *null str_tok(const str *ref s, char delim) {
-        ASSERT_REF(str_is_null_assert(s));
-
-        size_t pos = str_chr(s, delim);
-        if (pos == StrError) return NULL;
-
-        return s->str + pos + 1;
-}
-
-size_t cstr_trim_whitespace(char *ref s, const size_t len) {
-        ASSERT_REF(s != NULL);
-
-        if (len == 0) return 0;
-
-        usize i = len;
-        while (i > 0 && isspace((unsigned char)s[i - 1])) {
-                i--;
-        }
-        s[i] = '\0';
-        return len;
-}
-
-void str_trim_whitespace(str *ref s) {
-        ASSERT_REF(str_is_null_assert(s));
-        ASSERT(s->type != StringLiteral, "attempt to modify string literal");
-
-        size_t len = cstr_trim_whitespace(s->str, s->len);
-        s->len = len;
-}
-
-double cstr_to_double(const char *ref s, const double _default) {
-        ASSERT_REF(s != NULL);
-        char *endptr;
-        double val = strtod(s, &endptr);
-        if (*endptr != '\0') {
-                return _default;
-        }
-        return val;
-}
-
-bool cstr_to_bool(const char *ref s, const bool _default) {
-        ASSERT_REF(s != NULL);
-        if (cstr_eq_case(s, "true") || cstr_eq(s, "1")) return true;
-        if (cstr_eq_case(s, "false") || cstr_eq(s, "0")) return false;
-        return _default;
-}
-
-float cstr_to_float(const char *ref s, const float _default) {
-        ASSERT_REF(s != NULL);
-        char *endptr;
-        float val = strtof(s, &endptr);
-        if (*endptr != '\0') {
-                return _default;
-        }
-        return val;
-}
-
-long cstr_to_long(const char *ref s, const long _default) {
-        ASSERT_REF(s != NULL);
-        char *endptr;
-        long val = strtol(s, &endptr, 10);
-        if (*endptr != '\0') {
-                return _default;
-        }
-        return val;
-}
-#endif
 
 #endif // AOCLIBS_H
 #endif // AOCLIBS_IMPLEMENTATION
