@@ -179,6 +179,9 @@
 
 // === Macros ===
 
+#define shift(s) ((s)++)
+#define shiftn(s, i) ((s) += (i))
+
 #define string_literal_len(s) ((sizeof((s)) / sizeof((s)[0])) - sizeof((s)[0]))
 #define array_len(a) sizeof(a) / sizeof(a[0])
 
