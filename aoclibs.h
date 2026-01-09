@@ -306,46 +306,18 @@
 #define COLOR_WHITE_BRIGHT "\x1b[97m"
 #endif
 
-#define aoc_zshgen(cmds, arguments, options, env, envc)                 \
-        do {                                                            \
-                _aoc_zshgen((CLIProgram){ .flagc = array_len(options),  \
-                                          .cmdc = array_len(cmds),      \
-                                          .argc = array_len(arguments), \
-                                          .name = PROGRAM_NAME,         \
-                                          .desc = PROGRAM_DESC,         \
-                                          .usage = PROGRAM_USAGE,       \
-                                          .commands = cmds,             \
-                                          .args = arguments,            \
-                                          .flags = options },           \
-                            env, envc);                                 \
-        } while (0)
+#define aoc_cli_program(cmds, arguments, options, env) \
+        { .flagc = array_len(options),                 \
+          .cmdc = array_len(cmds),                     \
+          .argc = array_len(arguments),                \
+          .name = PROGRAM_NAME,                        \
+          .desc = PROGRAM_DESC,                        \
+          .usage = PROGRAM_USAGE,                      \
+          .commands = (cmds),                          \
+          .args = (arguments),                         \
+          .flags = (options) }
 
-#define aoc_printh(cmds, arguments, options)                            \
-        do {                                                            \
-                _aoc_printh((CLIProgram){ .flagc = array_len(options),  \
-                                          .cmdc = array_len(cmds),      \
-                                          .argc = array_len(arguments), \
-                                          .name = PROGRAM_NAME,         \
-                                          .desc = PROGRAM_DESC,         \
-                                          .usage = PROGRAM_USAGE,       \
-                                          .commands = cmds,             \
-                                          .args = arguments,            \
-                                          .flags = options });          \
-        } while (0)
-
-#define aoc_bashgen(cmds, arguments, options, env, envc)                 \
-        do {                                                             \
-                _aoc_bashgen((CLIProgram){ .flagc = array_len(options),  \
-                                           .cmdc = array_len(cmds),      \
-                                           .argc = array_len(arguments), \
-                                           .name = PROGRAM_NAME,         \
-                                           .desc = PROGRAM_DESC,         \
-                                           .usage = PROGRAM_USAGE,       \
-                                           .commands = cmds,             \
-                                           .args = arguments,            \
-                                           .flags = options },           \
-                             env, envc);                                 \
-        } while (0)
+// #define AOCLIBS_FN_PREFIX aoc_
 
 // === Types ===
 
