@@ -6,4 +6,23 @@
 #include "./base/str.c"
 #include "./base/vec.c"
 
-// TODO: Add defines to enable modules in ./modules
+#ifdef AOCLIBS_ALL
+#include "./modules/iprint.c"
+#include "./modules/cli.c"
+#include "./modules/spinner.c"
+#include "./modules/file.c"
+#else
+
+#ifdef AOCLIBS_SPINNER
+#include "./modules/spinner.c"
+#endif
+
+#ifdef AOCLIBS_CLI
+#include "./modules/cli.c"
+#endif
+
+#ifdef AOCLIBS_FILE
+#include "./modules/file.c"
+#endif
+
+#endif

@@ -46,4 +46,25 @@
 #include "./base/tunit.h"
 #include "./base/vec.h"
 
+#ifdef AOCLIBS_ALL
+#include "./modules/iprint.h"
+#include "./modules/cli.h"
+#include "./modules/spinner.h"
+#include "./modules/file.h"
+#else
+
+#ifdef AOCLIBS_SPINNER
+#include "./modules/spinner.h"
+#endif
+
+#ifdef AOCLIBS_CLI
+#include "./modules/cli.h"
+#endif
+
+#ifdef AOCLIBS_FILE
+#include "./modules/file.h"
+#endif
+
+#endif
+
 #endif // AOCLIBS_H
