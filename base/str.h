@@ -22,7 +22,7 @@ typedef enum {
 typedef struct {
         const char *slice;
         int len;
-} StrSlice;
+} sslice;
 
 typedef struct {
         char *str;
@@ -32,7 +32,7 @@ typedef struct {
 } str;
 
 #define str_to_slice(s, x, y) cstr_to_slice((s.str), (x), (y))
-StrSlice cstr_to_slice(const char *ref s, size_t start, size_t end);
+sslice cstr_to_slice(const char *ref s, size_t start, size_t end);
 
 bool str_can_mut(const str *null s);
 
@@ -54,14 +54,14 @@ bool cstr_eq(const char *xref s1, const char *xref s2);
 
 bool cstr_eq_case(const char *xref s1, const char *xref s2);
 
-#define str_len_comptime(s) ((sizeof((" " s " ")) / sizeof((s)[0])) - sizeof((s)[0]))
+#define cstr_len_comptime(s) ((sizeof((" " s " ")) / sizeof((s)[0])) - sizeof((s)[0]))
 
-size_t str_len(const char *null s, const size_t buff);
+size_t cstr_len(const char *null s, const size_t buff);
 
 #define str_new_stack(cap) _str_new_stack(alloca((cap)), cap)
 str _str_new_stack(char *ref s, const size_t cap);
 
-#define str_new_comptime(s) _str_new_comptime((" " s " "), str_len_comptime(s))
+#define str_new_comptime(s) _str_new_comptime((" " s " "), cstr_len_comptime(s))
 str _str_new_comptime(char *ref s, const size_t len);
 
 #define str_new_heap(cap) _str_new_heap(malloc((cap)), (cap))
@@ -96,24 +96,24 @@ int str_pop(str *ref s);
 int str_drop(str *ref s, size_t index);
 
 #define cster_overwrite(s1, s2, s2_len) cstr_copy((s1), (s2), 0, s2_len)
-#define cster_overwrite_comptime(s1, s2) cstr_copy((s1), (s2), 0, str_len_comptime(s2))
-#define cstr_cat(s1, s2) cstr_copy((s1), (s2), s1.len, str_len((s2)))
-#define cstr_cat_comptime(s1, s2) cstr_copy((s1), (s2), s1.len, str_len_comptime((s2)))
-#define cstr_append(s1, s2) cstr_copy((s1), (s2), (s1.len + 1), str_len((s2)))
-#define cstr_append_comptime(s1, s2) cstr_copy((s1), (s2), (s1.len + 1), str_len_comptime((s2)))
+#define cster_overwrite_comptime(s1, s2) cstr_copy((s1), (s2), 0, cstr_len_comptime(s2))
+#define cstr_cat(s1, s2) cstr_copy((s1), (s2), s1.len, cstr_len((s2)))
+#define cstr_cat_comptime(s1, s2) cstr_copy((s1), (s2), s1.len, cstr_len_comptime((s2)))
+#define cstr_append(s1, s2) cstr_copy((s1), (s2), (s1.len + 1), cstr_len((s2)))
+#define cstr_append_comptime(s1, s2) cstr_copy((s1), (s2), (s1.len + 1), cstr_len_comptime((s2)))
 #define str_null_terminate(s) cstr_copy((s), "\0", (*s.len), 1)
 int cstr_copy(str *xref s1, const char *xref s2, const size_t s1_offset, size_t s2_len);
 
 int cstr_copy_fmt(str *xref s, const char *xref fmt, ...);
 
-bool match_delim_rec(const char *xnull s, size_t s_len, const char *xnull delim, size_t delim_len,
+bool cstr_find_delim(const char *xnull s, size_t s_len, const char *xnull delim, size_t delim_len,
                      size_t pos, size_t j);
 
-size_t str_chr_str(const str *xref s, const char *xref delim, const size_t delim_len);
+size_t str_chr_cstr(const str *xref s, const char *xref delim, const size_t delim_len);
 
 size_t str_chr(const str *ref s, char delim);
 
-const char *null str_tok_str_const(const str *xref s, const char *xref delim,
+const char *null str_tok_cstr(const str *xref s, const char *xref delim,
                                    const size_t delim_len);
 
 const char *null str_tok(const str *ref s, char delim);

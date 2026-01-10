@@ -11,9 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-StrSlice cstr_to_slice(const char *ref s, size_t start, size_t end) {
+sslice cstr_to_slice(const char *ref s, size_t start, size_t end) {
         ASSERT_NONNULL(s != NULL);
-        return (StrSlice){ .slice = s + start, .len = end - start };
+        return (sslice){ .slice = s + start, .len = end - start };
 }
 
 bool str_can_mut(const str *null s) {
@@ -73,7 +73,7 @@ bool cstr_eq_case(const char *xref s1, const char *xref s2) {
         return tolower(*s1) == tolower(*s2);
 }
 
-size_t str_len(const char *null s, const size_t buff) {
+size_t cstr_len(const char *null s, const size_t buff) {
         if (s == NULL) return 0;
         const char *s_tmp = memchr(s, 0, buff);
         return s_tmp ? s_tmp - s : buff;
@@ -265,21 +265,21 @@ int cstr_copy_fmt(str *xref s, const char *xref fmt, ...) {
         return 0;
 }
 
-bool match_delim_rec(const char *xnull s, size_t s_len, const char *xnull delim, size_t delim_len,
+bool cstr_find_delim(const char *xnull s, size_t s_len, const char *xnull delim, size_t delim_len,
                      size_t pos, size_t j) {
         if (!s || !delim) return false;
         if (j == delim_len) return true;
         if (pos + j >= s_len) return false;
         if (s[pos + j] != delim[j]) return false;
-        return match_delim_rec(s, s_len, delim, delim_len, pos, j + 1);
+        return cstr_find_delim(s, s_len, delim, delim_len, pos, j + 1);
 }
 
-size_t str_chr_str(const str *xref s, const char *xref delim, const size_t delim_len) {
+size_t str_chr_cstr(const str *xref s, const char *xref delim, const size_t delim_len) {
         ASSERT_NONNULL(str_is_null_assert(s));
         ASSERT_NONNULL(delim != NULL);
 
         for (size_t i = 0; i < s->len; i++) {
-                if (match_delim_rec(s->str, s->len, delim, delim_len, i, 0)) {
+                if (cstr_find_delim(s->str, s->len, delim, delim_len, i, 0)) {
                         return (size_t)i;
                 }
         }
@@ -297,12 +297,12 @@ size_t str_chr(const str *ref s, char delim) {
         return StrError;
 }
 
-const char *null str_tok_str_const(const str *xref s, const char *xref delim,
+const char *null str_tok_cstr(const str *xref s, const char *xref delim,
                                    const size_t delim_len) {
         ASSERT_NONNULL(str_is_null_assert(s));
         ASSERT_NONNULL(delim != NULL);
 
-        size_t pos = str_chr_str(s, delim, delim_len);
+        size_t pos = str_chr_cstr(s, delim, delim_len);
         if (pos == StrError) return NULL;
 
         return s->str + pos + delim_len;
