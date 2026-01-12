@@ -1,14 +1,23 @@
 #!/usr/bin/env bash
 
 header_file="aoclibs.h"
-output="aoclibs-full.h"
+match_include="^[[:space:]]*#include[[:space:]]+[\"].*[\"]"
+
+inline_file() {
+  local f="$1"
+  while IFS= read -r line; do
+    if [[ $line =~ $match_include ]]; then
+      continue
+    fi
+    echo "$line"
+  done < "$f"
+}
 
 while IFS= read -r line; do
-  if [[ "$line" =~ ^#include ]]; then
-    path=${line#*\"}
-    path=${path%\"}
-    cat "$path" >> "$output"
+  if [[ $line =~ ^[[:space:]]*#include[[:space:]]+\"(.*)\" ]]; then
+    inc="${BASH_REMATCH[1]}"
+    inline_file "$inc"
   else
-    echo "$line" >> "$output"
+    echo "$line"
   fi
 done < "$header_file"
