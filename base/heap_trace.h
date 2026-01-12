@@ -17,12 +17,12 @@
  * Prints allocation and free count.
  * If there was a leak, print the source of the leak
 */
-void aoc_heap_trace_summary(FILE *ref fd);
+AOCLIBS_PREFIX void aoc_heap_trace_summary(FILE *ref fd);
 
 // clang-format off
 
 #ifdef AOCLIBS_STRIP_PREFIX
-        #define heap_trace_summary(fd) aoc_heap_trace_summary((fd))
+        #define heap_trace_summary aoc_heap_trace_summary
         #define count_leaks __trace_alloc_count - __trace_free_count
 #else
         #define aoc_count_leaks __trace_alloc_count - __trace_free_count
