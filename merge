@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+header_file="aoclibs.h"
+output="aoclibs-full.h"
+
+while IFS= read -r line; do
+  if [[ "$line" =~ ^#include ]]; then
+    path=${line#*\"}
+    path=${path%\"}
+    cat "$path" >> "$output"
+  else
+    echo "$line" >> "$output"
+  fi
+done < "$header_file"
