@@ -1,5 +1,7 @@
-#include <aoclibs/cli/zshgen.h>
-#include <aoclibs/common.h>
+#define AOCLIBS_IMPLEMENTATION
+#define AOCLIBS_STRIP_PREFIX
+#define AOCLIBS_ALL
+#include "../aoclibs.h"
 #include <stddef.h>
 
 #define PROGRAM_NAME "bmark"
@@ -24,15 +26,14 @@ enum {
 #define FIND_BMARK_DIR "find \"$BMARK_DB_DIR\" -type f"
 
 CLIArgument args[] = {
-        [ArgDel] = { "id|url|tag",         "Either id, url or tag", FIND_BMARK_DIR,
-                    ReqArg                                                                                   },
-        [ArgEdit] = { "field=val metadata", NULL,                    NULL,                             ReqArg },
-        [ArgIns] = { "metadata",           METADATA_DESC,           NULL,                             ReqArg },
-        [ArgNote] = { "note",               NULL,                    NULL,                             ReqArg },
-        [ArgPath] = { "path",               NULL,                    "ls",                             ReqArg },
-        [ArgTag] = { "tag",                NULL,                    "find \"$BMARK_DB_DIR\" -type f", ReqArg },
-        [ArgTitle] = { "title",              NULL,                    NULL,                             ReqArg },
-        [ArgURL] = { "url",                NULL,                    NULL,                             ReqArg },
+        [ArgDel] = { "id|url|tag",         "Either id, url or tag", FIND_BMARK_DIR                   },
+        [ArgEdit] = { "field=val metadata", NULL,                    NULL                             },
+        [ArgIns] = { "metadata",           METADATA_DESC,           NULL                             },
+        [ArgNote] = { "note",               NULL,                    NULL                             },
+        [ArgPath] = { "path",               NULL,                    "ls"                             },
+        [ArgTag] = { "tag",                NULL,                    "find \"$BMARK_DB_DIR\" -type f" },
+        [ArgTitle] = { "title",              NULL,                    NULL                             },
+        [ArgURL] = { "url",                NULL,                    NULL                             },
 };
 
 CLICommand commands[] = {
@@ -65,8 +66,10 @@ CLIEnv env[] = {
         { "BMARK_DB_DIR", "${BMARK_DB_DIR:-$HOME/.local/share/bookmarks}" }
 };
 
+CLIProgram prog = aoc_cli_program(commands, args, flags, env);
+
 // Usage:
 int main(void) {
-        cli_zshgen(commands, args, flags, env, array_len(env));
+        zshgen(prog, env, 2);
         return 0;
 }
