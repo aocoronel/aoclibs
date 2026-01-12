@@ -395,13 +395,16 @@ static inline void printh_options(CLIProgram *prog) {
                 } else if (SHORT_OPT) {
                         snprintf(flag_buffer, sizeof(flag_buffer), "%s%s%s", COLOR_BOLD, SHORT_OPT,
                                  COLOR_RESET);
+                } else {
+                        continue;
                 }
 
                 if (ARG) {
-                        strcat(flag_buffer, " [");
-                        strcat(flag_buffer, ARG);
-                        strcat(flag_buffer, "]");
-                        break;
+                        char temp_buffer[AOC_CLI_BUFFER] = { 0 };
+                        snprintf(temp_buffer, sizeof(temp_buffer), "%s [", flag_buffer);
+                        strncat(temp_buffer, ARG, sizeof(temp_buffer) - strlen(temp_buffer) - 1);
+                        strncat(temp_buffer, "]", sizeof(temp_buffer) - strlen(temp_buffer) - 1);
+                        strncpy(flag_buffer, temp_buffer, sizeof(flag_buffer));
                 }
 
                 fprintf(stderr, "  %s\n", flag_buffer);
@@ -410,6 +413,7 @@ static inline void printh_options(CLIProgram *prog) {
                         fputc('\n', stderr);
                 }
         }
+        fputc('\n', stderr);
 }
 
 AOCLIBS_PREFIX void aoc_printh(CLIProgram prog) {
