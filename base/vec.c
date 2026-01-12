@@ -1,13 +1,13 @@
+#include "assert.h"
+#include "attributes.h"
+#include "vec.h"
 #include <errno.h>
 #include <stdalign.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "attributes.h"
-#include "assert.h"
-#include "vec.h"
 
 Vec aoc_vec_init(size_t pad) {
         return (Vec){ .data = NULL, .len = 0, .cap = 0, .pad = pad };
@@ -19,25 +19,25 @@ void aoc_vec_free(Vec *ref v) {
         *v = (Vec){ 0 };
 }
 
-int aoc_vec_reserve(Vec *ref v, size_t cap) {
+int aoc_vec_reserve(Vec *ref v, size_t new_len) {
         ASSERT_NONNULL(v != NULL);
 
-        if (cap > SIZE_MAX / v->pad) return -1;
+        if (new_len > SIZE_MAX / v->pad) return -1;
 
-        void *tmp_ptr = realloc(v->data, cap * v->pad);
+        void *tmp_ptr = realloc(v->data, new_len * v->pad);
         if (!tmp_ptr) return errno;
 
         void *new_data = tmp_ptr;
 
         v->data = new_data;
-        v->cap = cap;
+        v->cap = new_len;
         return 0;
 }
 
 int aoc_vec_realloc(Vec *ref v) {
         ASSERT_NONNULL(v != NULL);
 
-        size_t new_cap = v->cap ? v->cap * 2 : 8;
+        size_t new_cap = v->cap ? v->cap * AOCLIBS_VECTOR_GROWTH_FACTOR : 8;
 
         if (new_cap > SIZE_MAX / v->pad) return -1;
 
@@ -76,7 +76,7 @@ int aoc_vec_pop(Vec *ref v, void *ref output) {
         return 0;
 }
 
-int aoc_vec_insert(Vec *ref v, size_t index, const void *null value) {
+int aoc_vec_insert(Vec *ref v, size_t index, const void *ref value) {
         ASSERT_NONNULL(v != NULL);
         if (index > v->len) return -1;
         int err = aoc_vec_reserve(v, v->len + 1);
@@ -171,20 +171,10 @@ int aoc_vec_erase(Vec *v, size_t index) {
         return 0;
 }
 
-int aoc_vec_resize(Vec *ref v, size_t new_len, const void *null value) {
-        ASSERT_NONNULL(v != NULL);
-        if (new_len > v->len) {
-                int err = aoc_vec_reserve(v, new_len);
-                if (err != 0) return err;
-                for (size_t i = v->len; i < new_len; i++)
-                        memcpy((char *)v->data + i * v->pad, value, v->pad);
-        }
-        v->len = new_len;
-        return 0;
-}
-
 int aoc_vec_copy(Vec *xref dest, Vec *xref src) {
-        if (dest->pad != src->pad) return -1;
+        ASSERT_NONNULL(dest != NULL);
+        ASSERT_NONNULL(src != NULL);
+        if (dest->pad != src->pad) return -2;
         int err = aoc_vec_reserve(dest, src->len);
         if (err == 0) return err;
         memcpy(dest->data, src->data, src->len * src->pad);
@@ -192,18 +182,20 @@ int aoc_vec_copy(Vec *xref dest, Vec *xref src) {
         return 0;
 }
 
-int aoc_vec_equal(Vec *a, Vec *b, VecCompare cmp) {
-        if (a->len != b->len || a->pad != b->pad) return -1;
+bool aoc_vec_equal(Vec *a, Vec *b, VecCompare cmp) {
+        ASSERT_NONNULL(a != NULL);
+        ASSERT_NONNULL(b != NULL);
+        if (a->len != b->len || a->pad != b->pad) return false;
         for (size_t i = 0; i < a->len; i++) {
                 void *err_1 = aoc_vec_at(a, i);
-                if (err_1 == NULL) return -1;
+                if (err_1 == NULL) return false;
 
                 void *err_2 = aoc_vec_at(b, i);
-                if (err_2 == NULL) return -1;
+                if (err_2 == NULL) return false;
 
-                if (cmp(err_1, err_2) != 0) return -1;
+                if (cmp(err_1, err_2) != 0) return false;
         }
-        return 0;
+        return true;
 }
 
 void aoc_vec_for_each(Vec *v, void (*fn)(void *)) {
