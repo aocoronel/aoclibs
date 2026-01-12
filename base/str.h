@@ -28,7 +28,7 @@ typedef enum {
 typedef struct {
         const char *slice;
         int len;
-} sslice;
+} CSlice;
 
 typedef struct {
         char *str;
@@ -37,13 +37,19 @@ typedef struct {
         StringType type;
 } str;
 
-#define str_new_comptime(s) (str){.str = " " s " ", .len = string_literal_len((s)), .cap = string_literal_len((s)), .type = StringLiteral}
-#define str_new_heap(capacity) (str){.str = malloc((capacity)), .len = 0, .cap = (capacity), .type = StringHeap}
-#define str_new_stack(capacity)  (str){.str = alloca((capacity)), .len = 0, .cap = capacity, .type = StringStack}
-#define str_new_stack_comptime(buff)  (str){.str = buff, .len = 0, .cap = sizeof(buff), .type = StringStack}
+// Compile-time known string, which cannot be mutated
+#define strn_cliteral(s) (str){.str = " " s " ", .len = string_literal_len((s)), .cap = string_literal_len((s)), .type = StringLiteral}
 
-#define str_to_slice(s, x, y) cstr_to_slice((s.str), (x), (y))
-AOCLIBS_PREFIX sslice cstr_to_slice(const char *ref s, size_t start, size_t end);
+// String from already allocated char * in the stack/heap
+#define strn_bstack(buff)  (str){.str = buff, .len = 0, .cap = sizeof(buff), .type = StringStack}
+#define strn_bheap(buff, length, capacity) (str){.str = buff, .len = length, .cap = (capacity), .type = StringHeap}
+
+// Allocates a new stack/heap string
+#define strn_heap(capacity) (str){.str = malloc((capacity)), .len = 0, .cap = (capacity), .type = StringHeap}
+#define strn_stack(capacity)  (str){.str = alloca((capacity)), .len = 0, .cap = capacity, .type = StringStack}
+
+#define str_to_slice(s, start, end) cstr_to_slice((s.str), (start), (end))
+AOCLIBS_PREFIX CSlice cstr_to_slice(const char *ref s, size_t start, size_t end);
 
 AOCLIBS_PREFIX bool str_can_mut(const str *null s);
 
@@ -134,9 +140,9 @@ AOCLIBS_PREFIX float cstr_to_float(const char *ref s, const float _default);
 
 AOCLIBS_PREFIX long cstr_to_long(const char *ref s, const long _default);
 
-AOCLIBS_PREFIX sslice cstr_to_slice(const char *ref s, size_t start, size_t end) {
+AOCLIBS_PREFIX CSlice cstr_to_slice(const char *ref s, size_t start, size_t end) {
         ASSERT_NONNULL(s != NULL);
-        return (sslice){ .slice = s + start, .len = end - start };
+        return (CSlice){ .slice = s + start, .len = end - start };
 }
 
 AOCLIBS_PREFIX bool str_can_mut(const str *null s) {
@@ -162,7 +168,6 @@ AOCLIBS_PREFIX char *xnull _cstr_dup(const char *ref s, const size_t len) {
 
 AOCLIBS_PREFIX str str_dup(const str *ref s) {
         ASSERT_NONNULL(str_is_null_assert(s));
-        ASSERT(s->type == StringHeap, "string is not heap allocated");
         return (str){
                 .str = _cstr_dup(s->str, s->cap),
                 .len = s->len,
