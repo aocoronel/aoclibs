@@ -1,6 +1,8 @@
 #ifndef AOCLIBS_SPINNER_H_
 #define AOCLIBS_SPINNER_H_
 
+#include <stdint.h>
+
 /*
  * Returns a dot spinner symbol.
  *
@@ -9,7 +11,17 @@
 const char *aoc_get_spinner(void);
 
 #ifdef AOCLIBS_STRIP_PREFIX
-#define get_spinner() aoc_get_spinner
+#define get_spinner aoc_get_spinner
 #endif
+
+#define AOC_SPINNER_NUM_SYMBOLS (sizeof(SYMBOLS) / sizeof(SYMBOLS[0]))
+
+const char *aoc_get_spinner(void) {
+        static const char *SYMBOLS[] = { "⠁", "⠈", "⠐", "⠠", "⢀", "⡀", "⠄", "⠂" };
+        static int_fast8_t counter = 0;
+        const char *RESULT = SYMBOLS[counter];
+        counter = (counter + 1) % AOC_SPINNER_NUM_SYMBOLS;
+        return RESULT;
+}
 
 #endif // AOCLIBS_SPINNER_H_
