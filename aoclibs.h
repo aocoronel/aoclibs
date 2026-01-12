@@ -16,16 +16,18 @@
 
 // === Function Definitions ===
 
-#include "./base/arena.h"
-#include "./base/assert.h"
 #include "./base/attributes.h"
+#include "./base/assert.h"
 #include "./base/colors.h"
-#include "./base/heap_trace.h"
 #include "./base/panic.h"
 #include "./base/printfc.h"
+
 #include "./base/str.h"
-#include "./base/tunit.h"
+#include "./base/arena.h"
 #include "./base/vec.h"
+
+#include "./base/tunit.h"
+#include "./base/heap_trace.h"
 
 #ifdef AOCLIBS_ALL
 #include "./modules/cli.h"
