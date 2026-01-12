@@ -37,6 +37,11 @@ typedef struct {
         StringType type;
 } str;
 
+#define str_new_comptime(s) (str){.str = " " s " ", .len = string_literal_len((s)), .cap = string_literal_len((s)), .type = StringLiteral}
+#define str_new_heap(capacity) (str){.str = malloc((capacity)), .len = 0, .cap = (capacity), .type = StringHeap}
+#define str_new_stack(capacity)  (str){.str = alloca((capacity)), .len = 0, .cap = capacity, .type = StringStack}
+#define str_new_stack_comptime(buff)  (str){.str = buff, .len = 0, .cap = sizeof(buff), .type = StringStack}
+
 #define str_to_slice(s, x, y) cstr_to_slice((s.str), (x), (y))
 AOCLIBS_PREFIX sslice cstr_to_slice(const char *ref s, size_t start, size_t end);
 
@@ -63,15 +68,6 @@ AOCLIBS_PREFIX bool cstr_eq_case(const char *xref s1, const char *xref s2);
 #define cstr_len_comptime(s) ((sizeof((" " s " ")) / sizeof((s)[0])) - sizeof((s)[0]))
 
 AOCLIBS_PREFIX size_t cstr_len(const char *null s, const size_t buff);
-
-#define str_new_stack(cap) _str_new_stack(alloca((cap)), cap)
-AOCLIBS_PREFIX str _str_new_stack(char *ref s, const size_t cap);
-
-#define str_new_comptime(s) _str_new_comptime((" " s " "), cstr_len_comptime(s))
-AOCLIBS_PREFIX str _str_new_comptime(char *ref s, const size_t len);
-
-#define str_new_heap(cap) _str_new_heap(malloc((cap)), (cap))
-AOCLIBS_PREFIX str _str_new_heap(char *null s, const size_t cap);
 
 AOCLIBS_PREFIX int str_resize(str *ref s, size_t cap);
 
@@ -101,8 +97,8 @@ AOCLIBS_PREFIX int str_pop(str *ref s);
 
 AOCLIBS_PREFIX int str_drop(str *ref s, size_t index);
 
-#define cster_overwrite(s1, s2, s2_len) cstr_copy((s1), (s2), 0, s2_len)
-#define cster_overwrite_comptime(s1, s2) cstr_copy((s1), (s2), 0, cstr_len_comptime(s2))
+#define cstr_overwrite(s1, s2, s2_len) cstr_copy((s1), (s2), 0, s2_len)
+#define cstr_overwrite_comptime(s1, s2) cstr_copy((s1), (s2), 0, cstr_len_comptime(s2))
 #define cstr_cat(s1, s2) cstr_copy((s1), (s2), s1.len, cstr_len((s2)))
 #define cstr_cat_comptime(s1, s2) cstr_copy((s1), (s2), s1.len, cstr_len_comptime((s2)))
 #define cstr_append(s1, s2) cstr_copy((s1), (s2), (s1.len + 1), cstr_len((s2)))
@@ -204,25 +200,6 @@ AOCLIBS_PREFIX size_t cstr_len(const char *null s, const size_t buff) {
         if (s == NULL) return 0;
         const char *s_tmp = memchr(s, 0, buff);
         return s_tmp ? s_tmp - s : buff;
-}
-
-AOCLIBS_PREFIX str _str_new_stack(char *ref s, const size_t cap) {
-        ASSERT_NONNULL(s != NULL);
-        return (str){ .str = s, .len = 0, .cap = cap, .type = StringStack };
-}
-
-AOCLIBS_PREFIX str _str_new_comptime(char *ref s, const size_t len) {
-        ASSERT_NONNULL(s != NULL);
-        return (str){ .str = s, .len = 0, .cap = len, .type = StringLiteral };
-}
-
-AOCLIBS_PREFIX str _str_new_heap(char *null s, const size_t cap) {
-        return (str){
-                .str = s,
-                .len = 0,
-                .cap = cap,
-                .type = StringHeap,
-        };
 }
 
 AOCLIBS_PREFIX int str_resize(str *ref s, size_t cap) {
