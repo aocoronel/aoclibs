@@ -1,6 +1,9 @@
 #define AOCLIBS_IMPLEMENTATION
-#include <stdio.h>
+#define AOCLIBS_ALL
+#define AOCLIBS_STRIP_PREFIX
 #include "../aoclibs.h"
+
+#include <stdio.h>
 #include <stddef.h>
 
 #define PROGRAM_NAME "bmark"
@@ -87,13 +90,16 @@ CLIProgram prog = aoc_cli_program(cli_cmds, cli_args, cli_flags, env);
 // Usage:
 int main(int argc, char *argv[]) {
         while (optind < argc) {
-                int opt_idx = parse_option(argv, argc, &prog);
+                int opt_idx = getopt(argv, argc, &prog);
                 switch (opt_idx) {
                 case OptTag:
                         printf("tag is %s\n", optarg);
                         break;
                 case OptTitle:
                         printf("title is: %s\n", optarg);
+                        break;
+                case OptHelp:
+                        printh(prog);
                         break;
                 case ArgMissingOptarg:
                         printf("Argument not provided!\n");
