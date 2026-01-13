@@ -99,7 +99,7 @@ AOCLIBS_PREFIX bool aoc_rc_is_null(const rc *null r) {
         return !r || !r->ptr;
 }
 
-#define cstr_dup(s, len) aoc_cstr_dup((s), (len + 1))
+#define cstr_dup(s, len) aoc_cstr_dup((s), (len) + 1)
 AOCLIBS_PREFIX char *xnull aoc_cstr_dup(const char *ref s, const size_t len) {
         ASSERT_NONNULL(s != NULL);
         char *d = RC_MALLOC(len);
@@ -222,8 +222,8 @@ AOCLIBS_PREFIX bool aoc_cstr_match_pos(const char *xnull s, const char *xnull pa
 }
 
 #define rc_overwrite(s1, s2) aoc_rc_copy((s1), (s2), 0)
-#define rc_cat(s1, s2) aoc_rc_copy((s1), (s2), s1.len)
-#define rc_append(s1, s2) aoc_rc_copy((s1), (s2), (s1.len + 1))
+#define rc_cat(s1, s2) aoc_rc_copy((s1), (s2), (s1).len)
+#define rc_append(s1, s2) aoc_rc_copy((s1), (s2), (s1).len + 1)
 AOCLIBS_PREFIX int aoc_rc_copy(rc *xref r1, const rc *xref r2, const size_t r1_offset) {
         ASSERT_NONNULL(rc_is_null(r1));
         ASSERT_NONNULL(rc_is_null(r2));
@@ -294,11 +294,11 @@ AOCLIBS_PREFIX int aoc_rc_drop(rc *ref r, size_t index) {
 #define cstr_copy(r, s, r_offset, s_len) aoc_cstr_copy((r), (s), (r_offset), (s_len))
 #define cstr_overwrite(s1, s2, s2_len) cstr_copy((s1), (s2), 0, s2_len)
 #define cstr_overwrite_c(s1, s2) cstr_copy((s1), (s2), 0, cstr_len_c(s2))
-#define cstr_cat(s1, s2) cstr_copy((s1), (s2), s1.len, cstr_len((s2)))
-#define cstr_cat_c(s1, s2) cstr_copy((s1), (s2), s1.len, cstr_len_c((s2)))
-#define cstr_append(s1, s2) cstr_copy((s1), (s2), (s1.len + 1), cstr_len((s2)))
-#define cstr_append_c(s1, s2) cstr_copy((s1), (s2), (s1.len + 1), cstr_len_c((s2)))
-#define rc_null_terminate(s) cstr_copy((s), "\0", (*s.len), 1)
+#define cstr_cat(s1, s2) cstr_copy((s1), (s2), (s1).len, cstr_len((s2)))
+#define cstr_cat_c(s1, s2) cstr_copy((s1), (s2), (s1).len, cstr_len_c((s2)))
+#define cstr_append(s1, s2) cstr_copy((s1), (s2), ((s1).len + 1), cstr_len((s2)))
+#define cstr_append_c(s1, s2) cstr_copy((s1), (s2), ((s1).len + 1), cstr_len_c((s2)))
+#define rc_null_terminate(s) cstr_copy((s), "\0", (*(s).len), 1)
 AOCLIBS_PREFIX int aoc_cstr_copy(rc *xref r, const char *xref s, const size_t r_offset,
                                  size_t s_len) {
         ASSERT_NONNULL(rc_is_null(r));
