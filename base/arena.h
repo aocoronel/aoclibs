@@ -23,6 +23,16 @@ typedef struct Arena {
         size_t offset;
 } Arena;
 
+#ifndef AOCLIBS_ARENA_ALLOCATOR
+#define AOCLIBS_ARENA_ALLOCATOR malloc
+#endif
+#ifndef AOCLIBS_ARENA_REALLOCATOR
+#define AOCLIBS_ARENA_REALLOCATOR realloc
+#endif
+#ifndef AOCLIBS_ARENA_FREE
+#define AOCLIBS_ARENA_FREE free
+#endif
+
 #ifdef AOCLIBS_STRIP_PREFIX
 #define arena_construct aoc_arena_construct
 #define arena_alloc aoc_arena_alloc
@@ -162,7 +172,7 @@ AOCLIBS_PREFIX Arena aoc_arena_create(size_t cap) {
         Arena a = { 0 };
         if (cap == 0) return a;
 
-        a.buffer = malloc(cap);
+        a.buffer = AOCLIBS_ARENA_ALLOCATOR(cap);
         if (!a.buffer) return a;
 
         a.cap = cap;
@@ -190,7 +200,7 @@ AOCLIBS_PREFIX void aoc_arena_destroy(Arena *ref a) {
 AOCLIBS_PREFIX void aoc_arena_destroy(Arena *ref a) {
         ASSERT(a != NULL, "%s", "double free attempt");
         ASSERT(a->buffer != NULL, "%s", "double free attempt");
-        free(a->buffer);
+        AOCLIBS_ARENA_FREE(a->buffer);
         a->buffer = NULL;
         a->cap = 0;
         a->offset = 0;
@@ -214,7 +224,7 @@ AOCLIBS_PREFIX void *null aoc_arena_alloc_aligned(Arena *ref a, size_t size, siz
 
                 if (new_cap < needed) new_cap = needed;
 
-                int8_t *new_buf = realloc(a->buffer, new_cap);
+                int8_t *new_buf = AOCLIBS_ARENA_REALLOCATOR(a->buffer, new_cap);
                 if (!new_buf) return NULL;
 
                 a->buffer = new_buf;
