@@ -1,0 +1,104 @@
+#ifndef AOCLIBS_BASE_H_
+#define AOCLIBS_BASE_H_
+
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+/*
+ * Modify prefixes in all functions
+*/
+#define AOCLIBS_PREFIX
+
+/*
+ * The concept of _Nonnull and _Nullable is fascinating and is interesting when combined with
+ * assertions, or even with the Clang compiler, thus enforcing if a pointer can or cannot be NULL.
+ *
+ * This is specially useful, perhaps when a function is never supposed to return NULL or take NULL.
+ * A great example is the free function. If we define a custom free wrapper to the free function with
+ * a _Nonnull to the pointer and an assertion, the program will immediately stop and warn you have a
+ * double free issue.
+*/
+
+/*
+ * ref (reference) :: aliased to _Nonnull.
+ * null :: aliased to _Nullable
+*/
+
+// clang-format off
+
+#ifndef __clang__
+        #define ref
+        #define xref
+        #define null
+        #define xnull
+#else
+        #define ref _Nonnull
+        #define xref _Nonnull restrict
+        #define null _Nullable
+        #define xnull _Nullable restrict
+#endif
+
+// clang-format on
+
+/*
+ * Convenient macros to improve user experience
+*/
+
+#define FN_DEPRECATED(fn_to_use_instead) __attribute_deprecated_msg__(fn_to_use_instead)
+#define FN_WARN_UNUSED __attribute__((warn_unused_result))
+
+/*
+ * Asserts an expression, and prints a formatted message
+*/
+#ifdef NDEBUG
+#define ASSERT(...)
+#else
+#define ASSERT(exp, ...) \
+        (void)((!!(exp)) || (aoc_assert(#exp, __FILE__, __LINE__, __func__, __VA_ARGS__), 0))
+#endif
+
+/*
+ * Convenience assert messages
+*/
+#define ASSERT_NONNULL(exp) ASSERT((exp), "passing NULL pointer to Nonnull parameter")
+
+/*
+ * Asserts an expression, and prints a formatted message
+*/
+AOCLIBS_PREFIX void aoc_assert(const char *expr, const char *file, unsigned line, const char *func,
+                               const char *fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        fprintf(stderr, "Assertion failed: ");
+        vfprintf(stderr, fmt, args);
+        fprintf(stderr, "\n%s at %s:%u (%s)\n", expr, file, line, func);
+        va_end(args);
+
+        abort();
+}
+
+/*
+ * Used to panic, when an unreachable code is ran
+*/
+#define _unreachable aoc_panic(__FILE__, __LINE__, __func__, "unreachable code")
+
+/*
+ * Prints message, including metadata and aborts the program
+*/
+#define panic(msg) aoc_panic(__FILE__, __LINE__, __func__, msg)
+
+/*
+ * Prints message, including metadata and aborts the program
+ *
+ * Should not be used directly. Use the panic macro, instead.
+*/
+AOCLIBS_PREFIX void aoc_panic(const char *__file, int __line, const char *__func, const char *msg)
+        __attribute__((noreturn));
+AOCLIBS_PREFIX void aoc_panic(const char *__file, int __line, const char *__func, const char *msg) {
+        fprintf(stderr, "PANIC: %s at %s:%d (%s) ", msg, __file, __line, __func);
+        fflush(stderr);
+        abort();
+}
+
+#endif // AOCLIBS_BASE_H_

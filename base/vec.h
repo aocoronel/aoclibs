@@ -1,8 +1,7 @@
 #ifndef AOCLIBS_VEC_H_
 #define AOCLIBS_VEC_H_
 
-#include "assert.h"
-#include "attributes.h"
+#include "base.h"
 #include <errno.h>
 #include <stdalign.h>
 #include <stdbool.h>

@@ -1,8 +1,7 @@
 #ifndef AOCLIBS_ARENA_H_
 #define AOCLIBS_ARENA_H_
 
-#include "assert.h"
-#include "attributes.h"
+#include "base.h"
 #include <limits.h>
 #include <stdalign.h>
 #include <stdbool.h>

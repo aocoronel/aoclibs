@@ -1,8 +1,7 @@
 #ifndef AOCLIBS_RC_H_
 #define AOCLIBS_RC_H_
 
-#include "assert.h"
-#include "attributes.h"
+#include "base.h"
 #include <alloca.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -13,12 +12,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define string_literal_len(s) ((sizeof((" "(s) " ")) / sizeof((s)[0])) - sizeof((s)[0]))
 #define array_len(a) sizeof((a)) / sizeof((a[0]))
+#define cstr_literal_len(s) array_len((" " s " ")) - sizeof((s)[0])
 
-#define SLICE_FMT "%*s"
-#define GSLICE(s) \
-        (s.len), (s.slice) // --> printf("%s "SLICE_FMT" stuff...", "do", GSLICE(myslice));
+// --> printf("%s "SLICE_FMT" stuff...", "do", GSLICE(myslice));
+#define SLICE_FMT "%.*s"
+#define GSLICE(s) (s.len), (s.slice)
+
 typedef struct {
         int len;
         const char *ptr;
@@ -54,10 +54,10 @@ typedef struct {
 #endif
 
 // Compile-time known RC, which cannot be mutated
-#define rcl_new(s)                                                                                 \
-        (rc) {                                                                                     \
-                .ptr = " "(s) " ", .len = string_literal_len((s)), .cap = string_literal_len((s)), \
-                .type = RCLiteral                                                                  \
+#define rcl_new(s)                                                                             \
+        (rc) {                                                                                 \
+                .ptr = " "(s) " ", .len = cstr_literal_len((s)), .cap = cstr_literal_len((s)), \
+                .type = RCLiteral                                                              \
         }
 
 // RC from already allocated char * in the stack/heap
@@ -369,7 +369,7 @@ AOCLIBS_PREFIX bool aoc_cstr_find_delim(const char *xnull s, size_t s_len, const
 
 #define rc_chr_cstr(s, delim, delim_len) aoc_rc_chr_cstr((s), (delim), (delim_len))
 AOCLIBS_PREFIX size_t aoc_rc_chr_cstr(const rc *xref r, const char *xref delim,
-                                  const size_t delim_len) {
+                                      const size_t delim_len) {
         ASSERT_NONNULL(rc_is_null(r));
         ASSERT_NONNULL(delim != NULL);
 
@@ -394,7 +394,7 @@ AOCLIBS_PREFIX size_t aoc_rc_chr(const rc *ref r, char delim) {
 }
 #define rc_tok_cstr(s, delim) aoc_rc_tok_cstr((s), (delim))
 AOCLIBS_PREFIX const char *null aoc_rc_tok_cstr(const rc *xref r, const char *xref delim,
-                                            const size_t delim_len) {
+                                                const size_t delim_len) {
         ASSERT_NONNULL(rc_is_null(r));
         ASSERT_NONNULL(delim != NULL);
 
