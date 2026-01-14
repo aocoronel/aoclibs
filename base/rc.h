@@ -17,7 +17,7 @@
 
 // --> printf("%s "SLICE_FMT" stuff...", "do", GSLICE(myslice));
 #define SLICE_FMT "%.*s"
-#define GSLICE(s) (s.len), (s.slice)
+#define VSLICE(r) ((r).len), ((r).ptr)
 
 typedef struct {
         int len;
@@ -81,20 +81,20 @@ typedef struct {
         }
 
 #define rc_to_slice(r, start, end) aoc_cstr_to_slice((r.ptr), (start), (end))
-#define cstr_to_slice(s, start, end) aoc_cstr_to_slice((s), (start), (end))
+#define cstr_to_slice aoc_cstr_to_slice
 AOCLIBS_PREFIX rcslice aoc_cstr_to_slice(const char *ref s, size_t start, size_t end) {
         ASSERT_NONNULL(s != NULL);
         return (rcslice){ .ptr = s + start, .len = end - start };
 }
 
-#define rc_can_mut(r) aoc_rc_can_mut((r))
+#define rc_can_mut aoc_rc_can_mut
 AOCLIBS_PREFIX bool aoc_rc_can_mut(const rc *null r) {
         if (!r) return false;
         if (r->type == RCLiteral) return false;
         return true;
 }
 
-#define rc_is_null(r) aoc_rc_is_null((r))
+#define rc_is_null aoc_rc_is_null
 AOCLIBS_PREFIX bool aoc_rc_is_null(const rc *null r) {
         return !r || !r->ptr;
 }
@@ -107,7 +107,7 @@ AOCLIBS_PREFIX char *xnull aoc_cstr_dup(const char *ref s, const size_t len) {
         return memcpy(d, s, len);
 }
 
-#define rc_dup(r) aoc_rc_dup((r))
+#define rc_dup aoc_rc_dup
 AOCLIBS_PREFIX rc aoc_rc_dup(const rc *ref s) {
         ASSERT_NONNULL(rc_is_null(s));
         return (rc){
@@ -118,8 +118,8 @@ AOCLIBS_PREFIX rc aoc_rc_dup(const rc *ref s) {
         };
 }
 
-#define rc_to_lower(s) aoc_cstr_to_lower((s.ptr), (s.len))
-#define cstr_to_lower(s, len) aoc_cstr_to_lower((s), (len))
+#define rc_to_lower(r) aoc_cstr_to_lower((r).ptr, (r).len)
+#define cstr_to_lower aoc_cstr_to_lower
 AOCLIBS_PREFIX void aoc_cstr_to_lower(char *ref s, const size_t len) {
         ASSERT_NONNULL(s != NULL);
         for (size_t i = 0; i < len; i++) {
@@ -127,8 +127,8 @@ AOCLIBS_PREFIX void aoc_cstr_to_lower(char *ref s, const size_t len) {
         }
 }
 
-#define rc_eq(s1, s2) aoc_cstr_eq((s1.ptr), (s2.ptr))
-#define cstr_eq(s1, s2) aoc_cstr_eq((s1), (s2))
+#define rc_eq(r1, r2) aoc_cstr_eq((r1).ptr, (r2).ptr)
+#define cstr_eq aoc_cstr_eq
 AOCLIBS_PREFIX bool aoc_cstr_eq(const char *xref s1, const char *xref s2) {
         if (!s1 || !s2) return s1 == s2;
         while (*s1 && *s2 && *s1 == *s2) {
@@ -138,8 +138,38 @@ AOCLIBS_PREFIX bool aoc_cstr_eq(const char *xref s1, const char *xref s2) {
         return *s1 == *s2;
 }
 
-#define rc_eq_case(s1, s2) cstr_eq_case((s1.ptr), (s2.ptr))
-#define cstr_eq_case(s1, s2) aoc_cstr_eq_case((s1), (s2))
+#define rcslice_eq(r1, r2) aoc_cstrn_eq((r1).ptr, (r2).ptr, (r1).len, (r2).len)
+#define rcn_eq(r1, r2) aoc_cstrn_eq((r1).ptr, (r2).ptr, (r1).cap, (r2).cap)
+#define cstrn_eq aoc_cstrn_eq
+AOCLIBS_PREFIX bool aoc_cstrn_eq(const char *xref s1, const char *xref s2, size_t s1_buff,
+                                 size_t s2_buff) {
+        if (!s1 || !s2) return s1 == s2;
+        size_t i = 0;
+        while (*s1 && *s2 && s1_buff > i && s2_buff > i && *s1 == *s2) {
+                s1++;
+                s2++;
+                i++;
+        }
+        return *s1 == *s2;
+}
+
+#define rcslice_eq_case(r1, r2) aoc_cstrn_eq((r1).ptr, (r2).ptr, (r1).len, (r2).len)
+#define rcn_eq_case(r1, r2) aoc_cstrn_eq((r1).ptr, (r2).ptr, (r1).cap, (r2).cap)
+#define cstrn_eq_case aoc_cstrn_eq
+AOCLIBS_PREFIX bool aoc_cstrn_eq_case(const char *xref s1, const char *xref s2, size_t s1_buff,
+                                      size_t s2_buff) {
+        if (!s1 || !s2) return s1 == s2;
+        size_t i = 0;
+        while (*s1 && *s2 && s1_buff > i && s2_buff > i && tolower(*s1) == tolower(*s2)) {
+                s1++;
+                s2++;
+                i++;
+        }
+        return tolower(*s1) == tolower(*s2);
+}
+
+#define rc_eq_case(r1, r2) cstr_eq_case((r1).ptr, (r2).ptr)
+#define cstr_eq_case aoc_cstr_eq_case
 AOCLIBS_PREFIX bool aoc_cstr_eq_case(const char *xref s1, const char *xref s2) {
         if (!s1 || !s2) return s1 == s2;
         while (*s1 && *s2 && tolower(*s1) == tolower(*s2)) {
@@ -149,14 +179,14 @@ AOCLIBS_PREFIX bool aoc_cstr_eq_case(const char *xref s1, const char *xref s2) {
         return tolower(*s1) == tolower(*s2);
 }
 
-#define cstr_len(s, cap) aoc_cstr_len((s), (cap))
+#define cstr_len aoc_cstr_len
 AOCLIBS_PREFIX size_t aoc_cstr_len(const char *null s, const size_t cap) {
         if (s == NULL) return 0;
         const char *s_tmp = memchr(s, 0, cap);
         return s_tmp ? s_tmp - s : cap;
 }
 
-#define rc_resize(r, capacity) aoc_rc_resize((r), (capacity))
+#define rc_resize aoc_rc_resize
 AOCLIBS_PREFIX int aoc_rc_resize(rc *ref r, size_t cap) {
         ASSERT_NONNULL(rc_is_null(r));
         ASSERT(r->type == RCHeap, "RC is not heap allocated");
@@ -166,7 +196,7 @@ AOCLIBS_PREFIX int aoc_rc_resize(rc *ref r, size_t cap) {
         return 0;
 }
 
-#define rc_free(r) aoc_rc_free((r))
+#define rc_free aoc_rc_free
 AOCLIBS_PREFIX void aoc_rc_free(rc *ref r) {
         ASSERT(rc_is_null(r), "double free attempt");
         ASSERT(r->type == RCHeap, "RC is not heap allocated");
@@ -174,14 +204,7 @@ AOCLIBS_PREFIX void aoc_rc_free(rc *ref r) {
         *r = (rc){ 0 };
 }
 
-#define rc_free_array(r, a_len) aoc_rc_free_array((r), (a_len))
-AOCLIBS_PREFIX void aoc_rc_free_array(rc *ref r[], size_t len) {
-        for (size_t i = 0; i < len; i++) {
-                rc_free(r[i]);
-        }
-}
-
-#define rc_erase(r) aoc_rc_erase((r))
+#define rc_erase aoc_rc_erase
 AOCLIBS_PREFIX void aoc_rc_erase(rc *ref r) {
         ASSERT(rc_is_null(r), "double free attempt");
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
@@ -199,15 +222,25 @@ AOCLIBS_PREFIX void aoc_rc_clear(rc *ref r) {
         r->len = 0;
 }
 
-#define cstr_begins_with(s, begin, begin_len, s_len) \
-        aoc_cstr_match_pos((s), (begin), (begin_len), (s_len), 0)
-#define cstr_ends_with(s, end, end_len, s_len) \
-        aoc_cstr_match_pos((s), (end), (end_len), (s_len), (s_len) - (end_len))
+#define rcslice_begins_with(r, begin_len, begin) \
+        aoc_cstr_match_pos(VSLICE((r)), (begin_len), (begin), 0)
+#define rcslice_ends_with(r, end_len, end) \
+        aoc_cstr_match_pos(VSLICE((r)), (end_len), (end), (r).len - (end_len))
+
+#define rc_begins_with(r, begin_len, begin) \
+        aoc_cstr_match_pos((r).len, (r).ptr, (begin_len), (begin), 0)
+#define rc_ends_with(r, end_len, end) \
+        aoc_cstr_match_pos((r).len, (r).ptr, (end_len), (end), (r).len - (end_len))
+
+#define cstr_begins_with(s, s_len, begin_len, begin) \
+        aoc_cstr_match_pos((s_len), (s), (begin_len), (begin), 0)
+#define cstr_ends_with(s, s_len, end_len, end) \
+        aoc_cstr_match_pos((s_len), (s), (end_len), (end), (s_len) - (end_len))
 /*
  * Internal
 */
-AOCLIBS_PREFIX bool aoc_cstr_match_pos(const char *xnull s, const char *xnull pattern,
-                                       size_t pattern_len, size_t s_len, size_t offset) {
+AOCLIBS_PREFIX bool aoc_cstr_match_pos(size_t s_len, const char *xnull s, size_t pattern_len,
+                                       const char *xnull pattern, size_t offset) {
         if (!s || !pattern || pattern_len > s_len || offset > s_len - pattern_len) return false;
 
         size_t i = offset + pattern_len;
@@ -247,7 +280,7 @@ AOCLIBS_PREFIX int aoc_rc_copy(rc *xref r1, const rc *xref r2, const size_t r1_o
         return 0;
 }
 
-#define rc_push(r, cchar) aoc_rc_push((r), (cchar))
+#define rc_push aoc_rc_push
 AOCLIBS_PREFIX int aoc_rc_push(rc *ref r, char c) {
         ASSERT_NONNULL(rc_is_null(r));
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
@@ -263,7 +296,7 @@ AOCLIBS_PREFIX int aoc_rc_push(rc *ref r, char c) {
         return 0;
 }
 
-#define rc_pop(r) aoc_rc_pop((r))
+#define rc_pop aoc_rc_pop
 AOCLIBS_PREFIX int aoc_rc_pop(rc *ref r) {
         ASSERT_NONNULL(rc_is_null(r));
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
@@ -275,7 +308,7 @@ AOCLIBS_PREFIX int aoc_rc_pop(rc *ref r) {
         return 0;
 }
 
-#define rc_drop(r, index) aoc_rc_drop((r), (index))
+#define rc_drop aoc_rc_drop
 AOCLIBS_PREFIX int aoc_rc_drop(rc *ref r, size_t index) {
         ASSERT_NONNULL(rc_is_null(r));
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
@@ -291,7 +324,7 @@ AOCLIBS_PREFIX int aoc_rc_drop(rc *ref r, size_t index) {
         return 0;
 }
 
-#define cstr_copy(r, s, r_offset, s_len) aoc_cstr_copy((r), (s), (r_offset), (s_len))
+#define cstr_copy aoc_cstr_copy
 #define cstr_overwrite(s1, s2, s2_len) cstr_copy((s1), (s2), 0, s2_len)
 #define cstr_overwrite_c(s1, s2) cstr_copy((s1), (s2), 0, cstr_len_c(s2))
 #define cstr_cat(s1, s2) cstr_copy((s1), (s2), (s1).len, cstr_len((s2)))
@@ -323,7 +356,7 @@ AOCLIBS_PREFIX int aoc_cstr_copy(rc *xref r, const char *xref s, const size_t r_
 }
 
 #ifndef AOCLIBS_RC_NO_STDIO
-#define cstr_copy_fmt(s, fmt, ...) aoc_cstr_copy_fmt((s), (fmt), __VA_ARGS__)
+#define cstr_copy_fmt aoc_cstr_copy_fmt
 AOCLIBS_PREFIX int aoc_cstr_copy_fmt(rc *xref r, const char *xref fmt, ...) {
         ASSERT_NONNULL(rc_is_null(r));
         ASSERT_NONNULL(fmt != NULL);
@@ -353,8 +386,7 @@ AOCLIBS_PREFIX int aoc_cstr_copy_fmt(rc *xref r, const char *xref fmt, ...) {
 }
 #endif
 
-#define cstr_find_delim(s, s_len, delim, delim_len, pos, j) \
-        aoc_cstr_find_delim((s), (s_len), (delim), (delim_len), (pos), (j))
+#define cstr_find_delim aoc_cstr_find_delim
 /*
  * Internal
 */
@@ -367,7 +399,7 @@ AOCLIBS_PREFIX bool aoc_cstr_find_delim(const char *xnull s, size_t s_len, const
         return cstr_find_delim(s, s_len, delim, delim_len, pos, j + 1);
 }
 
-#define rc_chr_cstr(s, delim, delim_len) aoc_rc_chr_cstr((s), (delim), (delim_len))
+#define rc_chr_cstr aoc_rc_chr_cstr
 AOCLIBS_PREFIX size_t aoc_rc_chr_cstr(const rc *xref r, const char *xref delim,
                                       const size_t delim_len) {
         ASSERT_NONNULL(rc_is_null(r));
@@ -382,7 +414,7 @@ AOCLIBS_PREFIX size_t aoc_rc_chr_cstr(const rc *xref r, const char *xref delim,
         return SIZE_MAX;
 }
 
-#define rc_chr(s, delim) aoc_rc_chr((s), (delim))
+#define rc_chr aoc_rc_chr
 AOCLIBS_PREFIX size_t aoc_rc_chr(const rc *ref r, char delim) {
         ASSERT_NONNULL(rc_is_null(r));
 
@@ -392,7 +424,7 @@ AOCLIBS_PREFIX size_t aoc_rc_chr(const rc *ref r, char delim) {
 
         return SIZE_MAX;
 }
-#define rc_tok_cstr(s, delim) aoc_rc_tok_cstr((s), (delim))
+#define rc_tok_cstr aoc_rc_tok_cstr
 AOCLIBS_PREFIX const char *null aoc_rc_tok_cstr(const rc *xref r, const char *xref delim,
                                                 const size_t delim_len) {
         ASSERT_NONNULL(rc_is_null(r));
@@ -404,7 +436,7 @@ AOCLIBS_PREFIX const char *null aoc_rc_tok_cstr(const rc *xref r, const char *xr
         return r->ptr + pos + delim_len;
 }
 
-#define rc_tok(s, delim) aoc_rc_tok((s), (delim))
+#define rc_tok aoc_rc_tok
 AOCLIBS_PREFIX const char *null aoc_rc_tok(const rc *ref r, char delim) {
         ASSERT_NONNULL(rc_is_null(r));
 
@@ -414,7 +446,7 @@ AOCLIBS_PREFIX const char *null aoc_rc_tok(const rc *ref r, char delim) {
         return r->ptr + pos + 1;
 }
 
-#define cstr_trim_whitespace(s, len) aoc_cstr_trim_whitespace((s), (len))
+#define cstr_trim_whitespace aoc_cstr_trim_whitespace
 AOCLIBS_PREFIX size_t aoc_cstr_trim_whitespace(char *ref s, const size_t len) {
         ASSERT_NONNULL(s != NULL);
 
@@ -428,7 +460,7 @@ AOCLIBS_PREFIX size_t aoc_cstr_trim_whitespace(char *ref s, const size_t len) {
         return len;
 }
 
-#define rc_trim_whitespace(r) aoc_rc_trim_whitespace((r))
+#define rc_trim_whitespace aoc_rc_trim_whitespace
 AOCLIBS_PREFIX void aoc_rc_trim_whitespace(rc *ref r) {
         ASSERT_NONNULL(rc_is_null(r));
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
@@ -437,7 +469,7 @@ AOCLIBS_PREFIX void aoc_rc_trim_whitespace(rc *ref r) {
         r->len = len;
 }
 
-#define cstr_to_double(s, _default) aoc_cstr_to_double((s), (_default))
+#define cstr_to_double aoc_cstr_to_double
 AOCLIBS_PREFIX double aoc_cstr_to_double(const char *ref s, const double _default) {
         ASSERT_NONNULL(s != NULL);
         char *endptr;
@@ -448,15 +480,15 @@ AOCLIBS_PREFIX double aoc_cstr_to_double(const char *ref s, const double _defaul
         return val;
 }
 
-#define cstr_to_bool(s, _default) aoc_cstr_to_bool((s), (_default))
+#define cstr_to_bool aoc_cstr_to_bool
 AOCLIBS_PREFIX bool aoc_cstr_to_bool(const char *ref s, const bool _default) {
         ASSERT_NONNULL(s != NULL);
-        if (cstr_eq_case(s, "true") || cstr_eq(s, "1")) return true;
-        if (cstr_eq_case(s, "false") || cstr_eq(s, "0")) return false;
+        if (aoc_cstr_eq_case(s, "true") || aoc_cstr_eq(s, "1")) return true;
+        if (aoc_cstr_eq_case(s, "false") || aoc_cstr_eq(s, "0")) return false;
         return _default;
 }
 
-#define cstr_to_float(s, _default) aoc_cstr_to_float((s), (_default))
+#define cstr_to_float aoc_cstr_to_float
 AOCLIBS_PREFIX float aoc_cstr_to_float(const char *ref s, const float _default) {
         ASSERT_NONNULL(s != NULL);
         char *endptr;
@@ -467,7 +499,7 @@ AOCLIBS_PREFIX float aoc_cstr_to_float(const char *ref s, const float _default) 
         return val;
 }
 
-#define cstr_to_long(s, _default) aoc_cstr_to_long((s), (_default))
+#define cstr_to_long aoc_cstr_to_long
 AOCLIBS_PREFIX long aoc_cstr_to_long(const char *ref s, const long _default) {
         ASSERT_NONNULL(s != NULL);
         char *endptr;
