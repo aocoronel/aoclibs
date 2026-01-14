@@ -9,6 +9,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef __linux__
+#include <unistd.h>
+#include <sys/mman.h>
+#endif
 
 // Alignment of a pointer
 #define AOC_ARENA_DEFAULT_ALIGNMENT (alignof(void *))
@@ -24,7 +28,10 @@ typedef struct Arena {
 #define arena_alloc_aligned aoc_arena_alloc_aligned
 #define arena_alloc_chars aoc_arena_alloc_chars
 #define arena_create aoc_arena_create
+#define arena_cstrdup aoc_arena_cstrdup
 #define arena_destroy aoc_arena_destroy
+#define arena_realloc aoc_arena_realloc
+#define arena_realloc_chars aoc_arena_realloc_chars
 #define arena_reset aoc_arena_reset
 #endif
 
@@ -98,6 +105,23 @@ AOCLIBS_PREFIX void *aoc_arena_alloc(Arena *ref a, size_t size);
 */
 AOCLIBS_PREFIX char *aoc_arena_alloc_chars(Arena *ref a, size_t count);
 
+#ifdef __linux__
+AOCLIBS_PREFIX Arena aoc_arena_create(size_t cap) {
+        Arena a = { 0 };
+        if (cap == 0) return a;
+
+        a.buffer = mmap(NULL, cap, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+        if (a.buffer == MAP_FAILED) {
+                a.buffer = NULL;
+                return a;
+        }
+
+        a.cap = cap;
+        a.offset = 0;
+
+        return a;
+}
+#else
 AOCLIBS_PREFIX Arena aoc_arena_create(size_t cap) {
         Arena a = { 0 };
         if (cap == 0) return a;
@@ -110,12 +134,23 @@ AOCLIBS_PREFIX Arena aoc_arena_create(size_t cap) {
 
         return a;
 }
+#endif
 
 AOCLIBS_PREFIX void aoc_arena_reset(Arena *ref a) {
         ASSERT_NONNULL(a != NULL);
         a->offset = 0;
 }
 
+#ifdef __linux__
+AOCLIBS_PREFIX void aoc_arena_destroy(Arena *ref a) {
+        ASSERT(a != NULL, "%s", "double free attempt");
+        ASSERT(a->buffer != NULL, "%s", "double free attempt");
+        munmap(a->buffer, a->cap);
+        a->buffer = NULL;
+        a->cap = 0;
+        a->offset = 0;
+}
+#else
 AOCLIBS_PREFIX void aoc_arena_destroy(Arena *ref a) {
         ASSERT(a != NULL, "%s", "double free attempt");
         ASSERT(a->buffer != NULL, "%s", "double free attempt");
@@ -124,9 +159,10 @@ AOCLIBS_PREFIX void aoc_arena_destroy(Arena *ref a) {
         a->cap = 0;
         a->offset = 0;
 }
+#endif
 
-AOCLIBS_PREFIX void *aoc_arena_alloc_aligned(Arena *ref a, size_t size, size_t align) {
-        ASSERT(a != NULL, "%s", "double free attempt");
+AOCLIBS_PREFIX void *null aoc_arena_alloc_aligned(Arena *ref a, size_t size, size_t align) {
+        ASSERT_NONNULL(a != NULL);
         ASSERT((align & (align - 1)) == 0, "%s", "alignment is not a power of two");
 
         size_t curr = (size_t)(a->buffer + a->offset);
@@ -156,12 +192,44 @@ AOCLIBS_PREFIX void *aoc_arena_alloc_aligned(Arena *ref a, size_t size, size_t a
         return result;
 }
 
+AOCLIBS_PREFIX void *aoc_arena_realloc(Arena *ref a, void *buffer, size_t buff_size,
+                                       size_t new_size, size_t align) {
+        ASSERT_NONNULL(a != NULL);
+        void *tmp = aoc_arena_alloc_aligned(a, new_size, align);
+        if (tmp == NULL) return NULL;
+        memcpy(tmp, buffer, buff_size);
+        return tmp;
+}
+
+AOCLIBS_PREFIX char *aoc_arena_realloc_chars(Arena *xref a, char *xref s, size_t s_cap,
+                                             size_t new_size) {
+        ASSERT_NONNULL(a != NULL);
+        ASSERT_NONNULL(s != NULL);
+        char *tmp = aoc_arena_alloc_chars(a, new_size);
+        if (tmp == NULL) return NULL;
+        if (s != NULL) {
+                memcpy(tmp, s, s_cap);
+        }
+        return tmp;
+}
+
 AOCLIBS_PREFIX void *aoc_arena_alloc(Arena *ref a, size_t size) {
+        ASSERT_NONNULL(a != NULL);
         return aoc_arena_alloc_aligned(a, size, AOC_ARENA_DEFAULT_ALIGNMENT);
 }
 
 AOCLIBS_PREFIX char *aoc_arena_alloc_chars(Arena *ref a, size_t count) {
+        ASSERT_NONNULL(a != NULL);
         return (char *)aoc_arena_alloc_aligned(a, count, 1);
+}
+
+AOCLIBS_PREFIX char *aoc_arena_cstrdup(Arena *xref a, const char *xref s, size_t s_len) {
+        ASSERT_NONNULL(a != NULL);
+        ASSERT_NONNULL(s != NULL);
+        char *tmp = (char *)aoc_arena_alloc_chars(a, s_len + 1);
+        memcpy(tmp, s, s_len);
+        tmp[s_len] = '\0';
+        return tmp;
 }
 
 #endif // AOCLIBS_ARENA_H_
