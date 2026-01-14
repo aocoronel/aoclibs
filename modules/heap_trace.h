@@ -1,9 +1,7 @@
-#define HEAP_TRACE
 #ifdef HEAP_TRACE
 #ifndef AOCLIBS_HEAP_TRACE_H_
 #define AOCLIBS_HEAP_TRACE_H_
 
-#include "attributes.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -17,7 +15,7 @@
  * Prints allocation and free count.
  * If there was a leak, print the source of the leak
 */
-AOCLIBS_PREFIX void aoc_heap_trace_summary(FILE *ref fd);
+static inline void aoc_heap_trace_summary(FILE *fd);
 
 // clang-format off
 
@@ -59,8 +57,8 @@ static __heap_trace_entry *__entry_head = NULL;
 static int __trace_alloc_count = 0;
 static int __trace_free_count = 0;
 
-AOCLIBS_PREFIX void __trace_add_entry(void *ptr, size_t size, const char *func, const char *file,
-                                      int line) {
+static inline void __trace_add_entry(void *ptr, size_t size, const char *func, const char *file,
+                                     int line) {
         __init_trace_std_alloc_fn();
         __heap_trace_entry *entry =
                 (__heap_trace_entry *)__trace_std_malloc(sizeof(__heap_trace_entry));
@@ -76,7 +74,7 @@ AOCLIBS_PREFIX void __trace_add_entry(void *ptr, size_t size, const char *func, 
         __trace_alloc_count++;
 }
 
-AOCLIBS_PREFIX void __trace_remove_entry(void *ptr) {
+static inline void __trace_remove_entry(void *ptr) {
         __init_trace_std_alloc_fn();
         __heap_trace_entry **curr = &__entry_head;
         while (*curr) {
@@ -91,7 +89,7 @@ AOCLIBS_PREFIX void __trace_remove_entry(void *ptr) {
         }
 }
 
-AOCLIBS_PREFIX void *__trace_malloc(size_t size, const char *func, const char *file, int line) {
+static inline void *__trace_malloc(size_t size, const char *func, const char *file, int line) {
         __init_trace_std_alloc_fn();
         void *ptr = __trace_std_malloc(size);
         if (ptr) {
@@ -100,8 +98,8 @@ AOCLIBS_PREFIX void *__trace_malloc(size_t size, const char *func, const char *f
         return ptr;
 }
 
-AOCLIBS_PREFIX void *__trace_calloc(size_t nmemb, size_t size, const char *func, const char *file,
-                                    int line) {
+static inline void *__trace_calloc(size_t nmemb, size_t size, const char *func, const char *file,
+                                   int line) {
         __init_trace_std_alloc_fn();
         void *ptr = __trace_std_calloc(nmemb, size);
         if (ptr) {
@@ -110,8 +108,8 @@ AOCLIBS_PREFIX void *__trace_calloc(size_t nmemb, size_t size, const char *func,
         return ptr;
 }
 
-AOCLIBS_PREFIX void *__trace_realloc(void *ptr, size_t size, const char *func, const char *file,
-                                     int line) {
+static inline void *__trace_realloc(void *ptr, size_t size, const char *func, const char *file,
+                                    int line) {
         __init_trace_std_alloc_fn();
         if (ptr == NULL) {
                 void *new_ptr = __trace_std_malloc(size);
@@ -137,14 +135,14 @@ AOCLIBS_PREFIX void *__trace_realloc(void *ptr, size_t size, const char *func, c
         return new_ptr;
 }
 
-AOCLIBS_PREFIX void __trace_free(void *ptr, const char *func, const char *file, int line) {
+static inline void __trace_free(void *ptr, const char *func, const char *file, int line) {
         if (!ptr) return;
         __trace_remove_entry(ptr);
         __init_trace_std_alloc_fn();
         __trace_std_free(ptr);
 }
 
-AOCLIBS_PREFIX void aoc_heap_trace_summary(FILE *ref fd) {
+static inline void aoc_heap_trace_summary(FILE *fd) {
         __heap_trace_entry *curr = __entry_head;
         int leaks_found = 0;
         fprintf(fd, "===== Memory Summary Report =====\n");

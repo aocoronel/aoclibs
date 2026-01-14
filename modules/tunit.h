@@ -41,16 +41,13 @@
 #ifdef TUNIT
 #define _XOPEN_SOURCE 600
 
-#include "attributes.h"
 #include <setjmp.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
@@ -62,7 +59,7 @@
 /*
  * Logs formatted message to tunit.txt
 */
-AOCLIBS_PREFIX void tunit_log(const char *fmt, ...);
+static inline void tunit_log(const char *fmt, ...);
 
 typedef void (*TestFunc)(void);
 
@@ -88,19 +85,19 @@ static struct timespec __TUnitStartTime;
 FILE *TUNIT_LOG_FILE = NULL;
 int tunit_fd = -1;
 
-AOCLIBS_PREFIX void __tunit_timeout_handler(int sig) {
+static inline void __tunit_timeout_handler(int sig) {
         __TUnitTimeoutOccurred = 1;
         fprintf(stderr, "  [TIMEOUT] Test '%s' exceeded time limit (%d)\n", CURRENT_TEST, sig);
         TESTS_FAIL++;
         longjmp(__TUnitJMP, 1);
 }
 
-AOCLIBS_PREFIX void __tunit_segfault_handler(int sig) {
+static inline void __tunit_segfault_handler(int sig) {
         fprintf(stderr, "  [CRASH] __tunit_segfault (signal %d) in test '%s'\n", sig, CURRENT_TEST);
         TESTS_FAIL++;
         longjmp(__TUnitJMP, 1);
 }
-AOCLIBS_PREFIX double get_time_diff_ms(struct timespec *start) {
+static inline double get_time_diff_ms(struct timespec *start) {
         struct timespec end;
         clock_gettime(CLOCK_MONOTONIC, &end);
         double start_ms = start->tv_sec * 1000.0 + start->tv_nsec / 1000000.0;
@@ -109,7 +106,7 @@ AOCLIBS_PREFIX double get_time_diff_ms(struct timespec *start) {
 }
 
 #ifdef TUNIT_SUBPROCESS
-AOCLIBS_PREFIX void __tunit_run_single_test(__TUnitTest *test) {
+static inline void __tunit_run_single_test(__TUnitTest *test) {
         CURRENT_TEST = test->description;
         int pipefd[2];
         if (pipe(pipefd) == -1) {
@@ -193,7 +190,7 @@ AOCLIBS_PREFIX void __tunit_run_single_test(__TUnitTest *test) {
         }
 }
 #else
-AOCLIBS_PREFIX void __tunit_run_single_test(__TUnitTest *test) {
+static inline void __tunit_run_single_test(__TUnitTest *test) {
         CURRENT_TEST = test->description;
         __TUnitTimeoutOccurred = 0;
 
@@ -225,7 +222,7 @@ AOCLIBS_PREFIX void __tunit_run_single_test(__TUnitTest *test) {
         }
 }
 #endif
-AOCLIBS_PREFIX void tunit_register_test(const char *desc, void (*func)(void)) {
+static inline void tunit_register_test(const char *desc, void (*func)(void)) {
         __TUnitTest *tc = malloc(sizeof(__TUnitTest));
         tc->description = desc;
         tc->func = func;
@@ -237,7 +234,7 @@ AOCLIBS_PREFIX void tunit_register_test(const char *desc, void (*func)(void)) {
         __TUnitTail = tc;
 }
 
-AOCLIBS_PREFIX void tunit_assert(int expr, const char *expr_str, const char *msg, const char *file,
+static inline void tunit_assert(int expr, const char *expr_str, const char *msg, const char *file,
                                  int line) {
         if (!expr) {
                 fprintf(stderr, "  [FAIL] Assertion failed: %s in test %s: %s at %s:%d\n", msg,
@@ -247,13 +244,13 @@ AOCLIBS_PREFIX void tunit_assert(int expr, const char *expr_str, const char *msg
         }
 }
 
-AOCLIBS_PREFIX void tunit_skip_test(const char *reason) {
+static inline void tunit_skip_test(const char *reason) {
         fprintf(stderr, "  [SKIP] Test '%s' skipped: %s\n", CURRENT_TEST, reason);
         TESTS_SKIP++;
         longjmp(__TUnitJMP, 2);
 }
 
-AOCLIBS_PREFIX void __tunit_run_all_tests(void) {
+static inline void __tunit_run_all_tests(void) {
         struct timespec suite_start;
         clock_gettime(CLOCK_MONOTONIC, &suite_start);
 
@@ -270,7 +267,7 @@ AOCLIBS_PREFIX void __tunit_run_all_tests(void) {
                 TESTS_FAIL, TESTS_SKIP, suite_duration_ms);
 }
 
-AOCLIBS_PREFIX void __tunit_init_log(const char *log_path) {
+static inline void __tunit_init_log(const char *log_path) {
         TUNIT_LOG_FILE = fopen(log_path, "a");
         if (!TUNIT_LOG_FILE) {
                 perror("failed to open log file");
@@ -278,7 +275,7 @@ AOCLIBS_PREFIX void __tunit_init_log(const char *log_path) {
         tunit_fd = fileno(TUNIT_LOG_FILE);
 }
 
-AOCLIBS_PREFIX void tunit_log(const char *fmt, ...) {
+static inline void tunit_log(const char *fmt, ...) {
         if (!TUNIT_LOG_FILE) return;
 
         va_list args;
@@ -289,7 +286,7 @@ AOCLIBS_PREFIX void tunit_log(const char *fmt, ...) {
         fflush(TUNIT_LOG_FILE);
 }
 
-AOCLIBS_PREFIX void __tunit_log(const char *msg) {
+static inline void __tunit_log(const char *msg) {
         if (!TUNIT_LOG_FILE) return;
 
         time_t now = time(NULL);
@@ -304,7 +301,7 @@ AOCLIBS_PREFIX void __tunit_log(const char *msg) {
         fflush(TUNIT_LOG_FILE);
 }
 
-AOCLIBS_PREFIX void __tunit_close_log(void) {
+static inline void __tunit_close_log(void) {
         if (TUNIT_LOG_FILE) fclose(TUNIT_LOG_FILE);
         if (tunit_fd != -1) close(tunit_fd);
 }
