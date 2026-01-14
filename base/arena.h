@@ -24,6 +24,7 @@ typedef struct Arena {
 } Arena;
 
 #ifdef AOCLIBS_STRIP_PREFIX
+#define arena_construct aoc_arena_construct
 #define arena_alloc aoc_arena_alloc
 #define arena_alloc_aligned aoc_arena_alloc_aligned
 #define arena_alloc_chars aoc_arena_alloc_chars
@@ -34,6 +35,41 @@ typedef struct Arena {
 #define arena_realloc_chars aoc_arena_realloc_chars
 #define arena_reset aoc_arena_reset
 #endif
+
+// To generate a function that uses a global arena.
+// This is particularly useful, if a library may accept an allocator compatible with the malloc
+// function signature: void *malloc(size_t), so this one can be passed and the allocation
+// happens in the Arena.
+// The free function takes a pointer, as from void free(void *), but discards it
+#define aoc_arena_construct(type, a, alignment)                                      \
+        Arena a = { 0 };                                                             \
+        AOCLIBS_PREFIX type arena_alloc_##a(size_t capacity) {                       \
+                ASSERT(a.buffer != NULL, "the arena must be initialized with '" #a   \
+                                         " = arena_create(size)', before usage");    \
+                return (type)aoc_arena_alloc_aligned(&a, capacity, alignment);       \
+        }                                                                            \
+        AOCLIBS_PREFIX void arena_destroy_##a(void *buffer) {                        \
+                (void)buffer;                                                        \
+                aoc_arena_destroy(&a);                                               \
+        }                                                                            \
+        AOCLIBS_PREFIX void *arena_realloc_##a(void *buffer, size_t capacity) {      \
+                return aoc_arena_realloc(&a, buffer, capacity, capacity, alignment); \
+        }
+
+// Usage:
+// aoc_arena_construct(char *, arena_example, 1);
+//
+// int main(int argc, char *argv[]) {
+//         arena_example = arena_create(1000); --> allocates in arena_example.buffer
+//         char *msg = arena_alloc_arena_example(13); --> gives memory already allocated
+//         strcpy(msg, "hello, world!");
+//         printf("%s\n", msg);
+//         msg = arena_realloc_arena_example(msg, 988); --> reallocates and gives memory already allocated
+//         strcpy(msg, "hello, world once again!");
+//         printf("%s\n", msg);
+//         arena_destroy_arena_example(msg);
+//         return 0;
+// }
 
 /*
  * Creates an arena of size (cap).
