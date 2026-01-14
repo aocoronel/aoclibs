@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef void *(*aoc_malloc_t)(size_t);
+typedef void *(*aoc_realloc_t)(void *, size_t);
+typedef void (*aoc_free_t)(void *);
+
 /*
  * Modify prefixes in all functions
 */

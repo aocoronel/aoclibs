@@ -37,20 +37,14 @@ typedef struct {
         char *ptr;
 } rc; // row char
 
-#ifndef AOCLIBS_RC_NO_ALLOCATOR
-#define RC_MALLOC malloc
-#define RC_REALLOC realloc
-#define RC_FREE free
-#else
 #ifndef RC_MALLOC
-#error "RC_MALLOC not defined!"
+#define RC_MALLOC malloc
 #endif
 #ifndef RC_REALLOC
-#error "RC_REALLOC not defined!"
+#define RC_REALLOC realloc
 #endif
 #ifndef RC_FREE
-#error "RC_FREE not defined!"
-#endif
+#define RC_FREE free
 #endif
 
 // Compile-time known RC, which cannot be mutated
@@ -74,6 +68,10 @@ typedef struct {
 #define rch_new(capacity)                                                                 \
         (rc) {                                                                            \
                 .ptr = RC_MALLOC((capacity)), .len = 0, .cap = (capacity), .type = RCHeap \
+        }
+#define rch_new_a(allocator, capacity)                                                    \
+        (rc) {                                                                            \
+                .ptr = allocator((capacity)), .len = 0, .cap = (capacity), .type = RCHeap \
         }
 #define rcs_new(capacity)                                                               \
         (rc) {                                                                          \
@@ -99,21 +97,24 @@ AOCLIBS_PREFIX bool aoc_rc_is_null(const rc *null r) {
         return !r || !r->ptr;
 }
 
-#define cstr_dup(s, len) aoc_cstr_dup((s), (len) + 1)
-AOCLIBS_PREFIX char *xnull aoc_cstr_dup(const char *ref s, const size_t len) {
+#define cstr_dup(s, len) aoc_cstr_dup(RC_MALLOC, (s), (len) + 1)
+#define cstr_dup_a(allocator, s, len) aoc_cstr_dup((allocator), (s), (len) + 1)
+AOCLIBS_PREFIX char *xnull aoc_cstr_dup(aoc_malloc_t allocator, const char *ref s,
+                                        const size_t len) {
         ASSERT_NONNULL(s != NULL);
-        char *d = RC_MALLOC(len);
+        char *d = allocator(len);
         if (!d) return NULL;
         return memcpy(d, s, len);
 }
 
-#define rc_dup aoc_rc_dup
-AOCLIBS_PREFIX rc aoc_rc_dup(const rc *ref s) {
-        ASSERT_NONNULL(rc_is_null(s));
+#define rc_dup(r) aoc_rc_dup(RC_MALLOC, (r))
+#define rc_dup_a aoc_rc_dup
+AOCLIBS_PREFIX rc aoc_rc_dup(aoc_malloc_t allocator, const rc *ref r) {
+        ASSERT_NONNULL(aoc_rc_is_null(r));
         return (rc){
-                .ptr = cstr_dup(s->ptr, s->cap),
-                .len = s->len,
-                .cap = s->cap,
+                .ptr = aoc_cstr_dup(allocator, r->ptr, r->cap),
+                .len = r->len,
+                .cap = r->cap,
                 .type = RCHeap,
         };
 }
@@ -186,37 +187,40 @@ AOCLIBS_PREFIX size_t aoc_cstr_len(const char *null s, const size_t cap) {
         return s_tmp ? s_tmp - s : cap;
 }
 
-#define rc_resize aoc_rc_resize
-AOCLIBS_PREFIX int aoc_rc_resize(rc *ref r, size_t cap) {
-        ASSERT_NONNULL(rc_is_null(r));
+#define rc_resize(r, cap) aoc_rc_resize(RC_REALLOC, (r), (cap))
+#define rc_resize_a aoc_rc_resize
+AOCLIBS_PREFIX int aoc_rc_resize(aoc_realloc_t allocator, rc *ref r, size_t cap) {
+        ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT(r->type == RCHeap, "RC is not heap allocated");
-        void *tmp = RC_REALLOC(r->ptr, cap);
+        void *tmp = allocator(r->ptr, cap);
         if (tmp == NULL) return -1;
         r->ptr = tmp;
         return 0;
 }
 
-#define rc_free aoc_rc_free
-AOCLIBS_PREFIX void aoc_rc_free(rc *ref r) {
-        ASSERT(rc_is_null(r), "double free attempt");
+#define rc_free(r) aoc_rc_free(RC_FREE, (r))
+#define rc_free_a aoc_rc_free
+AOCLIBS_PREFIX void aoc_rc_free(aoc_free_t _free, rc *ref r) {
+        ASSERT(aoc_rc_is_null(r), "double free attempt");
         ASSERT(r->type == RCHeap, "RC is not heap allocated");
-        RC_FREE(r->ptr);
+        _free(r->ptr);
         *r = (rc){ 0 };
 }
 
-#define rc_erase aoc_rc_erase
-AOCLIBS_PREFIX void aoc_rc_erase(rc *ref r) {
-        ASSERT(rc_is_null(r), "double free attempt");
+#define rc_erase(r) aoc_rc_erase(RC_FREE, (r))
+#define rc_erase_a aoc_rc_erase
+AOCLIBS_PREFIX void aoc_rc_erase(aoc_free_t _free, rc *ref r) {
+        ASSERT(aoc_rc_is_null(r), "double free attempt");
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
         for (size_t i = 0; i < r->cap; i++) {
                 r->ptr[i] = '\0';
         }
-        if (r->type == RCHeap) rc_free(r);
+        if (r->type == RCHeap) aoc_rc_free(_free, r);
 }
 
 #define rc_clear(r) aoc_rc_clear((r))
 AOCLIBS_PREFIX void aoc_rc_clear(rc *ref r) {
-        ASSERT_NONNULL(rc_is_null(r));
+        ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
         r->ptr[0] = '\0';
         r->len = 0;
@@ -254,22 +258,27 @@ AOCLIBS_PREFIX bool aoc_cstr_match_pos(size_t s_len, const char *xnull s, size_t
         return true;
 }
 
-#define rc_overwrite(s1, s2) aoc_rc_copy((s1), (s2), 0)
-#define rc_cat(s1, s2) aoc_rc_copy((s1), (s2), (s1).len)
-#define rc_append(s1, s2) aoc_rc_copy((s1), (s2), (s1).len + 1)
-AOCLIBS_PREFIX int aoc_rc_copy(rc *xref r1, const rc *xref r2, const size_t r1_offset) {
-        ASSERT_NONNULL(rc_is_null(r1));
-        ASSERT_NONNULL(rc_is_null(r2));
+#define rc_copy(r1, r2, r1_offset) aoc_rc_copy(RC_REALLOC, (r1), (r2), (r1_offset))
+#define rc_copy_a aoc_rc_copy
+#define rc_overwrite(s1, s2) aoc_rc_copy(RC_REALLOC, (s1), (s2), 0)
+#define rc_overwrite_a(allocator, s1, s2) aoc_rc_copy((allocator), (s1), (s2), 0)
+#define rc_cat(s1, s2) aoc_rc_copy(RC_REALLOC, (s1), (s2), (s1).len)
+#define rc_cat_a(allocator, s1, s2) aoc_rc_copy((allocator), (s1), (s2), (s1).len)
+#define rc_append(s1, s2) aoc_rc_copy(RC_REALLOC, (s1), (s2), (s1).len + 1)
+#define rc_append_a(allocator, s1, s2) aoc_rc_copy((allocator), (s1), (s2), (s1).len + 1)
+AOCLIBS_PREFIX int aoc_rc_copy(aoc_realloc_t *allocator, rc *xref r1, const rc *xref r2,
+                               const size_t r1_offset) {
+        ASSERT_NONNULL(aoc_rc_is_null(r1));
+        ASSERT_NONNULL(aoc_rc_is_null(r2));
         ASSERT(r1->type != RCLiteral, "attempt to modify RC literal");
-        if (!rc_can_mut(r1) || rc_is_null(r2)) return -1;
+        if (!aoc_rc_can_mut(r1) || aoc_rc_is_null(r2)) return -1;
 
         size_t avail = r1->cap - r1_offset;
         size_t needed = r2->len + 1;
 
         if (needed > avail) {
-                if (r1->type != RCHeap) return -1;
-
-                if (rc_resize(r1, r1_offset + needed) != 0) return -1;
+                if (r1->type != RCHeap || allocator == NULL) return -1;
+                if (aoc_rc_resize(*allocator, r1, r1_offset + needed) != 0) return -1;
         }
 
         memcpy(r1->ptr + r1_offset, r2->ptr, r2->len);
@@ -280,14 +289,16 @@ AOCLIBS_PREFIX int aoc_rc_copy(rc *xref r1, const rc *xref r2, const size_t r1_o
         return 0;
 }
 
-#define rc_push aoc_rc_push
-AOCLIBS_PREFIX int aoc_rc_push(rc *ref r, char c) {
-        ASSERT_NONNULL(rc_is_null(r));
+#define rc_push(r, cchar) aoc_rc_push(RC_REALLOC, (r), (cchar))
+#define rc_push_a aoc_rc_push
+AOCLIBS_PREFIX int aoc_rc_push(aoc_realloc_t *allocator, rc *ref r, char c) {
+        ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
 
         size_t needed = r->len + 2;
         if (needed > r->cap) {
-                if (rc_resize(r, needed) != 0) return -1;
+                if (r->type != RCHeap || allocator == NULL) return -1;
+                if (aoc_rc_resize(*allocator, r, needed) != 0) return -1;
         }
 
         ((char *)r->ptr)[r->len] = c;
@@ -298,7 +309,7 @@ AOCLIBS_PREFIX int aoc_rc_push(rc *ref r, char c) {
 
 #define rc_pop aoc_rc_pop
 AOCLIBS_PREFIX int aoc_rc_pop(rc *ref r) {
-        ASSERT_NONNULL(rc_is_null(r));
+        ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
 
         if (r->len == 0) return -1;
@@ -310,7 +321,7 @@ AOCLIBS_PREFIX int aoc_rc_pop(rc *ref r) {
 
 #define rc_drop aoc_rc_drop
 AOCLIBS_PREFIX int aoc_rc_drop(rc *ref r, size_t index) {
-        ASSERT_NONNULL(rc_is_null(r));
+        ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
         if (index >= r->len) return -1;
 
@@ -324,27 +335,42 @@ AOCLIBS_PREFIX int aoc_rc_drop(rc *ref r, size_t index) {
         return 0;
 }
 
-#define cstr_copy aoc_cstr_copy
-#define cstr_overwrite(s1, s2, s2_len) cstr_copy((s1), (s2), 0, s2_len)
-#define cstr_overwrite_c(s1, s2) cstr_copy((s1), (s2), 0, cstr_len_c(s2))
-#define cstr_cat(s1, s2) cstr_copy((s1), (s2), (s1).len, cstr_len((s2)))
-#define cstr_cat_c(s1, s2) cstr_copy((s1), (s2), (s1).len, cstr_len_c((s2)))
-#define cstr_append(s1, s2) cstr_copy((s1), (s2), ((s1).len + 1), cstr_len((s2)))
-#define cstr_append_c(s1, s2) cstr_copy((s1), (s2), ((s1).len + 1), cstr_len_c((s2)))
-#define rc_null_terminate(s) cstr_copy((s), "\0", (*(s).len), 1)
-AOCLIBS_PREFIX int aoc_cstr_copy(rc *xref r, const char *xref s, const size_t r_offset,
-                                 size_t s_len) {
-        ASSERT_NONNULL(rc_is_null(r));
+#define cstr_copy(r, s, r_offset, s_len) aoc_cstr_copy(RC_REALLOC, (r), (s), (r_offset), (s_len))
+#define cstr_copy_a aoc_cstr_copy
+
+#define cstr_overwrite(s1, s2, s2_len) cstr_copy(RC_REALLOC, (s1), (s2), 0, s2_len)
+#define cstr_overwrite_c(s1, s2) cstr_copy(RC_REALLOC, (s1), (s2), 0, cstr_len_c(s2))
+#define cstr_overwrite_a(allocator, s1, s2, s2_len) cstr_copy((allocator), (s1), (s2), 0, s2_len)
+#define cstr_overwrite_ac(allocator, s1, s2) cstr_copy((allocator), (s1), (s2), 0, cstr_len_c(s2))
+
+#define cstr_cat(s1, s2) cstr_copy(RC_REALLOC, (s1), (s2), (s1).len, cstr_len((s2)))
+#define cstr_cat_c(s1, s2) cstr_copy(RC_REALLOC, (s1), (s2), (s1).len, cstr_len_c((s2)))
+#define cstr_cat_a(allocator, s1, s2) cstr_copy((allocator), (s1), (s2), (s1).len, cstr_len((s2)))
+#define cstr_cat_ac(allocator, s1, s2) \
+        cstr_copy((allocator), (s1), (s2), (s1).len, cstr_len_c((s2)))
+
+#define cstr_append(s1, s2) cstr_copy(RC_REALLOC, (s1), (s2), ((s1).len + 1), cstr_len((s2)))
+#define cstr_append_c(s1, s2) cstr_copy(RC_REALLOC, (s1), (s2), ((s1).len + 1), cstr_len_c((s2)))
+#define cstr_append_a(allocator, s1, s2) \
+        cstr_copy((allocator), (s1), (s2), ((s1).len + 1), cstr_len((s2)))
+#define cstr_append_ac(allocator, s1, s2) \
+        cstr_copy((allocator), (s1), (s2), ((s1).len + 1), cstr_len_c((s2)))
+
+#define rc_null_terminate(s) cstr_copy(RC_REALLOC, (s), "\0", (*(s).len), 1)
+#define rc_null_terminate_a(allocator, s) cstr_copy((allocator), (s), "\0", (*(s).len), 1)
+AOCLIBS_PREFIX int aoc_cstr_copy(aoc_realloc_t *allocator, rc *xref r, const char *xref s,
+                                 const size_t r_offset, size_t s_len) {
+        ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT_NONNULL(s != NULL);
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
-        if (!rc_can_mut(r) || !s) return -1;
+        if (!aoc_rc_can_mut(r) || !s) return -1;
 
         size_t avail = r->cap - r_offset;
         size_t needed = s_len + 1;
 
         if (needed > avail) {
-                if (r->type != RCHeap) return -1;
-                if (rc_resize(r, r_offset + needed) != 0) return -1;
+                if (r->type != RCHeap || allocator == NULL) return -1;
+                if (aoc_rc_resize(*allocator, r, r_offset + needed) != 0) return -1;
         }
 
         memcpy(r->ptr + r_offset, s, s_len);
@@ -356,12 +382,14 @@ AOCLIBS_PREFIX int aoc_cstr_copy(rc *xref r, const char *xref s, const size_t r_
 }
 
 #ifndef AOCLIBS_RC_NO_STDIO
-#define cstr_copy_fmt aoc_cstr_copy_fmt
-AOCLIBS_PREFIX int aoc_cstr_copy_fmt(rc *xref r, const char *xref fmt, ...) {
-        ASSERT_NONNULL(rc_is_null(r));
+#define cstr_copy_fmt(r, fmt, ...) aoc_cstr_copy_fmt(RC_REALLOC, (r), (fmt), __VA_ARGS__)
+#define cstr_copy_fmt_a aoc_cstr_copy_fmt
+AOCLIBS_PREFIX int aoc_cstr_copy_fmt(aoc_realloc_t *allocator, rc *xref r, const char *xref fmt,
+                                     ...) {
+        ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT_NONNULL(fmt != NULL);
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
-        if (!rc_can_mut(r) || !fmt) return -1;
+        if (!aoc_rc_can_mut(r) || !fmt) return -1;
 
         int needed_len = 0, allocated_len = 0;
 
@@ -373,8 +401,8 @@ AOCLIBS_PREFIX int aoc_cstr_copy_fmt(rc *xref r, const char *xref fmt, ...) {
         if (needed_len < 0) return -1;
 
         if ((size_t)needed_len >= r->cap) {
-                if (r->type == RCHeap)
-                        if (rc_resize(r, needed_len + 1) != 0) return -1;
+                if (r->type == RCHeap || allocator != NULL)
+                        if (aoc_rc_resize(*allocator, r, needed_len + 1) != 0) return -1;
                 va_start(args, fmt);
                 allocated_len = vsnprintf(r->ptr, r->cap, fmt, args);
                 va_end(args);
@@ -402,7 +430,7 @@ AOCLIBS_PREFIX bool aoc_cstr_find_delim(const char *xnull s, size_t s_len, const
 #define rc_chr_cstr aoc_rc_chr_cstr
 AOCLIBS_PREFIX size_t aoc_rc_chr_cstr(const rc *xref r, const char *xref delim,
                                       const size_t delim_len) {
-        ASSERT_NONNULL(rc_is_null(r));
+        ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT_NONNULL(delim != NULL);
 
         for (size_t i = 0; i < r->len; i++) {
@@ -416,7 +444,7 @@ AOCLIBS_PREFIX size_t aoc_rc_chr_cstr(const rc *xref r, const char *xref delim,
 
 #define rc_chr aoc_rc_chr
 AOCLIBS_PREFIX size_t aoc_rc_chr(const rc *ref r, char delim) {
-        ASSERT_NONNULL(rc_is_null(r));
+        ASSERT_NONNULL(aoc_rc_is_null(r));
 
         for (size_t i = 0; i < r->len; i++) {
                 if (r->ptr[i] == delim) return i;
@@ -427,7 +455,7 @@ AOCLIBS_PREFIX size_t aoc_rc_chr(const rc *ref r, char delim) {
 #define rc_tok_cstr aoc_rc_tok_cstr
 AOCLIBS_PREFIX const char *null aoc_rc_tok_cstr(const rc *xref r, const char *xref delim,
                                                 const size_t delim_len) {
-        ASSERT_NONNULL(rc_is_null(r));
+        ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT_NONNULL(delim != NULL);
 
         size_t pos = rc_chr_cstr(r, delim, delim_len);
@@ -438,7 +466,7 @@ AOCLIBS_PREFIX const char *null aoc_rc_tok_cstr(const rc *xref r, const char *xr
 
 #define rc_tok aoc_rc_tok
 AOCLIBS_PREFIX const char *null aoc_rc_tok(const rc *ref r, char delim) {
-        ASSERT_NONNULL(rc_is_null(r));
+        ASSERT_NONNULL(aoc_rc_is_null(r));
 
         size_t pos = rc_chr(r, delim);
         if (pos == SIZE_MAX) return NULL;
@@ -462,10 +490,10 @@ AOCLIBS_PREFIX size_t aoc_cstr_trim_whitespace(char *ref s, const size_t len) {
 
 #define rc_trim_whitespace aoc_rc_trim_whitespace
 AOCLIBS_PREFIX void aoc_rc_trim_whitespace(rc *ref r) {
-        ASSERT_NONNULL(rc_is_null(r));
+        ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
 
-        size_t len = cstr_trim_whitespace(r->ptr, r->len);
+        size_t len = aoc_cstr_trim_whitespace(r->ptr, r->len);
         r->len = len;
 }
 
