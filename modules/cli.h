@@ -1,9 +1,9 @@
 #ifndef AOCLIBS_CLI_H_
 #define AOCLIBS_CLI_H_
 
-#include "../base/attributes.h"
+#include "../base/base.h"
 #include "../base/colors.h"
-#include "../base/str.h"
+#include "../base/rc.h"
 #include <ctype.h>
 #include <stdbool.h>
 #include <stddef.h>

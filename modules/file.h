@@ -1,8 +1,7 @@
 #ifndef AOCLIBS_FILE_H_
 #define AOCLIBS_FILE_H_
 
-#include "../base/assert.h"
-#include "../base/attributes.h"
+#include "../base/base.h"
 #include <dirent.h>
 #include <errno.h>
 #include <stdbool.h>

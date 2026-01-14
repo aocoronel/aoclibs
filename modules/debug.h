@@ -1,3 +1,4 @@
+#ifdef AOCLIBS_MAIN_DEBUG
 #ifndef AOCLIBS_DEBUG_H_
 #define AOCLIBS_DEBUG_H_
 
@@ -55,3 +56,4 @@ __attribute__((constructor)) void _main(int argc, char *argv[]) {
 }
 
 #endif // AOCLIBS_DEBUG_H_
+#endif // AOCLIBS_MAIN_DEBUG
