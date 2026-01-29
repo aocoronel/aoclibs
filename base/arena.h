@@ -1,6 +1,7 @@
 #ifndef AOCLIBS_ARENA_H_
 #define AOCLIBS_ARENA_H_
 
+#define _GNU_SOURCE
 #include "base.h"
 #include <limits.h>
 #include <stdalign.h>
@@ -13,6 +14,10 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #endif
+
+/*
+ * Arena Implementation
+*/
 
 // Alignment of a pointer
 #define AOC_ARENA_DEFAULT_ALIGNMENT (alignof(void *))
@@ -81,11 +86,12 @@ typedef struct Arena {
 //         return 0;
 // }
 
+#define aoc_arena_dup(a, tmp, p, size, alignment, type)                \
+        tmp = (type)aoc_arena_alloc_aligned((a), (size), (alignment)); \
+        memcpy(tmp, (p), (size));
+
 /*
  * Creates an arena of size (cap).
- *
- * Defines:
- * - HEAP_TRACE :: Enables heap tracing
  *
  * Errors:
  * - If allocation fails, the arena is returned zero initialized
@@ -151,6 +157,7 @@ AOCLIBS_PREFIX void *aoc_arena_alloc(Arena *ref a, size_t size);
 */
 AOCLIBS_PREFIX char *aoc_arena_alloc_chars(Arena *ref a, size_t count);
 
+#ifdef AOCLIBS_IMPLEMENTATION
 #ifdef __linux__
 AOCLIBS_PREFIX Arena aoc_arena_create(size_t cap) {
         Arena a = { 0 };
@@ -220,15 +227,21 @@ AOCLIBS_PREFIX void *null aoc_arena_alloc_aligned(Arena *ref a, size_t size, siz
         size_t needed = a->offset + padding + size;
 
         if (needed > a->cap) {
-                size_t new_cap = a->cap ? a->cap * 2 : align;
+#ifdef __linux__
+                int old_cap = a->cap;
+#endif
+                while (needed > a->cap) {
+                        a->cap *= 2;
+                }
 
-                if (new_cap < needed) new_cap = needed;
-
-                int8_t *new_buf = AOCLIBS_ARENA_REALLOCATOR(a->buffer, new_cap);
+#ifdef __linux__
+                int8_t *new_buf = mremap(a->buffer, old_cap, a->cap, MREMAP_MAYMOVE);
+#else
+                int8_t *new_buf = AOCLIBS_ARENA_REALLOCATOR(a->buffer, a->cap);
+#endif
                 if (!new_buf) return NULL;
 
                 a->buffer = new_buf;
-                a->cap = new_cap;
         }
 
         a->offset += padding;
@@ -272,10 +285,152 @@ AOCLIBS_PREFIX char *aoc_arena_alloc_chars(Arena *ref a, size_t count) {
 AOCLIBS_PREFIX char *aoc_arena_cstrdup(Arena *xref a, const char *xref s, size_t s_len) {
         ASSERT_NONNULL(a != NULL);
         ASSERT_NONNULL(s != NULL);
-        char *tmp = (char *)aoc_arena_alloc_chars(a, s_len + 1);
-        memcpy(tmp, s, s_len);
+        char *tmp;
+        aoc_arena_dup(a, tmp, s, s_len + 1, 1, char *);
         tmp[s_len] = '\0';
         return tmp;
 }
+#endif
+
+/*
+ *
+ * Dynamic Arena Implementation
+ *
+ * Acts like a Dynamic Array, but uses the Arena for allocation
+ *
+ * The whole implementation is done using macros, which allows to be used with any type the user
+ * needs.
+ *
+ * Below is the a very generic dynamic arena struct. The data type can be swapped to something else
+ * and it's going to work just like normal.
+*/
+
+typedef struct {
+        size_t cap;
+        size_t len;
+        void **data;
+} DynamicArena;
+
+#define AOC_DA_INITIAL_CAPACITY 256
+#define AOC_DA_REALLOC realloc
+#define AOC_DA_FREE free
+
+// Macros starting with "_" accept an extra argument: reallocator
+// The remaining ones will use the default set above
+
+#ifdef AOCLIBS_STRIP_PREFIX
+#define _da_append _aoc_da_append
+#define _da_append_cstr _aoc_da_append_cstr
+#define _da_append_many _aoc_da_append_many
+#define _da_append_many_cstr _aoc_da_append_many_cstr
+#define _da_clone _aoc_da_clone
+#define _da_free _aoc_da_free
+#define _da_reserve _aoc_da_reserve
+
+#define da_append aoc_da_append
+#define da_append_cstr aoc_da_append_cstr
+#define da_append_many aoc_da_append_many
+#define da_append_many_cstr aoc_da_append_many_cstr
+#define da_clone aoc_da_clone
+#define da_free aoc_da_free
+#define da_reserve aoc_da_reserve
+
+#define da_clear aoc_da_clear
+#define da_foreach aoc_da_foreach
+#define da_last aoc_da_last
+#define da_pop aoc_da_pop
+#define da_sort aoc_da_sort
+#define da_swap aoc_da_swap
+#endif
+
+#define _aoc_da_free(free, da)                             \
+        do {                                               \
+                ASSERT(da != NULL, "double free attempt"); \
+                free((da)->data);                          \
+                (da)->data = NULL;                         \
+                (da)->len = 0;                             \
+                (da)->cap = 0;                             \
+        } while (0)
+
+#define aoc_da_free(da) _aoc_da_free(AOC_DA_FREE, da)
+
+#define aoc_da_last(da) (da)->data[(da)->len - 1]
+
+#define _aoc_da_reserve(reallocator, da, new_da_len)                                           \
+        do {                                                                                   \
+                if ((new_da_len) > (da)->cap) {                                                \
+                        if ((da)->cap == 0) {                                                  \
+                                (da)->cap = AOC_DA_INITIAL_CAPACITY;                           \
+                        }                                                                      \
+                        while ((new_da_len) > (da)->cap) {                                     \
+                                (da)->cap *= 2;                                                \
+                        }                                                                      \
+                        (da)->data = reallocator((da)->data, (da)->cap * sizeof(*(da)->data)); \
+                }                                                                              \
+        } while (0)
+
+#define _aoc_da_append(reallocator, arena, da, data, size, alignment)                         \
+        do {                                                                                  \
+                _aoc_da_reserve((reallocator), (da), (da)->len + 1);                          \
+                (da)->data[(da)->len++] = aoc_arena_alloc_aligned(&(arena), size, alignment); \
+        } while (0)
+
+#define aoc_da_pop(da) (da)->data[--(da)->len];
+
+#define aoc_da_clear(da) (da)->len = 0
+
+#define _aoc_da_append_cstr(reallocator, arena, da, cstr, cstr_len)                    \
+        do {                                                                           \
+                _aoc_da_reserve((reallocator), (da), (da)->len + 1);                   \
+                (da)->data[(da)->len++] = aoc_arena_cstrdup(&(arena), cstr, cstr_len); \
+        } while (0)
+
+#define _aoc_da_append_many(reallocator, arena, da, new_data, data_count, size, alignment) \
+        do {                                                                               \
+                for (size_t _i = 0; _i < (data_count); _i++) {                             \
+                        _aoc_da_reserve((reallocator), (da), (da)->len + 1);               \
+                        void *_tmp = aoc_arena_alloc_aligned(&(arena), size, alignment);   \
+                        if (!_tmp) break;                                                  \
+                        (da)->data[(da)->len++] = _tmp;                                    \
+                        memcpy(_tmp, (char *)(new_data) + _i * (size), size);              \
+                }                                                                          \
+        } while (0)
+
+#define _aoc_da_append_many_cstr(reallocator, arena, da, cstrs, cstrs_len)                     \
+        do {                                                                                   \
+                for (size_t _i = 0; _i < (cstrs_len); _i++) {                                  \
+                        _aoc_da_reserve((reallocator), (da), (da)->len + 1);                   \
+                        (da)->data[(da)->len++] =                                              \
+                                aoc_arena_cstrdup(&(arena), (cstrs)[_i], strlen((cstrs)[_i])); \
+                }                                                                              \
+        } while (0)
+
+#define aoc_da_reserve(da, new_da_len) _aoc_da_reserve(AOC_DA_REALLOC, (da), (new_da_len))
+
+#define aoc_da_append(arena, da, data, size, padding) _aoc_da_append(AOC_DA_REALLOC, (da), (data), (size), (padding)
+
+#define aoc_da_append_cstr(arena, da, cstr, cstr_len) \
+        _aoc_da_append_cstr(AOC_DA_REALLOC, (arena), (da), (cstr), (cstr_len))
+
+#define aoc_da_append_many_cstr(arena, da, cstr, cstrs_len) \
+        _aoc_da_append_many_cstr(AOC_DA_REALLOC, (arena), (da), (cstr), (cstrs_len))
+
+#define aoc_da_append_many(arena, da, new_data, data_count, size, alignment)                 \
+        _aoc_da_append_many(AOC_DA_REALLOC, (arena), (da), (new_data), (data_count), (size), \
+                            (alignment))
+
+#define _aoc_da_clone(reallocator, dest, src)           \
+        _aoc_da_reserve(reallocator, dest, (src)->cap); \
+        (dest)->len = (src)->len;                       \
+        memcpy((dest)->data, (src)->data, (src)->len * sizeof(void *));
+
+#define aoc_da_clone(dest, src) _aoc_da_clone(AOC_DA_REALLOC, dest, src)
+
+#define aoc_da_foreach(Type, it, index, da) \
+        for (Type *it = (da)->data[index]; index < (da)->len; index++, it++)
+
+#define aoc_da_swap(tmp, da, i1, i2) aoc_swap((tmp), (da)->data[i1], (da)->data[i2])
+
+#define aoc_da_sort(da, type, fn) qsort((da)->data, (da)->len, sizeof(type), fn)
 
 #endif // AOCLIBS_ARENA_H_
