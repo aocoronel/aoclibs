@@ -105,4 +105,15 @@ AOCLIBS_PREFIX void aoc_panic(const char *__file, int __line, const char *__func
         abort();
 }
 
+#ifdef AOCLIBS_STRIP_PREFIX
+#define swap aoc_swap
+#endif
+
+#define aoc_swap(tmp, x, z) \
+        do {                \
+                tmp = x;    \
+                x = z;      \
+                z = tmp;    \
+        } while (0)
+
 #endif // AOCLIBS_BASE_H_
