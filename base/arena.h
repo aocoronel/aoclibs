@@ -86,9 +86,14 @@ typedef struct Arena {
 //         return 0;
 // }
 
-#define aoc_arena_dup(a, tmp, p, size, alignment, type)                \
-        tmp = (type)aoc_arena_alloc_aligned((a), (size), (alignment)); \
-        memcpy(tmp, (p), (size));
+/*
+ * Duplicates a value using an arena
+*/
+#define aoc_arena_dup(a, tmp, value, size, alignment, type)                    \
+        do {                                                                   \
+                tmp = (type)aoc_arena_alloc_aligned((a), (size), (alignment)); \
+                memcpy(tmp, (value), (size));                                  \
+        } while (0)
 
 /*
  * Creates an arena of size (cap).
