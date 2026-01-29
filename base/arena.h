@@ -10,9 +10,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef AOCLIBS_ARENA_LINUX_USES_MMAP
 #ifdef __linux__
 #include <unistd.h>
 #include <sys/mman.h>
+#endif
 #endif
 
 /*
@@ -163,7 +166,7 @@ AOCLIBS_PREFIX void *aoc_arena_alloc(Arena *ref a, size_t size);
 AOCLIBS_PREFIX char *aoc_arena_alloc_chars(Arena *ref a, size_t count);
 
 #ifdef AOCLIBS_IMPLEMENTATION
-#ifdef __linux__
+#if defined(__linux__) && defined(AOCLIBS_ARENA_LINUX_USES_MMAP)
 AOCLIBS_PREFIX Arena aoc_arena_create(size_t cap) {
         Arena a = { 0 };
         if (cap == 0) return a;
@@ -199,7 +202,7 @@ AOCLIBS_PREFIX void aoc_arena_reset(Arena *ref a) {
         a->offset = 0;
 }
 
-#ifdef __linux__
+#if defined(__linux__) && defined(AOCLIBS_ARENA_LINUX_USES_MMAP)
 AOCLIBS_PREFIX void aoc_arena_destroy(Arena *ref a) {
         ASSERT(a != NULL, "%s", "double free attempt");
         ASSERT(a->buffer != NULL, "%s", "double free attempt");
@@ -232,14 +235,14 @@ AOCLIBS_PREFIX void *null aoc_arena_alloc_aligned(Arena *ref a, size_t size, siz
         size_t needed = a->offset + padding + size;
 
         if (needed > a->cap) {
-#ifdef __linux__
+#if defined(__linux__) && defined(AOCLIBS_ARENA_LINUX_USES_MMAP)
                 int old_cap = a->cap;
 #endif
                 while (needed > a->cap) {
                         a->cap *= 2;
                 }
 
-#ifdef __linux__
+#if defined(__linux__) && defined(AOCLIBS_ARENA_LINUX_USES_MMAP)
                 int8_t *new_buf = mremap(a->buffer, old_cap, a->cap, MREMAP_MAYMOVE);
 #else
                 int8_t *new_buf = AOCLIBS_ARENA_REALLOCATOR(a->buffer, a->cap);
