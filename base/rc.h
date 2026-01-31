@@ -12,9 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define array_len(a) sizeof((a)) / sizeof((a[0]))
-#define cstr_literal_len(s) array_len((" " s " ")) - sizeof((s)[0])
-
 // --> printf("%s "SLICE_FMT" stuff...", "do", GSLICE(myslice));
 #define SLICE_FMT "%.*s"
 #define VSLICE(r) ((r).len), ((r).ptr)

@@ -105,6 +105,15 @@ AOCLIBS_PREFIX void aoc_panic(const char *__file, int __line, const char *__func
         abort();
 }
 
+// struct example {
+//    size_t len;
+//    ...
+// };
+#define foreach(struct_with_len, it) for (size_t it = 0; it < (struct_with_len)->len; it++)
+
+#define array_len(a) sizeof((a)) / sizeof((a[0]))
+#define cstrl_len(s) array_len((" " s " ")) - sizeof((s)[0])
+
 #ifdef AOCLIBS_STRIP_PREFIX
 #define swap aoc_swap
 #endif
