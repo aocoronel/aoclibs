@@ -92,10 +92,10 @@ typedef struct Arena {
 /*
  * Duplicates a value using an arena
 */
-#define aoc_arena_dup(a, tmp, value, size, alignment, type)                    \
-        do {                                                                   \
-                tmp = (type)aoc_arena_alloc_aligned((a), (size), (alignment)); \
-                memcpy(tmp, (value), (size));                                  \
+#define aoc_arena_dup(a, tmp, value, size, alignment)                    \
+        do {                                                             \
+                tmp = aoc_arena_alloc_aligned((a), (size), (alignment)); \
+                memcpy(tmp, (value), (size));                            \
         } while (0)
 
 /*
