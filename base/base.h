@@ -59,7 +59,7 @@ typedef void (*aoc_free_t)(void *);
 #define ASSERT(...)
 #else
 #define ASSERT(exp, ...) \
-        (void)((!!(exp)) || (aoc_assert(#exp, __FILE__, __LINE__, __func__, __VA_ARGS__), 0))
+        ((exp) ? NULL : aoc_assert(#exp, __FILE__, __LINE__, __func__, __VA_ARGS__))
 #endif
 
 /*
