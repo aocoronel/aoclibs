@@ -63,13 +63,14 @@ int main() {
         myerrors.arena = &arena;
         dar_append_many(&myerrors, errors, 3, sizeof(ErrorInfo), _Alignof(ErrorInfo));
         printf("%d\n", ((ErrorInfo *)dar_get(&myerrors, 1))->err_code); // prints -2
-        printf("myerrors count: %zu\n", myerrors.len);
+        printf("Current myerror: last value is %d and index is %zu\n",
+               ((ErrorInfo *)dar_last(&myerrors))->err_code, myerrors.len);
         ErrorInfo *myerror = (ErrorInfo *)dar_pop(&myerrors);
         printf("Value returned from pop: %d\n", myerror->err_code);
         printf("Current myerror: last value is %d and index is %zu\n",
                ((ErrorInfo *)dar_last(&myerrors))->err_code, myerrors.len);
 
-        foreach(&myerrors, i) {
+        foreach (&myerrors, i) {
                 ErrorInfo *x = (ErrorInfo *)dar_get(&myerrors, i);
                 printf("Error Code (Index %zu) : %d\n", i, x->err_code);
         };
@@ -106,6 +107,8 @@ int main() {
         }
         // Output: 2 2 8 1 3
 
+        dar_free(&mychar);
+        dar_free(&myerrors);
         dar_free(&int_da);
 
         // Notice how just a single arena was used.

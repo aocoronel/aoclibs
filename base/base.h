@@ -118,11 +118,11 @@ AOCLIBS_PREFIX void aoc_panic(const char *__file, int __line, const char *__func
 #define swap aoc_swap
 #endif
 
-#define aoc_swap(tmp, x, z) \
-        do {                \
-                tmp = x;    \
-                x = z;      \
-                z = tmp;    \
+#define aoc_swap(Type, x, z) \
+        do {                 \
+                Type t = x;  \
+                x = z;       \
+                z = t;       \
         } while (0)
 
 #endif // AOCLIBS_BASE_H_

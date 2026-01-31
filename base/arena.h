@@ -342,19 +342,23 @@ AOCLIBS_PREFIX char *aoc_arena_cstrdup(Arena *xref a, const char *xref s, size_t
 #define AOCLIBS_DAR_REALLOC realloc
 #define AOCLIBS_DAR_FREE free
 
-// Macros starting with "_" accept an extra argument: realloc.
-// The remaining ones will use the allocator defined above.
+// The following macros use the allocators defined above.
+//
+// Macros starting with "_" accept an extra argument: realloc
+// Except for some like the very following ones, which are internal
 
 // Convenient assertions to prevent access out of bounds
-#define _assert_dar_is_valid(dar) (assert((dar)->len > 0))
-#define _assert_dar_index_is_valid(dar, i) (assert((dar)->len >= i))
-#define _assert_dar_safe(dar, i) (_assert_dar_is_valid(dar), _assert_dar_index_is_valid(dar, i))
+#define _aoc_assert_dar_is_valid(dar) (assert((dar)->len > 0 && "out of bounds access"))
+#define _aoc_assert_dar_index_is_valid(dar, i) (assert((dar)->len >= i && "out of bounds access"))
+#define _aoc_assert_dar_safe(dar, i) \
+        (_aoc_assert_dar_is_valid(dar), _aoc_assert_dar_index_is_valid(dar, i))
+#define _aoc_assert_dar_pop(dar) assert((dar)->len - 1 != SIZE_MAX && "out of bounds access")
 
 // Before any attempt to add new values to the DAR, always reserve the memory.
 //
 // DynamicArena my_dar = { .arena = &arena };
 // dar_reserve(&my_dar, (&my_dar)->len + 1); // Needs to allocate one value
-#define aoc_dar_reserve(dar, new_dar_len) _aoc_dar_reserve(AOCLIBS_DAR_REALLOC, dar, new_dar_len)
+#define aoc_dar_reserve(dar, new_cap) _aoc_dar_reserve(AOCLIBS_DAR_REALLOC, dar, new_cap)
 #ifdef AOCLIBS_IMPLEMENTATION
 AOCLIBS_PREFIX void _aoc_dar_reserve(aoc_realloc_t realloc, DynamicArena *ref dar, size_t new_cap) {
         ASSERT_NONNULL(dar != NULL);
@@ -380,36 +384,36 @@ AOCLIBS_PREFIX void _aoc_dar_free(aoc_free_t free, DynamicArena *ref dar) {
 
 // Returns last pointer
 #define aoc_dar_last(dar) \
-        ((dar)->arena->buffer + (dar)->offset[_assert_dar_is_valid(dar), (dar)->len - 1])
+        ((dar)->arena->buffer + (dar)->offset[_aoc_assert_dar_is_valid(dar), (dar)->len - 1])
 
 // Returns pointer from given index
 #define aoc_dar_get(dar, index) \
-        ((dar)->arena->buffer + (dar)->offset[_assert_dar_safe(dar, index), index])
+        ((dar)->arena->buffer + (dar)->offset[_aoc_assert_dar_safe(dar, index), index])
 
 // Returns last pointer, and removes it from the DAR
 #define aoc_dar_pop(dar) \
-        ((dar)->arena->buffer + (dar)->offset[_assert_dar_is_valid(dar), --(dar)->len])
+        ((dar)->arena->buffer + (dar)->offset[_aoc_assert_dar_pop(dar), --(dar)->len])
 
 // Empties the DAR
 #define aoc_dar_clear(dar) (dar)->len = 0
 
-// Sets data to given index in the DAR
-#define aoc_dar_set(Type, dar, i, data)                                      \
+// Sets item to given index in the DAR
+#define aoc_dar_set(Type, dar, i, item)                                      \
         do {                                                                 \
                 Type _tmp = (Type)((dar)->arena->buffer + (dar)->offset[i]); \
-                *_tmp = data;                                                \
+                *_tmp = item;                                                \
         } while (0)
 
 // Append any type
-#define aoc_dar_append(dar, data, data_buff) \
-        _aoc_dar_append(AOCLIBS_DAR_REALLOC, (dar), (data), (data_buff))
+#define aoc_dar_append(dar, item, item_size) \
+        _aoc_dar_append(AOCLIBS_DAR_REALLOC, (dar), (item), (item_size))
 
-#define _aoc_dar_append(realloc, dar, data, data_buff)                                        \
+#define _aoc_dar_append(realloc, dar, item, item_size)                                        \
         do {                                                                                  \
                 _aoc_dar_reserve((realloc), (dar), (dar)->len + 1);                           \
-                void *tmp = aoc_arena_alloc_aligned((dar)->arena, data_buff,                  \
+                void *tmp = aoc_arena_alloc_aligned((dar)->arena, item_size,                  \
                                                     sizeof((dar)->offset[0]));                \
-                memcpy(tmp, data, data_buff);                                                 \
+                memcpy(tmp, item, item_size);                                                 \
                 (dar)->offset[(dar)->len++] = (size_t)((int8_t *)tmp - (dar)->arena->buffer); \
         } while (0)
 
@@ -431,19 +435,18 @@ AOCLIBS_PREFIX void _aoc_dar_free(aoc_free_t free, DynamicArena *ref dar) {
         _aoc_dar_append_cstr(realloc, dar, cstr, cstrl_len(cstr))
 
 // Append all values from buffer
-#define aoc_dar_append_many(dar, new_data, data_count, size, alignment)                    \
-        _aoc_dar_append_many(AOCLIBS_DAR_REALLOC, (dar), (new_data), (data_count), (size), \
-                             (alignment))
+#define aoc_dar_append_many(dar, item, item_count, size, alignment) \
+        _aoc_dar_append_many(AOCLIBS_DAR_REALLOC, (dar), (item), (item_count), (size), (alignment))
 
-#define _aoc_dar_append_many(realloc, dar, new_data, data_count, size, alignment)            \
+#define _aoc_dar_append_many(realloc, dar, item, item_count, size, alignment)                \
         do {                                                                                 \
-                for (size_t _i = 0; _i < (data_count); _i++) {                               \
+                for (size_t _i = 0; _i < (item_count); _i++) {                               \
                         _aoc_dar_reserve((realloc), (dar), (dar)->len + 1);                  \
                         void *_tmp = aoc_arena_alloc_aligned((dar)->arena, size, alignment); \
                         if (!_tmp) break;                                                    \
                         (dar)->offset[(dar)->len++] =                                        \
                                 (size_t)((int8_t *)_tmp - (dar)->arena->buffer);             \
-                        memcpy(_tmp, (char *)(new_data) + _i * (size), size);                \
+                        memcpy(_tmp, (char *)(item) + _i * (size), size);                    \
                 }                                                                            \
         } while (0)
 
@@ -465,10 +468,9 @@ AOCLIBS_PREFIX void _aoc_dar_free(aoc_free_t free, DynamicArena *ref dar) {
 // Swaps offset of i1 to i2
 //
 // If you have already got a pointer using dar_get, you have to update it
-#define aoc_dar_swap(dar, i1, i2)                                    \
-        do {                                                         \
-                size_t tmp;                                          \
-                aoc_swap(tmp, (dar)->offset[i1], (dar)->offset[i2]); \
+#define aoc_dar_swap(dar, i1, i2)                                       \
+        do {                                                            \
+                aoc_swap(size_t, (dar)->offset[i1], (dar)->offset[i2]); \
         } while (0)
 
 #ifdef AOCLIBS_STRIP_PREFIX
