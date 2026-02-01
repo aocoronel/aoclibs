@@ -71,7 +71,7 @@
         (da)->data[(assert((da)->len < (da)->cap && "out of bounds access")), --(da)->len]
 
 // Empties the DA
-#define aoc_da_clear(da) (da)->len = 0
+#define aoc_da_reset(da) (da)->len = 0
 
 // Append any type. For C strings, look for the aoc_da_append_many_cstr
 #define aoc_da_append(da, data) _aoc_da_append(AOCLIBS_DA_REALLOC, (da), (data))
