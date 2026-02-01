@@ -68,7 +68,7 @@
 
 // Returns last pointer, and removes it from the DA
 #define aoc_da_pop(da) \
-        (da)->data[(assert((da)->len - 1 != SIZE_MAX && "out of bounds access")), --(da)->len]
+        (da)->data[(assert((da)->len < (da)->cap && "out of bounds access")), --(da)->len]
 
 // Empties the DA
 #define aoc_da_clear(da) (da)->len = 0
