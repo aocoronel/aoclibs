@@ -12,13 +12,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-// --> printf("%s "SLICE_FMT" stuff...", "do", GSLICE(myslice));
+// TODO: Separate implementation and definitions
+// TODO: Strip prefixes
+// TODO: Port all cstr specific code to cstr.h
+
+// --> printf("%s "SLICE_FMT" stuff...", "do", VSLICE(myslice));
 #define SLICE_FMT "%.*s"
-#define VSLICE(r) ((r).len), ((r).ptr)
+#define VSLICE(r) ((r).len), ((r).data)
 
 typedef struct {
         int len;
-        const char *ptr;
+        const char *data;
 } rcslice;
 
 typedef enum {
@@ -27,12 +31,17 @@ typedef enum {
         RCLiteral,
 } RCType;
 
+// Row Char
+// This is Dynamic Array compatible. This implementation is suppose to give you a 'String' type
+// which provides safer operations. It can work with string literals, stack allocated and heap
+// allocated strings. If you decide to use this like an Dynamic Array, make sure to just use it
+// with a heap RC.
 typedef struct {
-        size_t len;
-        size_t cap;
         RCType type;
-        char *ptr;
-} rc; // row char
+        size_t cap;
+        size_t len;
+        char *data;
+} rc;
 
 #ifndef RC_MALLOC
 #define RC_MALLOC malloc
@@ -44,42 +53,47 @@ typedef struct {
 #define RC_FREE free
 #endif
 
+// In short:
+// rcl --> row char literal
+// rcs --> row char stack
+// rch --> row char heap
+
 // Compile-time known RC, which cannot be mutated
-#define rcl_new(s)                                                                             \
-        (rc) {                                                                                 \
-                .ptr = " "(s) " ", .len = cstr_literal_len((s)), .cap = cstr_literal_len((s)), \
-                .type = RCLiteral                                                              \
+#define rcl_new(s)                                                                              \
+        (rc) {                                                                                  \
+                .data = " "(s) " ", .len = cstr_literal_len((s)), .cap = cstr_literal_len((s)), \
+                .type = RCLiteral                                                               \
         }
 
 // RC from already allocated char * in the stack/heap
-#define rch_bnew(buff, length, capacity)                                          \
-        (rc) {                                                                    \
-                .ptr = (buff), .len = (length), .cap = (capacity), .type = RCHeap \
+#define rch_bnew(buff, length, capacity)                                           \
+        (rc) {                                                                     \
+                .data = (buff), .len = (length), .cap = (capacity), .type = RCHeap \
         }
-#define rcs_bnew(buff)                                                          \
-        (rc) {                                                                  \
-                .ptr = (buff), .len = 0, .cap = sizeof((buff)), .type = RCStack \
+#define rcs_bnew(buff, length)                                                        \
+        (rc) {                                                                        \
+                .data = (buff), .len = length, .cap = sizeof((buff)), .type = RCStack \
         }
 
 // Allocates a new stack/heap RC
-#define rch_new(capacity)                                                                 \
-        (rc) {                                                                            \
-                .ptr = RC_MALLOC((capacity)), .len = 0, .cap = (capacity), .type = RCHeap \
+#define rch_new(capacity)                                                                  \
+        (rc) {                                                                             \
+                .data = RC_MALLOC((capacity)), .len = 0, .cap = (capacity), .type = RCHeap \
         }
-#define rch_new_a(allocator, capacity)                                                    \
-        (rc) {                                                                            \
-                .ptr = allocator((capacity)), .len = 0, .cap = (capacity), .type = RCHeap \
+#define rch_new_a(allocator, capacity)                                                     \
+        (rc) {                                                                             \
+                .data = allocator((capacity)), .len = 0, .cap = (capacity), .type = RCHeap \
         }
-#define rcs_new(capacity)                                                               \
-        (rc) {                                                                          \
-                .ptr = alloca((capacity)), .len = 0, .cap = (capacity), .type = RCStack \
+#define rcs_new(capacity)                                                                \
+        (rc) {                                                                           \
+                .data = alloca((capacity)), .len = 0, .cap = (capacity), .type = RCStack \
         }
 
-#define rc_to_slice(r, start, end) aoc_cstr_to_slice((r.ptr), (start), (end))
+#define rc_to_slice(r, start, end) aoc_cstr_to_slice((r.data), (start), (end))
 #define cstr_to_slice aoc_cstr_to_slice
 AOCLIBS_PREFIX rcslice aoc_cstr_to_slice(const char *ref s, size_t start, size_t end) {
         ASSERT_NONNULL(s != NULL);
-        return (rcslice){ .ptr = s + start, .len = end - start };
+        return (rcslice){ .data = s + start, .len = end - start };
 }
 
 #define rc_can_mut aoc_rc_can_mut
@@ -91,7 +105,7 @@ AOCLIBS_PREFIX bool aoc_rc_can_mut(const rc *null r) {
 
 #define rc_is_null aoc_rc_is_null
 AOCLIBS_PREFIX bool aoc_rc_is_null(const rc *null r) {
-        return !r || !r->ptr;
+        return !r || !r->data;
 }
 
 #define cstr_dup(s, len) aoc_cstr_dup(RC_MALLOC, (s), (len) + 1)
@@ -109,14 +123,14 @@ AOCLIBS_PREFIX char *xnull aoc_cstr_dup(aoc_malloc_t allocator, const char *ref 
 AOCLIBS_PREFIX rc aoc_rc_dup(aoc_malloc_t allocator, const rc *ref r) {
         ASSERT_NONNULL(aoc_rc_is_null(r));
         return (rc){
-                .ptr = aoc_cstr_dup(allocator, r->ptr, r->cap),
+                .data = aoc_cstr_dup(allocator, r->data, r->cap),
                 .len = r->len,
                 .cap = r->cap,
                 .type = RCHeap,
         };
 }
 
-#define rc_to_lower(r) aoc_cstr_to_lower((r).ptr, (r).len)
+#define rc_to_lower(r) aoc_cstr_to_lower((r).data, (r).len)
 #define cstr_to_lower aoc_cstr_to_lower
 AOCLIBS_PREFIX void aoc_cstr_to_lower(char *ref s, const size_t len) {
         ASSERT_NONNULL(s != NULL);
@@ -125,7 +139,7 @@ AOCLIBS_PREFIX void aoc_cstr_to_lower(char *ref s, const size_t len) {
         }
 }
 
-#define rc_eq(r1, r2) aoc_cstr_eq((r1).ptr, (r2).ptr)
+#define rc_eq(r1, r2) aoc_cstr_eq((r1).data, (r2).data)
 #define cstr_eq aoc_cstr_eq
 AOCLIBS_PREFIX bool aoc_cstr_eq(const char *xref s1, const char *xref s2) {
         if (!s1 || !s2) return s1 == s2;
@@ -136,8 +150,8 @@ AOCLIBS_PREFIX bool aoc_cstr_eq(const char *xref s1, const char *xref s2) {
         return *s1 == *s2;
 }
 
-#define rcslice_eq(r1, r2) aoc_cstrn_eq((r1).ptr, (r2).ptr, (r1).len, (r2).len)
-#define rcn_eq(r1, r2) aoc_cstrn_eq((r1).ptr, (r2).ptr, (r1).cap, (r2).cap)
+#define rcslice_eq(r1, r2) aoc_cstrn_eq((r1).data, (r2).data, (r1).len, (r2).len)
+#define rcn_eq(r1, r2) aoc_cstrn_eq((r1).data, (r2).data, (r1).cap, (r2).cap)
 #define cstrn_eq aoc_cstrn_eq
 AOCLIBS_PREFIX bool aoc_cstrn_eq(const char *xref s1, const char *xref s2, size_t s1_buff,
                                  size_t s2_buff) {
@@ -151,8 +165,8 @@ AOCLIBS_PREFIX bool aoc_cstrn_eq(const char *xref s1, const char *xref s2, size_
         return *s1 == *s2;
 }
 
-#define rcslice_eq_case(r1, r2) aoc_cstrn_eq((r1).ptr, (r2).ptr, (r1).len, (r2).len)
-#define rcn_eq_case(r1, r2) aoc_cstrn_eq((r1).ptr, (r2).ptr, (r1).cap, (r2).cap)
+#define rcslice_eq_case(r1, r2) aoc_cstrn_eq((r1).data, (r2).data, (r1).len, (r2).len)
+#define rcn_eq_case(r1, r2) aoc_cstrn_eq((r1).data, (r2).data, (r1).cap, (r2).cap)
 #define cstrn_eq_case aoc_cstrn_eq
 AOCLIBS_PREFIX bool aoc_cstrn_eq_case(const char *xref s1, const char *xref s2, size_t s1_buff,
                                       size_t s2_buff) {
@@ -166,7 +180,7 @@ AOCLIBS_PREFIX bool aoc_cstrn_eq_case(const char *xref s1, const char *xref s2, 
         return tolower(*s1) == tolower(*s2);
 }
 
-#define rc_eq_case(r1, r2) cstr_eq_case((r1).ptr, (r2).ptr)
+#define rc_eq_case(r1, r2) cstr_eq_case((r1).data, (r2).data)
 #define cstr_eq_case aoc_cstr_eq_case
 AOCLIBS_PREFIX bool aoc_cstr_eq_case(const char *xref s1, const char *xref s2) {
         if (!s1 || !s2) return s1 == s2;
@@ -189,9 +203,9 @@ AOCLIBS_PREFIX size_t aoc_cstr_len(const char *null s, const size_t cap) {
 AOCLIBS_PREFIX int aoc_rc_resize(aoc_realloc_t allocator, rc *ref r, size_t cap) {
         ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT(r->type == RCHeap, "RC is not heap allocated");
-        void *tmp = allocator(r->ptr, cap);
+        void *tmp = allocator(r->data, cap);
         if (tmp == NULL) return -1;
-        r->ptr = tmp;
+        r->data = tmp;
         return 0;
 }
 
@@ -200,7 +214,7 @@ AOCLIBS_PREFIX int aoc_rc_resize(aoc_realloc_t allocator, rc *ref r, size_t cap)
 AOCLIBS_PREFIX void aoc_rc_free(aoc_free_t _free, rc *ref r) {
         ASSERT(aoc_rc_is_null(r), "double free attempt");
         ASSERT(r->type == RCHeap, "RC is not heap allocated");
-        _free(r->ptr);
+        _free(r->data);
         *r = (rc){ 0 };
 }
 
@@ -210,7 +224,7 @@ AOCLIBS_PREFIX void aoc_rc_erase(aoc_free_t _free, rc *ref r) {
         ASSERT(aoc_rc_is_null(r), "double free attempt");
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
         for (size_t i = 0; i < r->cap; i++) {
-                r->ptr[i] = '\0';
+                r->data[i] = '\0';
         }
         if (r->type == RCHeap) aoc_rc_free(_free, r);
 }
@@ -219,7 +233,7 @@ AOCLIBS_PREFIX void aoc_rc_erase(aoc_free_t _free, rc *ref r) {
 AOCLIBS_PREFIX void aoc_rc_clear(rc *ref r) {
         ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
-        r->ptr[0] = '\0';
+        r->data[0] = '\0';
         r->len = 0;
 }
 
@@ -229,9 +243,9 @@ AOCLIBS_PREFIX void aoc_rc_clear(rc *ref r) {
         aoc_cstr_match_pos(VSLICE((r)), (end_len), (end), (r).len - (end_len))
 
 #define rc_begins_with(r, begin_len, begin) \
-        aoc_cstr_match_pos((r).len, (r).ptr, (begin_len), (begin), 0)
+        aoc_cstr_match_pos((r).len, (r).data, (begin_len), (begin), 0)
 #define rc_ends_with(r, end_len, end) \
-        aoc_cstr_match_pos((r).len, (r).ptr, (end_len), (end), (r).len - (end_len))
+        aoc_cstr_match_pos((r).len, (r).data, (end_len), (end), (r).len - (end_len))
 
 #define cstr_begins_with(s, s_len, begin_len, begin) \
         aoc_cstr_match_pos((s_len), (s), (begin_len), (begin), 0)
@@ -278,8 +292,8 @@ AOCLIBS_PREFIX int aoc_rc_copy(aoc_realloc_t *allocator, rc *xref r1, const rc *
                 if (aoc_rc_resize(*allocator, r1, r1_offset + needed) != 0) return -1;
         }
 
-        memcpy(r1->ptr + r1_offset, r2->ptr, r2->len);
-        r1->ptr[r1_offset + r2->len] = '\0';
+        memcpy(r1->data + r1_offset, r2->data, r2->len);
+        r1->data[r1_offset + r2->len] = '\0';
 
         r1->len = r1_offset + r2->len;
 
@@ -298,8 +312,8 @@ AOCLIBS_PREFIX int aoc_rc_push(aoc_realloc_t *allocator, rc *ref r, char c) {
                 if (aoc_rc_resize(*allocator, r, needed) != 0) return -1;
         }
 
-        ((char *)r->ptr)[r->len] = c;
-        ((char *)r->ptr)[r->len + 1] = '\0';
+        ((char *)r->data)[r->len] = c;
+        ((char *)r->data)[r->len + 1] = '\0';
         r->len++;
         return 0;
 }
@@ -312,7 +326,7 @@ AOCLIBS_PREFIX int aoc_rc_pop(rc *ref r) {
         if (r->len == 0) return -1;
 
         r->len--;
-        ((char *)r->ptr)[r->len] = '\0';
+        ((char *)r->data)[r->len] = '\0';
         return 0;
 }
 
@@ -322,12 +336,12 @@ AOCLIBS_PREFIX int aoc_rc_drop(rc *ref r, size_t index) {
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
         if (index >= r->len) return -1;
 
-        char *ptr = (char *)r->ptr;
+        char *data = (char *)r->data;
 
-        memmove(&ptr[index], &ptr[index + 1], r->len - index);
+        memmove(&data[index], &data[index + 1], r->len - index);
 
         r->len--;
-        ptr[r->len] = '\0';
+        data[r->len] = '\0';
 
         return 0;
 }
@@ -370,8 +384,8 @@ AOCLIBS_PREFIX int aoc_cstr_copy(aoc_realloc_t *allocator, rc *xref r, const cha
                 if (aoc_rc_resize(*allocator, r, r_offset + needed) != 0) return -1;
         }
 
-        memcpy(r->ptr + r_offset, s, s_len);
-        r->ptr[r_offset + s_len] = '\0';
+        memcpy(r->data + r_offset, s, s_len);
+        r->data[r_offset + s_len] = '\0';
 
         r->len = r_offset + s_len;
 
@@ -392,7 +406,7 @@ AOCLIBS_PREFIX int aoc_cstr_copy_fmt(aoc_realloc_t *allocator, rc *xref r, const
 
         va_list args;
         va_start(args, fmt);
-        needed_len = vsnprintf(r->ptr, 0, fmt, args);
+        needed_len = vsnprintf(r->data, 0, fmt, args);
         va_end(args);
 
         if (needed_len < 0) return -1;
@@ -401,7 +415,7 @@ AOCLIBS_PREFIX int aoc_cstr_copy_fmt(aoc_realloc_t *allocator, rc *xref r, const
                 if (r->type == RCHeap || allocator != NULL)
                         if (aoc_rc_resize(*allocator, r, needed_len + 1) != 0) return -1;
                 va_start(args, fmt);
-                allocated_len = vsnprintf(r->ptr, r->cap, fmt, args);
+                allocated_len = vsnprintf(r->data, r->cap, fmt, args);
                 va_end(args);
                 if (allocated_len < 0) return -1;
         }
@@ -431,7 +445,7 @@ AOCLIBS_PREFIX size_t aoc_rc_chr_cstr(const rc *xref r, const char *xref delim,
         ASSERT_NONNULL(delim != NULL);
 
         for (size_t i = 0; i < r->len; i++) {
-                if (cstr_find_delim(r->ptr, r->len, delim, delim_len, i, 0)) {
+                if (cstr_find_delim(r->data, r->len, delim, delim_len, i, 0)) {
                         return (size_t)i;
                 }
         }
@@ -444,7 +458,7 @@ AOCLIBS_PREFIX size_t aoc_rc_chr(const rc *ref r, char delim) {
         ASSERT_NONNULL(aoc_rc_is_null(r));
 
         for (size_t i = 0; i < r->len; i++) {
-                if (r->ptr[i] == delim) return i;
+                if (r->data[i] == delim) return i;
         }
 
         return SIZE_MAX;
@@ -458,7 +472,7 @@ AOCLIBS_PREFIX const char *null aoc_rc_tok_cstr(const rc *xref r, const char *xr
         size_t pos = rc_chr_cstr(r, delim, delim_len);
         if (pos == SIZE_MAX) return NULL;
 
-        return r->ptr + pos + delim_len;
+        return r->data + pos + delim_len;
 }
 
 #define rc_tok aoc_rc_tok
@@ -468,7 +482,7 @@ AOCLIBS_PREFIX const char *null aoc_rc_tok(const rc *ref r, char delim) {
         size_t pos = rc_chr(r, delim);
         if (pos == SIZE_MAX) return NULL;
 
-        return r->ptr + pos + 1;
+        return r->data + pos + 1;
 }
 
 #define cstr_trim_whitespace aoc_cstr_trim_whitespace
@@ -490,7 +504,7 @@ AOCLIBS_PREFIX void aoc_rc_trim_whitespace(rc *ref r) {
         ASSERT_NONNULL(aoc_rc_is_null(r));
         ASSERT(r->type != RCLiteral, "attempt to modify RC literal");
 
-        size_t len = aoc_cstr_trim_whitespace(r->ptr, r->len);
+        size_t len = aoc_cstr_trim_whitespace(r->data, r->len);
         r->len = len;
 }
 
