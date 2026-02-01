@@ -82,7 +82,7 @@
         } while (0)
 
 // This macro doesn't include the null terminator, and must be added manually
-#define aoc_da_append_many_cstr(da, items_buff, items_size) \
+#define aoc_da_append_cstr(da, items_buff, items_size) \
         _aoc_da_append_many(AOCLIBS_DA_REALLOC, da, items_buff, cstrlen((items_buff), (items_size)))
 
 // Adding strings using this macro will include the null terminator if the
@@ -113,7 +113,7 @@
 #ifdef AOCLIBS_STRIP_PREFIX
 #define _da_append _aoc_da_append
 #define _da_append_many _aoc_da_append_many
-#define _da_append_many_cstr _aoc_da_append_many_cstr
+#define _da_append_cstr _aoc_da_append_cstr
 #define _da_append_null _aoc_da_append_null
 #define _da_clone _aoc_da_clone
 #define _da_free _aoc_da_free
@@ -121,7 +121,7 @@
 
 #define da_append aoc_da_append
 #define da_append_many aoc_da_append_many
-#define da_append_many_cstr aoc_da_append_many_cstr
+#define da_append_cstr aoc_da_append_cstr
 #define da_append_null aoc_da_append_null
 #define da_clone aoc_da_clone
 #define da_free aoc_da_free
