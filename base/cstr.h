@@ -79,7 +79,7 @@ AOCLIBS_PREFIX void aoc_cstrn_to_lower(char *ref s, const size_t len);
 /*
  * Compares s and pattern. Assume strings are null-terminated.
 */
-AOCLIBS_PREFIX bool aoc_cstr_eq(const char *s, const char *pattern);
+AOCLIBS_PREFIX bool aoc_cstr_eq(const char *xref s, const char *xref pattern);
 
 #define aoc_cslice_eq(cs1, cs2) aoc_cstrn_eq((cs1)->data, (cs1)->len, (cs2)->data, (cs2)->len)
 
@@ -100,17 +100,17 @@ AOCLIBS_PREFIX bool aoc_cstr_eq(const char *s, const char *pattern);
  *
  * Returns if s is equal to pattern.
 */
-AOCLIBS_PREFIX bool aoc_cstrn_eq(const char *s, const size_t s_len, const char *pattern,
+AOCLIBS_PREFIX bool aoc_cstrn_eq(const char *xref s, const size_t s_len, const char *xref pattern,
                                  size_t pattern_len);
 
-AOCLIBS_PREFIX bool aoc_cstr_eq_case(const char *s, const char *pattern);
+AOCLIBS_PREFIX bool aoc_cstr_eq_case(const char *xref s, const char *xref pattern);
 
 #define aoc_cslice_eq_case(cs1, cs2, offset) \
         aoc_cstrn_eq_case((cs1)->data + (offset), (cs1)->len, (cs2)->data, (cs2)->len)
-AOCLIBS_PREFIX bool aoc_cstrn_eq_case(const char *s, const size_t s_len, const char *pattern,
-                                      size_t pattern_len);
+AOCLIBS_PREFIX bool aoc_cstrn_eq_case(const char *xref s, const size_t s_len,
+                                      const char *xref pattern, size_t pattern_len);
 
-AOCLIBS_PREFIX bool aoc_cstr_has(const char *s, size_t s_len, const char *pattern,
+AOCLIBS_PREFIX bool aoc_cstr_has(const char *xref s, size_t s_len, const char *xref pattern,
                                  size_t pattern_len);
 
 /*
@@ -205,7 +205,7 @@ AOCLIBS_PREFIX void aoc_cstrn_to_lower(char *ref s, const size_t len) {
                 s[i] = tolower(s[i]);
 }
 
-AOCLIBS_PREFIX bool aoc_cstr_eq(const char *s, const char *pattern) {
+AOCLIBS_PREFIX bool aoc_cstr_eq(const char *xref s, const char *xref pattern) {
         size_t s_len = strlen(s);
         size_t pattern_len = strlen(pattern);
         if (!s || !pattern || pattern_len > s_len) return false;
@@ -242,7 +242,7 @@ AOCLIBS_PREFIX bool aoc_cstr_eq(const char *s, const char *pattern) {
         }
 }
 
-AOCLIBS_PREFIX bool aoc_cstrn_eq(const char *s, const size_t s_len, const char *pattern,
+AOCLIBS_PREFIX bool aoc_cstrn_eq(const char *xref s, const size_t s_len, const char *xref pattern,
                                  size_t pattern_len) {
         if (!s || !pattern || pattern_len > s_len) return false;
 
@@ -278,8 +278,8 @@ AOCLIBS_PREFIX bool aoc_cstrn_eq(const char *s, const size_t s_len, const char *
         }
 }
 
-AOCLIBS_PREFIX bool aoc_cstrn_eq_case(const char *s, const size_t s_len, const char *pattern,
-                                      size_t pattern_len) {
+AOCLIBS_PREFIX bool aoc_cstrn_eq_case(const char *xref s, const size_t s_len,
+                                      const char *xref pattern, size_t pattern_len) {
         if (!s || !pattern || pattern_len > s_len) return false;
 
         const char *s_ptr = s;
@@ -314,7 +314,7 @@ AOCLIBS_PREFIX bool aoc_cstrn_eq_case(const char *s, const size_t s_len, const c
         }
 }
 
-AOCLIBS_PREFIX bool aoc_cstr_eq_case(const char *s, const char *pattern) {
+AOCLIBS_PREFIX bool aoc_cstr_eq_case(const char *xref s, const char *xref pattern) {
         size_t s_len = strlen(s);
         size_t pattern_len = strlen(pattern);
         if (!s || !pattern || pattern_len > s_len) return false;
@@ -351,7 +351,7 @@ AOCLIBS_PREFIX bool aoc_cstr_eq_case(const char *s, const char *pattern) {
         }
 }
 
-AOCLIBS_PREFIX bool aoc_cstr_has(const char *s, size_t s_len, const char *pattern,
+AOCLIBS_PREFIX bool aoc_cstr_has(const char *xref s, size_t s_len, const char *xref pattern,
                                  size_t pattern_len) {
         if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
 
