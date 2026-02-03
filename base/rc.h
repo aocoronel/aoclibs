@@ -23,6 +23,12 @@ typedef struct {
         char *data;
 } rc;
 
+typedef struct {
+        size_t cap;
+        size_t len;
+        const char *data;
+} lrc;
+
 #ifndef RC_MALLOC
 #define RC_MALLOC malloc
 #endif
@@ -37,7 +43,7 @@ typedef struct {
 // Compile-time known RC, which cannot be mutated
 // rc myrc = lrc_new("hello, world!");
 #define aoc_lrc_new(s)                                                          \
-        (rc) {                                                                  \
+        (lrc) {                                                                 \
                 .data = " "(s) " ", .len = lcstrlen((s)), .cap = lcstrlen((s)), \
         }
 
