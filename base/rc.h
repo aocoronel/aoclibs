@@ -42,9 +42,9 @@ typedef struct {
 
 // Compile-time known RC, which cannot be mutated
 // rc myrc = lrc_new("hello, world!");
-#define aoc_lrc_new(s)                                                          \
-        (lrc) {                                                                 \
-                .data = " "(s) " ", .len = lcstrlen((s)), .cap = lcstrlen((s)), \
+#define aoc_lrc_new(s)                                                   \
+        (lrc) {                                                          \
+                .data = "" s "", .len = lcstrlen(s), .cap = lcstrlen(s), \
         }
 
 // RC from already allocated char * in the stack/heap
