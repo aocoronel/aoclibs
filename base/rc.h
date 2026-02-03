@@ -89,6 +89,7 @@ typedef struct {
 
 #define _aoc_rcs_append(rc, items_buff, items_size)             \
         ((rc)->len + items_size > (rc)->cap) {                  \
+        ((rc)->len + items_size < (rc)->cap) {                  \
                 _aoc_assert_da_is_not_null(rc);                 \
                 memcpy((rc)->data + (rc)->len, (items_buff),    \
                        (items_size) * sizeof(*(rc)->data) - 1); \

@@ -150,7 +150,7 @@
 
 #define aoc_das_append _aoc_das_append
 #define _aoc_das_append(da, item)                    \
-        ((da)->len + 1 > (da)->cap) {                \
+        ((da)->len + 1 < (da)->cap) {                \
                 _aoc_assert_da_is_not_null(da);      \
                 _aoc_assert_da_data_is_not_null(da); \
                 (da)->data[(da)->len++] = (item);    \
@@ -161,7 +161,7 @@
 #define aoc_das_append_many _aoc_das_append_many
 
 #define _aoc_das_append_many(da, items_buff, items_size)                                          \
-        ((da)->len + items_size > (da)->cap) {                                                    \
+        ((da)->len + items_size < (da)->cap) {                                                    \
                 _aoc_assert_da_is_not_null(da);                                                   \
                 _aoc_assert_da_data_is_not_null(da);                                              \
                 memcpy((da)->data + (da)->len, (items_buff), (items_size) * sizeof(*(da)->data)); \
@@ -169,7 +169,7 @@
         }
 
 #define aoc_das_append_null(da)               \
-        ((da)->len + 1 > (da)->cap) {         \
+        ((da)->len + 1 < (da)->cap) {         \
                 (da)->data[(da)->len] = '\0'; \
         }
 
