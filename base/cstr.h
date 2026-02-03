@@ -63,6 +63,8 @@ typedef struct {
 #define cstr_to_double aoc_cstr_to_double
 #define cstr_to_float aoc_cstr_to_float
 #define cstr_to_long aoc_cstr_to_long
+
+#define cstrlen aoc_cstrlen
 #endif
 
 #define aoc_cstr_to_slice(s, start, end)                      \
@@ -555,6 +557,13 @@ AOCLIBS_PREFIX long aoc_cstr_to_long(const char *ref s, const long _default) {
         }
         return val;
 }
+
+AOCLIBS_PREFIX size_t aoc_cstrlen(const char *ref s, const size_t size) {
+        ASSERT_NONNULL(s != NULL);
+        const char *p = memchr(s, 0, size);
+        return p ? p - s : size;
+}
+
 #endif
 
 #endif // AOCLIBS_CSTR_H_
