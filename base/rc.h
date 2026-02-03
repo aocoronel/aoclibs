@@ -84,11 +84,9 @@ typedef struct {
                 .data = alloca((capacity)), .len = 0, .cap = (capacity) \
         }
 
-#define aoc_rcs_append rcs_append
-#define aoc_lrcs_append(rc, items_buff) _aoc_rcs_append(rc, (items_buff), lcstrlen(items_buff))
+#define aoc_lrcs_append(rc, items_buff) aoc_rcs_append(rc, (items_buff), lcstrlen(items_buff))
 
-#define _aoc_rcs_append(rc, items_buff, items_size)             \
-        ((rc)->len + items_size > (rc)->cap) {                  \
+#define aoc_rcs_append(rc, items_buff, items_size)              \
         ((rc)->len + items_size < (rc)->cap) {                  \
                 _aoc_assert_da_is_not_null(rc);                 \
                 memcpy((rc)->data + (rc)->len, (items_buff),    \
@@ -128,7 +126,7 @@ typedef struct {
 #define rcs_new aoc_rcs_new
 
 #define rcs_append aoc_rcs_append
-#define lrcs_append laoc_rcs_append
+#define lrcs_append aoc_lrcs_append
 
 #define rc_to_lower aoc_rc_to_lower
 #define rcn_to_lower aoc_rcn_to_lower
