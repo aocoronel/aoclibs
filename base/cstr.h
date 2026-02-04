@@ -193,6 +193,12 @@ AOCLIBS_PREFIX long aoc_cstr_to_long(const char *ref s, const long _default);
 #include <stdint.h>
 #include <string.h>
 
+void cslice_to_cstr(cslice s, char *buff, const size_t size) {
+        int size_to_copy = s.len > size ? size : s.len;
+        memcpy(buff, s.data, size_to_copy);
+        buff[size_to_copy] = '\0';
+}
+
 AOCLIBS_PREFIX char *xnull aoc_cstr_dup(const char *ref s, const size_t len) {
         ASSERT_NONNULL(s != NULL);
         char *d = CSTR_MALLOC(len);
