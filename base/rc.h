@@ -72,13 +72,19 @@ typedef struct {
 
 #define aoc_lrcs_append(rc, items_buff) aoc_rcs_append(rc, (items_buff), lcstrlen(items_buff))
 
-#define aoc_rcs_append(rc, items_buff, items_size)              \
-        ((rc)->len + items_size < (rc)->cap) {                  \
-                _aoc_assert_da_is_not_null(rc);                 \
-                memcpy((rc)->data + (rc)->len, (items_buff),    \
-                       (items_size) * sizeof(*(rc)->data) - 1); \
-                (rc)->len += (items_size);                      \
-        }
+#define aoc_rcs_append(rc, items_buff, items_size) aoc_das_add(rc, items_buff, items_size, (rc)->len + 1)
+#define aoc_rcs_cat(rc, items_buff, items_size) aoc_das_add(rc, items_buff, items_size, (rc)->len)
+
+// This macro doesn't include the null terminator, and must be added manually
+#define aoc_rc_append(da, items_buff, items_len) \
+        aoc_da_add(AOCLIBS_DA_REALLOC, da, items_buff, items_len, (da)->len + 1)
+#define _aoc_rca_append(realloc, da, items_buff, items_len) \
+        aoc_da_add(realloc, da, items_buff, items_len, (da)->len + 1)
+
+#define aoc_rc_cat(da, items_buff, items_len) \
+        aoc_da_add(AOCLIBS_DA_REALLOC, da, items_buff, items_len, (da)->len)
+#define _aoc_rc_cat(realloc, da, items_buff, items_len) \
+        aoc_da_add(realloc, da, items_buff, items_len, (da)->len)
 
 #define aoc_rc_to_lower(r) aoc_cstr_to_lower((r)->data)
 #define aoc_rcn_to_lower(r) aoc_cstr_to_lower((r)->data, (r)->len)
