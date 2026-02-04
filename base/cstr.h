@@ -20,6 +20,7 @@ typedef struct {
 #endif
 
 #ifdef AOCLIBS_STRIP_PREFIX
+#define lcslice aoc_lcslice
 #define cstr_to_slice aoc_cstr_to_slice
 
 #define cstrdup aoc_cstr_dup
@@ -70,6 +71,12 @@ typedef struct {
 #define aoc_cstr_to_slice(s, start, end)                      \
         (cslice) {                                            \
                 .data = (s) + (start), .len = (end) - (start) \
+        }
+
+// cslice myslice = lcslice("hello, world!");
+#define aoc_lcslice(s)                                                   \
+        (cslice) {                                                       \
+                .data = "" s "", .len = lcstrlen(s), .cap = lcstrlen(s), \
         }
 
 AOCLIBS_PREFIX char *xnull aoc_cstr_dup(const char *ref s, const size_t len);

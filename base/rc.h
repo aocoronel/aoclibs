@@ -23,29 +23,15 @@ typedef struct {
         char *data;
 } rc;
 
-typedef struct {
-        size_t cap;
-        size_t len;
-        const char *data;
-} lrc;
-
 #ifndef RC_MALLOC
 #define RC_MALLOC malloc
 #endif
 
 // In short:
-// lrc --> row char literal
 // rcs --> row char stack
 // rch --> row char heap
 //
 // The rcn macros means the same as strnlen, strncpy and strncat
-
-// Compile-time known RC, which cannot be mutated
-// rc myrc = lrc_new("hello, world!");
-#define aoc_lrc_new(s)                                                   \
-        (lrc) {                                                          \
-                .data = "" s "", .len = lcstrlen(s), .cap = lcstrlen(s), \
-        }
 
 // RC from already allocated char * in the stack/heap
 // char *buff = malloc(100);
