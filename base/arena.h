@@ -252,7 +252,6 @@ AOCLIBS_PREFIX void *aoc_arena_calloc(Arena *ref a, size_t size_bytes) {
 
 AOCLIBS_PREFIX void *aoc_arena_realloc(Arena *ref a, void *oldptr, size_t oldsz, size_t newsz) {
         ASSERT_NONNULL(a != NULL);
-        ASSERT_NONNULL(oldptr != NULL);
         if (newsz <= oldsz) return oldptr;
         void *newptr = aoc_arena_alloc(a, newsz);
         char *newptr_char = (char *)newptr;
