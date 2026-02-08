@@ -75,7 +75,7 @@ AOCLIBS_PREFIX void aoc_arena_destroy(Arena *ref a);
 AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 
 #ifndef AOCLIBS_ARENA_DA_INIT_CAP
-#define AOCLIBS_ARENA_DA_INIT_CAP 256
+#define AOCLIBS_ARENA_DA_INIT_CAP 4 * 1024
 #endif // AOCLIBS_ARENA_DA_INIT_CAP
 
 #define aoc_arena_da_append(a, da, item)                                                    \
