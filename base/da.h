@@ -93,7 +93,6 @@
 #define aoc_da_insert(da, data) _aoc_da_append(AOCLIBS_DA_REALLOC, (da), (data))
 #define _aoc_da_insert(realloc, da, item)                        \
         do {                                                     \
-                _aoc_assert_da_is_not_null(da);                  \
                 _aoc_da_reserve((realloc), (da), (da)->len + 1); \
                 (da)->data[(da)->len++] = (item);                \
         } while (0)
@@ -105,7 +104,6 @@
 
 #define aoc_da_add(realloc, da, items_buff, items_size, offset)                                  \
         do {                                                                                     \
-                _aoc_assert_da_is_not_null(da);                                                  \
                 _aoc_da_reserve(realloc, (da), (da)->len + (items_size));                        \
                 memcpy((da)->data + (offset), (items_buff), (items_size) * sizeof(*(da)->data)); \
                 (da)->len += (items_size);                                                       \
