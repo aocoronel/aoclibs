@@ -458,7 +458,7 @@ internal inline void aoc_crown_help_commands(CrownCommand *cmds) {
 
 // Options:
 //   -s, --short [ARG]
-//   -l, --long <ARG>
+//   -l, --long [ARG]
 //   -h, --help
 //       Description
 internal inline void aoc_crown_help_options(CrownCommand *cmds) {
@@ -722,7 +722,6 @@ AOCLIBS_PREFIX int aoc_crown_getopt(CrownCommand *null cmds, char *argv[], int a
 #define aoc_crown_parsecmd(opt, idx, argv, argc) \
         aoc_crown_getcmd(&(opt)->subcmd->data[(idx)], (argv), (argc))
 
-// needs recursion
 AOCLIBS_PREFIX int aoc_crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
         const CrownCommand *opt = cmds && cmds->subcmd != NULL ? cmds->subcmd->data :
                                                                  Program->subcmd->data;
