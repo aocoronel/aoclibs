@@ -677,8 +677,8 @@ AOCLIBS_PREFIX char *aoc_crown_getarg(char *argv[], int argc) {
         return argv[optind++];
 }
 
-#define aoc_crown_parseopt(opt, idx, argv, argc) \
-        aoc_crown_getopt(&(opt)->subcmd->data[(idx)], (argv), (argc))
+#define aoc_crown_parseopt(opt, argv, argc) \
+        aoc_crown_getopt((opt), (argv), (argc))
 
 AOCLIBS_PREFIX int aoc_crown_getopt(CrownCommand *null cmds, char *argv[], int argc) {
         const char *arg = aoc_crown_getarg(argv, argc);
@@ -719,8 +719,8 @@ AOCLIBS_PREFIX int aoc_crown_getopt(CrownCommand *null cmds, char *argv[], int a
 
 #define aoc_subcmd(opt, idx) (opt)->subcmd->data[(idx)]
 
-#define aoc_crown_parsecmd(opt, idx, argv, argc) \
-        aoc_crown_getcmd(&(opt)->subcmd->data[(idx)], (argv), (argc))
+#define aoc_crown_parsecmd(opt, argv, argc) \
+        aoc_crown_getcmd((opt), (argv), (argc))
 
 AOCLIBS_PREFIX int aoc_crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
         const CrownCommand *opt = cmds && cmds->subcmd != NULL ? cmds->subcmd->data :
