@@ -244,6 +244,12 @@ AOCLIBS_PREFIX void *aoc_arena_alloc(Arena *ref a, size_t size_bytes) {
         return result;
 }
 
+AOCLIBS_PREFIX void *aoc_arena_calloc(Arena *ref a, size_t size_bytes) {
+        void *ptr = aoc_arena_alloc(a, size_bytes);
+        memset(ptr, 0, size_bytes);
+        return ptr;
+}
+
 AOCLIBS_PREFIX void *aoc_arena_realloc(Arena *ref a, void *oldptr, size_t oldsz, size_t newsz) {
         ASSERT_NONNULL(a != NULL);
         ASSERT_NONNULL(oldptr != NULL);
