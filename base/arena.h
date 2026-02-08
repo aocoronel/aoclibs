@@ -78,36 +78,34 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 #define AOCLIBS_ARENA_DA_INIT_CAP 4 * 1024
 #endif // AOCLIBS_ARENA_DA_INIT_CAP
 
-#define aoc_arena_da_append(a, da, item)                                                    \
+#define aoc_arena_da_reserve(a, da, new_cap)                                                \
         do {                                                                                \
                 if ((da)->len >= (da)->cap) {                                               \
-                        size_t new_capacity = (da)->cap == 0 ? AOCLIBS_ARENA_DA_INIT_CAP :  \
-                                                               (da)->cap * 2;               \
+                        size_t new_capacity = (da)->cap < AOCLIBS_ARENA_DA_INIT_CAP ?       \
+                                                      AOCLIBS_ARENA_DA_INIT_CAP :           \
+                                                      new_cap;                              \
+                        while ((new_cap) > new_capacity) {                                  \
+                                new_capacity *= 2;                                          \
+                        }                                                                   \
                         (da)->data = aoc_arena_realloc((a), (da)->data,                     \
                                                        (da)->cap * sizeof(*(da)->data),     \
                                                        new_capacity * sizeof(*(da)->data)); \
                         (da)->cap = new_capacity;                                           \
                 }                                                                           \
-                                                                                            \
-                (da)->data[(da)->len++] = (item);                                           \
+        } while (0)
+
+#define aoc_arena_da_append(a, da, item)                    \
+        do {                                                \
+                aoc_arena_da_reserve(a, da, (da)->len + 1); \
+                (da)->data[(da)->len++] = (item);           \
         } while (0)
 
 // Append several items to a dynamic array
-#define aoc_arena_da_append_many(a, da, new_items, new_items_count)                         \
-        do {                                                                                \
-                if ((da)->len + (new_items_count) > (da)->cap) {                            \
-                        size_t new_capacity = (da)->cap;                                    \
-                        if (new_capacity == 0) new_capacity = AOCLIBS_ARENA_DA_INIT_CAP;    \
-                        while ((da)->len + (new_items_count) > new_capacity)                \
-                                new_capacity *= 2;                                          \
-                        (da)->data = aoc_arena_realloc((a), (da)->data,                     \
-                                                       (da)->cap * sizeof(*(da)->data),     \
-                                                       new_capacity * sizeof(*(da)->data)); \
-                        (da)->cap = new_capacity;                                           \
-                }                                                                           \
-                memcpy((da)->data + (da)->len, (new_items),                                 \
-                       (new_items_count) * sizeof(*(da)->data));                            \
-                (da)->len += (new_items_count);                                             \
+#define aoc_arena_da_append_many(a, da, items_buff, items_size)                                   \
+        do {                                                                                      \
+                aoc_arena_da_reserve(a, da, (da)->len + (items_size));                            \
+                memcpy((da)->data + (da)->len, (items_buff), (items_size) * sizeof(*(da)->data)); \
+                (da)->len += (items_size);                                                        \
         } while (0)
 
 #define aoc_arena_da_append_null(a, da) aoc_arena_da_append(a, da, 0)
