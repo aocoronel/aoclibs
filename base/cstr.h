@@ -11,7 +11,7 @@
 #define VSLICE(r) ((r).len), ((r).data)
 
 typedef struct {
-        int len;
+        size_t len;
         const char *data;
 } cslice;
 
@@ -475,7 +475,6 @@ AOCLIBS_PREFIX size_t aoc_cstrstr_index(const char *xref s, const char *xref pat
 
         const char *p = s;
         size_t pattern_len = strlen(pattern);
-        size_t i = 0;
 
         while (*p) {
                 const char *found = memchr(p, *pattern, strlen(p));
@@ -496,7 +495,6 @@ AOCLIBS_PREFIX size_t aoc_cstrnstr_index(const char *xref s, const char *xref pa
         if (!*pattern) return SIZE_MAX;
 
         const char *p = s;
-        size_t i = 0;
 
         while (*p) {
                 const char *found = memchr(p, *pattern, s_len);
@@ -573,8 +571,11 @@ AOCLIBS_PREFIX long aoc_cstr_to_long(const char *ref s, const long _default) {
 
 AOCLIBS_PREFIX size_t aoc_cstrlen(const char *ref s, const size_t size) {
         ASSERT_NONNULL(s != NULL);
+        size_t len;
         const char *p = memchr(s, 0, size);
-        return p ? p - s : size;
+        if (p) len = p - s;
+        else len = size;
+        return len;
 }
 
 #endif
