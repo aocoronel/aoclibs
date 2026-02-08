@@ -45,6 +45,10 @@ typedef void (*aoc_free_t)(void *);
 
 // clang-format on
 
+// To be used in function declarations. "static" is a very broad keyword in C,
+// internal express this idea better.
+#define internal static
+
 /*
  * Convenient macros to improve user experience
 */
