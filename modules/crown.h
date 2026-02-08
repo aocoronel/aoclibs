@@ -606,7 +606,7 @@ internal inline void aoc_crown_zshgen_print_flag_case(const CrownOption *flag) {
 }
 
 // TODO: Subcommands and subcommand options
-AOCLIBS_PREFIX void crown_zshgen(const CrownEnv *env, size_t envc) {
+AOCLIBS_PREFIX void aoc_crown_zshgen(const CrownEnv *env, size_t envc) {
         // Header
         printf("#compdef %s\n\n", Program->name);
 
