@@ -121,7 +121,7 @@ AOCLIBS_PREFIX void aoc_panic(const char *__file, int __line, const char *__func
 #define ALIGN (sizeof(size_t))
 #define ONES ((size_t)-1 / UCHAR_MAX)
 #define HIGHS (ONES * (UCHAR_MAX / 2 + 1))
-#define HASZERO(x) ((x) - ONES & ~(x) & HIGHS)
+#define HASZERO(x) (((x) - ONES) & ~(x) & HIGHS)
 
 #ifdef AOCLIBS_STRIP_PREFIX
 #define swap aoc_swap
