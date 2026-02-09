@@ -115,7 +115,7 @@ These macros won't break your code, and will allow you to run code at runtime. A
 What if you want to store a value in a global variable? Instead of using `comp_int`, you use the shared versions: `scomp_int`.
 
 ```c
-int myvar = comp_int(FOR_LOOP_RESULT, loop_10_times(20)); // returns 30
+int myvar = scomp_int(FOR_LOOP_RESULT, loop_10_times(20)); // returns 30
 ```
 
 Now you can use the result several times across your code by using: `usecomp`.
@@ -136,7 +136,8 @@ Currently, there is no support for running tests in several threads.
 
 ```c
 // add.h
-int add(int x, int y) { return x + y }
+#include "tunit.h"
+int add(int x, int y) { return x + y; }
 
 // This macro wrap is important. You can either add test right below the function declaration, or
 // at the ending
@@ -150,4 +151,13 @@ TEST(add) {
 #include "add.h"
 
 // gcc -o add_test add.c -DTUNIT
+```
+
+Output:
+
+```console
+./add_test
+ ✓ add 0.01ms
+ === Test Summary ===
+1 succeed, 0 failed and 0 skipped (0.02ms total)
 ```
