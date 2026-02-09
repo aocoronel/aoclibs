@@ -138,9 +138,13 @@ Currently, there is no support for running tests in several threads.
 // add.h
 int add(int x, int y) { return x + y }
 
+// This macro wrap is important. You can either add test right below the function declaration, or
+// at the ending
+#ifdef TUNIT
 TEST(add) {
   TASSERT(add(1,1) == 2, "expected two");
 }
+#endif
 
 // add.c
 #include "add.h"
