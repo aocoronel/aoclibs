@@ -105,8 +105,8 @@ FILE *morph_file;
 #define comp_array_float(...) comp_array("%f", float, __VA_ARGS__)
 #define comp_array_double(...) comp_array("%lf", double, __VA_ARGS__)
 #define comp_array_long(...) comp_array("%zu", long, __VA_ARGS__)
-#define comp_long_long(...) comp("%lld", long long, __VA_ARGS__)
-#define comp_size_t(...) comp("%zu", size_t, __VA_ARGS__)
+#define comp_array_long_long(...) comp("%lld", long long, __VA_ARGS__)
+#define comp_array_size_t(...) comp("%zu", size_t, __VA_ARGS__)
 #define comp_array_cstr(...) comp_array("%s", char *, __VA_ARGS__)
 #define comp_array_char(...) comp_array("%c", char, __VA_ARGS__)
 
@@ -114,8 +114,8 @@ FILE *morph_file;
 #define scomp_array_float(key, ...) scomp_array("%f", key, float, __VA_ARGS__)
 #define scomp_array_double(key, ...) scomp_array("%lf", key, double, __VA_ARGS__)
 #define scomp_array_long(key, ...) scomp_array("%zu", key, long, __VA_ARGS__)
-#define scomp_long_long(...) scomp("%lld", key, long long, __VA_ARGS__)
-#define scomp_size_t(...) scomp("%zu", key, size_t, __VA_ARGS__)
+#define scomp_array_long_long(...) scomp("%lld", key, long long, __VA_ARGS__)
+#define scomp_array_size_t(...) scomp("%zu", key, size_t, __VA_ARGS__)
 #define scomp_array_cstr(key, ...) scomp_array("%s", key, char *, __VA_ARGS__)
 #define scomp_array_char(key, ...) scomp_array("%c", key, char, __VA_ARGS__)
 
