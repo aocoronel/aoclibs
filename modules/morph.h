@@ -10,7 +10,10 @@
  *
  * To use it, you can create a comptime expression:
  *
- * int loop_10_times(int x) { for (int i = 0; i < 10; i++) return x; }
+ * int loop_10_times(int x) {
+ *      for (int i = 0; i < 10; i++) x++;
+ *      return x;
+ * }
  * int myvar = comp_int(loop_10_times(20)); // returns 30
  *
  * These macros won't break your code, and will allow you to run code at runtime. After running this,

@@ -106,7 +106,10 @@ It doesn't require an external executable to generate code. The only thing you n
 To use it, you can create a comptime expression:
 
 ```c
-int loop_10_times(int x) { for (int i = 0; i < 10; i++) return x; }
+int loop_10_times(int x) {
+     for (int i = 0; i < 10; i++) x++;
+     return x;
+}
 int myvar = comp_int(loop_10_times(20)); // returns 30
 ```
 
