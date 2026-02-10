@@ -143,11 +143,10 @@ Because, the C compiler will block you from compiling the code, if `FOR_LOOP_RES
 // #include "comptime.h" // result of this program
 
 int main(void) {
-        // int time = 20;
+        int time = 20;
         bool boolean = false;
         char *host = "server-1";
         double cpu = comp_int(CPU1_USAGE, 325.0 / 5.0);
-        int time = (assert(1 == 1), 2);
         MORPH_GENERATE(BIND_DOUBLE(cpu), BIND_STRING(host), BIND_INT(time), BIND_BOOL(boolean));
 
         boolean = true;
@@ -178,6 +177,38 @@ int main(void) {
         //@ }
 
         return 0;
+}
+```
+
+Output:
+
+```c
+#define CPU1_USAGE 65
+// Timestamp: 2PM
+// Premium: false
+// CPU Usage: 65.000%
+// Host: server-1
+
+#define CPU2_USAGE 139
+// Timestamp: 2PM
+// Premium: true
+// CPU Usage: 139.000%
+// Host: web-1
+
+#include <alloca.h>
+#include <stdlib.h>
+void _alloca(int size) {
+            char *ptr = (char *)(size);
+            ptr[size + 1] = '\0'; // Segfault!
+            return;
+}
+
+#include <alloca.h>
+#include <stdlib.h>
+int _malloc(int size) {
+            char *ptr = (char *)(size);
+            ptr[size + 1] = '\0'; // Segfault!
+            return;
 }
 ```
 
