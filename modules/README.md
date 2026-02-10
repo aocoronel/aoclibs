@@ -95,6 +95,9 @@ int main(int argc, char *argv[]) {
 
 Non-obstructive compile-time implementation for C. This library can be used without dramatic changes. You can use it with simple macros like `comp_int`, `comp_char`, `comp_cstr`, `comp_array` and more. If you need to support other types, for simple ones a single line of macro is enough. However, if you want to support structs and unions, you will have to implementation the `comp` macro yourself.
 
+> [!NOTE]
+> These macros will define macros at run-time. If your program has these macros in parts of the code that are not always ran, it won't produce the necessary defines. It's recommended to have a special source file that will generate the necessary defines.
+
 ```c
 #define comp_intptr(...) comp("%zu", intptr_t, __VA_ARGS__)
 ```
@@ -130,6 +133,53 @@ int x = usecomp(FOR_LOOP_RESULT, 0);
 ```
 
 Because, the C compiler will block you from compiling the code, if `FOR_LOOP_RESULT` is not yet generated, and you also haven't provided the expression to generate it (this is a limitation for global variables), you have to provide a fallback value.
+
+`morph` is also capable of generating anything through a different implementation:
+
+```c
+// #define MORPH_USECOMP // for comp_int
+#include "morph.h"
+
+// #include "comptime.h" // result of this program
+
+int main(void) {
+        // int time = 20;
+        bool boolean = false;
+        char *host = "server-1";
+        double cpu = comp_int(CPU1_USAGE, 325.0 / 5.0);
+        int time = (assert(1 == 1), 2);
+        MORPH_GENERATE(BIND_DOUBLE(cpu), BIND_STRING(host), BIND_INT(time), BIND_BOOL(boolean));
+
+        boolean = true;
+        cpu = comp_int(CPU2_USAGE, 699.99 / 5.0);
+        host = "web-1";
+        MORPH_GENERATE(BIND_DOUBLE(cpu), BIND_STRING(host), BIND_INT(time), BIND_BOOL(boolean));
+
+        //@ // Timestamp: <time>PM
+        //@ // Premium: <boolean>
+        //@ // CPU Usage: <cpu:%.3lf>%
+        //@ // Host: <host>
+
+        char *allocator = "alloca";
+        char *func_name = "_alloca";
+        char *rettype = "void";
+        MORPH_GENERATE(BIND_STRING(rettype), BIND_STRING(func_name));
+
+        allocator = "malloc";
+        func_name = "_malloc";
+        MORPH_GENERATE(SET_STRING(rettype, "int"), BIND_STRING(func_name));
+
+        //@ #include `<alloca.h>`
+        //@ #include `<stdlib.h>`
+        //@ <rettype> <func_name>(int size) {
+        //@             char *ptr = (char *)<allocator>(size);
+        //@             ptr[size + 1] = '\0'; // Segfault!
+        //@             return;
+        //@ }
+
+        return 0;
+}
+```
 
 ## TUnit
 
