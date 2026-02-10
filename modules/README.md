@@ -162,11 +162,11 @@ int main(void) {
         char *allocator = "alloca";
         char *func_name = "_alloca";
         char *rettype = "void";
-        MORPH_GENERATE(BIND_STRING(rettype), BIND_STRING(func_name));
+        MORPH_GENERATE(BIND_STRING(rettype), BIND_STRING(func_name), BIND_STRING(allocator));
 
         allocator = "malloc";
         func_name = "_malloc";
-        MORPH_GENERATE(SET_STRING(rettype, "int"), BIND_STRING(func_name));
+        MORPH_GENERATE(SET_STRING(rettype, "int"), BIND_STRING(func_name), BIND_STRING(allocator));
 
         //@ #include `<alloca.h>`
         //@ #include `<stdlib.h>`
@@ -198,7 +198,7 @@ Output:
 #include <alloca.h>
 #include <stdlib.h>
 void _alloca(int size) {
-            char *ptr = (char *)(size);
+            char *ptr = (char *)alloca(size);
             ptr[size + 1] = '\0'; // Segfault!
             return;
 }
@@ -206,7 +206,7 @@ void _alloca(int size) {
 #include <alloca.h>
 #include <stdlib.h>
 int _malloc(int size) {
-            char *ptr = (char *)(size);
+            char *ptr = (char *)malloc(size);
             ptr[size + 1] = '\0'; // Segfault!
             return;
 }
