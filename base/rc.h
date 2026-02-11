@@ -3,6 +3,7 @@
 
 #include "base.h"
 #include "cstr.h"
+#include "da.h"
 #include <alloca.h>
 #include <stdarg.h>
 #include <stdbool.h>
