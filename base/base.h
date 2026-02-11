@@ -165,7 +165,7 @@ AOCLIBS_PREFIX void aoc_panic(const char *__file, int __line, const char *__func
 #define unless(val) if (_Match.fn(_Match.value, val) == false)
 
 #define array_len(a) sizeof((a)) / sizeof((a[0]))
-#define lcstrlen(s) array_len((" " s " ")) - sizeof((s)[0])
+#define lcstrlen(s) array_len(("" s "")) - sizeof((s)[0])
 
 #define ALIGN (sizeof(size_t))
 #define ONES ((size_t)-1 / UCHAR_MAX)
