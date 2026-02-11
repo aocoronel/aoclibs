@@ -130,8 +130,8 @@ typedef struct {
 #define comp_array_float(key, ...) comp_array("%f", key, float, __VA_ARGS__)
 #define comp_array_double(key, ...) comp_array("%lf", key, double, __VA_ARGS__)
 #define comp_array_long(key, ...) comp_array("%zu", key, long, __VA_ARGS__)
-#define comp_array_long_long(...) comp("%lld", key, long long, __VA_ARGS__)
-#define comp_array_size_t(...) comp("%zu", key, size_t, __VA_ARGS__)
+#define comp_array_long_long(...) comp_array("%lld", key, long long, __VA_ARGS__)
+#define comp_array_size_t(...) comp_array("%zu", key, size_t, __VA_ARGS__)
 #define comp_array_cstr(key, ...) comp_array("%s", key, char *, __VA_ARGS__)
 #define comp_array_char(key, ...) comp_array("%c", key, char, __VA_ARGS__)
 
