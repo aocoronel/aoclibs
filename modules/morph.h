@@ -52,6 +52,13 @@
 
 FILE *MORPH_FD;
 
+#define MORPH_CHANGE_FILE(name, write)         \
+        do {                                   \
+                assert(MORPH_FD != NULL);      \
+                fclose(MORPH_FD);              \
+                MORPH_FD = fopen(name, write); \
+        } while (0)
+
 typedef enum {
         MORPH_BOOL,
         MORPH_CHAR,
