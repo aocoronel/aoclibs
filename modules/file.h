@@ -38,8 +38,13 @@ typedef void (*dw_fn)(const char *path);
  *
  * Failure: errno << opendir
 */
-int aoc_dir_walk(const char *ref path, bool recurse, dw_fn isdir, dw_fn isreg, dw_fn islnk,
-                 dw_fn isnull, dw_fn isempty);
+int aoc_dir_walk(const char *ref path,
+                 bool recurse,
+                 dw_fn isdir,
+                 dw_fn isreg,
+                 dw_fn islnk,
+                 dw_fn isnull,
+                 dw_fn isempty);
 
 /*
  * Stat the file and return its type
@@ -49,8 +54,60 @@ int aoc_dir_walk(const char *ref path, bool recurse, dw_fn isdir, dw_fn isreg, d
 */
 FileType aoc_get_filetype(const char *ref path);
 
-int aoc_dir_walk(const char *ref path, bool recurse, dw_fn isdir, dw_fn isreg, dw_fn islnk,
-                 dw_fn isnull, dw_fn isempty) {
+/*
+ * Reads file, splitting the read buffer by the delimiter
+ *
+ * Allocates to lineptr. The user owns the allocation.
+*/
+size_t read_by_delim(char **xref lineptr, size_t *xref n, int delim, FILE *xref stream);
+
+size_t read_by_delim(char **xref lineptr, size_t *xref n, int delim, FILE *xref stream) {
+        if (!lineptr || !n || !stream) {
+                errno = EINVAL;
+                return (size_t)-1;
+        }
+
+        if (*lineptr == NULL || *n == 0) {
+                *n = 128;
+                *lineptr = malloc(*n);
+                if (!*lineptr) return (size_t)-1;
+        }
+
+        size_t pos = 0;
+
+        for (;;) {
+                int c = getc(stream);
+
+                if (c == EOF) {
+                        if (pos == 0) return (size_t)-1;
+                        break;
+                }
+
+                if (pos + 1 >= *n) {
+                        size_t new_size = *n * 2;
+                        char *new_ptr = realloc(*lineptr, new_size);
+                        if (!new_ptr) return (size_t)-1;
+
+                        *lineptr = new_ptr;
+                        *n = new_size;
+                }
+
+                (*lineptr)[pos++] = (char)c;
+
+                if (c == delim) break;
+        }
+
+        (*lineptr)[pos] = '\0';
+        return pos;
+}
+
+int aoc_dir_walk(const char *ref path,
+                 bool recurse,
+                 dw_fn isdir,
+                 dw_fn isreg,
+                 dw_fn islnk,
+                 dw_fn isnull,
+                 dw_fn isempty) {
         ASSERT_NONNULL(path != NULL);
 
         DIR *dir = opendir(path);
@@ -74,8 +131,8 @@ int aoc_dir_walk(const char *ref path, bool recurse, dw_fn isdir, dw_fn isreg, d
                         break;
                 case F_DIR:
                         if (recurse)
-                                aoc_dir_walk(fullpath, recurse, isdir, isreg, islnk, isnull,
-                                             isempty);
+                                aoc_dir_walk(
+                                        fullpath, recurse, isdir, isreg, islnk, isnull, isempty);
                         if (isdir != NULL) isdir(fullpath);
                         break;
                 case F_LNK:
