@@ -71,8 +71,8 @@ typedef struct {
         }
 
 // Stack concat and appending
-#define aoc_lrcs_cat(rc, items_buff) aoc_das_add(rc, items_buff, lcstrlen(items_buff), (rc)->len)
-#define aoc_rcs_cat(rc, items_buff, items_size) aoc_das_add(rc, items_buff, items_size, (rc)->len)
+#define aoc_lrcs_cat(rc, items_buff) aoc_das_copy(rc, items_buff, lcstrlen(items_buff))
+#define aoc_rcs_cat(rc, items_buff, items_size) aoc_das_copy(rc, items_buff, items_size)
 
 #define aoc_lrcs_append(rc, items_buff) aoc_rcs_append(rc, items_buff, lcstrlen(items_buff))
 #define aoc_rcs_append(rc, items_buff, items_size)            \
