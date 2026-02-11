@@ -43,9 +43,11 @@
 #define MORPH_COMMENT "//@"
 
 #define _GNU_SOURCE
-#include <stdint.h>
 #include <assert.h>
+#include "../base/rc.h"
+#include "../modules/file.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,7 +80,7 @@ typedef struct {
         MorphType Type;
         union {
                 bool b;
-                char *C;
+                const char *C;
                 char c;
                 double d;
                 float f;
@@ -91,10 +93,10 @@ typedef struct {
         } type;
 } Morph;
 
+#define MORPH_PRINT_DEFINE (1 << 0)
+
 #define MORPH_CONCAT(a, b) MORPH_CONCAT_IMPL(a, b)
 #define MORPH_CONCAT_IMPL(a, b) a##b
-
-#ifndef MORPH_USECOMP
 
 #define comp(fmt, key, T, ...)                                               \
         ({                                                                   \
@@ -143,41 +145,9 @@ typedef struct {
 #define comp_array_cstr(key, ...) comp_array("%s", key, char *, __VA_ARGS__)
 #define comp_array_char(key, ...) comp_array("%c", key, char, __VA_ARGS__)
 
-#define usecomp(key, _default) _default
+#define MORPH_GENERATE(...) _MORPH_GENERATE(__FILE__, __LINE__, 0, __VA_ARGS__)
+#define MORPH_DEFINE(...) _MORPH_GENERATE(__FILE__, __LINE__, MORPH_PRINT_DEFINE, __VA_ARGS__)
 
-#define MORPH_GENERATE(...) _MORPH_GENERATE(__FILE__, __LINE__, __VA_ARGS__)
-#else
-#define __COMP_RESULT__ MORPH_CONCAT(MORPH_RESULT_, __COUNTER__)
-#define __comp_RESULT__(key) MORPH_CONCAT(key, __COUNTER__)
-
-#define comp(print, key, T, ...) __comp_RESULT__(key)
-
-#define comp_int(key, ...) __comp_RESULT__(key)
-#define comp_float(key, ...) __comp_RESULT__(key)
-#define comp_double(key, ...) __comp_RESULT__(key)
-#define comp_long(key, ...) __comp_RESULT__(key)
-#define comp_long_long(key, ...) __comp_RESULT__(key)
-#define comp_size_t(key, ...) __comp_RESULT__(key)
-#define comp_cstr(key, ...) __comp_RESULT__(key)
-#define comp_char(key, ...) __comp_RESULT__(key)
-
-#define comp_array(key, T, ...) __comp_RESULT__(key)
-
-#define comp_array_int(key, ...) __comp_RESULT__(key)
-#define comp_array_float(key, ...) __comp_RESULT__(key)
-#define comp_array_double(key, ...) __comp_RESULT__(key)
-#define comp_array_long(key, ...) __comp_RESULT__(key)
-#define comp_array_long_long(key, ...) __comp_RESULT__(key)
-#define comp_array_size_t(key, ...) __comp_RESULT__(key)
-#define comp_array_cstr(key, ...) __comp_RESULT__(key)
-#define comp_array_char(key, ...) __comp_RESULT__(key)
-
-#define usecomp(key, _default) key
-
-#define MORPH_GENERATE(...)
-#endif
-
-#ifndef MORPH_USECOMP
 __attribute__((constructor)) static void __morph_init(void) {
         morph_file = fopen(MORPH_FILE, "w");
 }
@@ -185,10 +155,10 @@ __attribute__((constructor)) static void __morph_init(void) {
 __attribute__((destructor)) static void __morph_deinit(void) {
         fclose(morph_file);
 }
-#endif
 
-static void morph_print(const char *tmpl, Morph *vars, size_t var_count) {
-        for (const char *p = tmpl; *p; ++p) {
+static void morph_print(const rc tmpl, Morph *vars, size_t var_count, int morph_flag) {
+        const char *p = tmpl.data;
+        for (; *p; ++p) {
                 if (*p == '"') {
                         ++p;
                         while (*p && *p != '"') {
@@ -242,7 +212,8 @@ static void morph_print(const char *tmpl, Morph *vars, size_t var_count) {
 
                                         switch (vars[i].Type) {
                                         case MORPH_BOOL:
-                                                fprintf(MORPH_FD, "%s",
+                                                fprintf(MORPH_FD,
+                                                        "%s",
                                                         vars[i].type.b == true ? "true" : "false");
                                                 break;
                                         case MORPH_DOUBLE:
@@ -276,7 +247,8 @@ static void morph_print(const char *tmpl, Morph *vars, size_t var_count) {
                                                 fprintf(MORPH_FD, "%s", vars[i].type.C);
                                                 break;
                                         default:
-                                                fprintf(stderr, "[ERROR] Unsupported Type in %s\n",
+                                                fprintf(stderr,
+                                                        "[ERROR] Unsupported Type in %s\n",
                                                         vars[i].name);
                                                 break;
                                         }
@@ -284,36 +256,37 @@ static void morph_print(const char *tmpl, Morph *vars, size_t var_count) {
                                 }
                         }
                 } else {
+                        if (*p == '\n'  && morph_flag & MORPH_PRINT_DEFINE) fputc('\\', MORPH_FD);
                         fputc(*p, MORPH_FD);
                 }
         }
 }
 
-static char *morph_parse(const char *file, int line) {
+static rc morph_parse(const char *file, int line) {
         FILE *fp = fopen(file, "r");
         if (!fp) {
-                fprintf(stderr, "Failed to open file: %s\n", file);
-                return NULL;
+                fprintf(stderr, "Failed to open file %s. %s\n", file, strerror(errno));
+                return (rc){};
         }
 
-        char *str = malloc(1024 * 1024);
-        *str = '\0';
+        rc str = aoc_rc_new(1024 * 1024);
+        memset(str.data, 0, str.cap);
 
         char *buffer = NULL;
         size_t size = 0;
-        ssize_t nread;
+        size_t nread;
 
         int found_line = 0;
         int in_comment_block = 0;
 
         int line_count = 0;
 
-        while (getline(&buffer, &size, fp) != -1) {
+        for (; (nread = read_by_delim(&buffer, &size, '\n', fp)) != SIZE_MAX;) {
                 line_count++;
+
+                // Goto line
                 if (!found_line) {
-                        if (line_count == line) {
-                                found_line = 1;
-                        }
+                        if (line_count == line) found_line = 1;
                         continue;
                 }
 
@@ -322,7 +295,7 @@ static char *morph_parse(const char *file, int line) {
                         char *comment_start = strstr(buffer, MORPH_COMMENT);
                         if (comment_start) {
                                 comment_start += 4;
-                                strcat(str, comment_start);
+                                aoc_rc_cat(&str, comment_start, aoc_cstrlen(comment_start, nread));
                         }
                         continue;
                 }
@@ -331,7 +304,7 @@ static char *morph_parse(const char *file, int line) {
                         if (strstr(buffer, MORPH_COMMENT) == NULL) {
                                 break;
                         }
-                        strcat(str, buffer);
+                        aoc_rc_cat(&str, buffer, aoc_cstrlen(buffer, nread));
                 }
         }
 
@@ -343,16 +316,16 @@ static char *morph_parse(const char *file, int line) {
         return str;
 }
 
-#define _MORPH_GENERATE(fi, li, ...)                              \
+#define _MORPH_GENERATE(fi, li, flag, ...)                        \
         do {                                                      \
                 Morph _vars[] = { __VA_ARGS__ };                  \
                 size_t _count = sizeof(_vars) / sizeof(_vars[0]); \
-                char *_tmpl = morph_parse(fi, li);                \
-                if (_tmpl) {                                      \
-                        morph_print(_tmpl, _vars, _count);        \
-                        free(_tmpl);                              \
+                rc _tmpl = morph_parse(fi, li);                   \
+                if (_tmpl.len > 0) {                              \
+                        morph_print(_tmpl, _vars, _count, flag);  \
+                        aoc_da_free(&_tmpl);                      \
+                        fputc('\n', MORPH_FD);                    \
                 }                                                 \
-                fputc('\n', MORPH_FD);                            \
         } while (0)
 
 #define SET_LONG(x, y)                                           \
