@@ -103,6 +103,14 @@ typedef struct {
                 __result;                                                    \
         })
 
+#define comp_struct(key, T, print, ...)                                \
+        ({                                                             \
+                T __result = ((T){ __VA_ARGS__ });                     \
+                const char *__print = (print(__result));               \
+                fprintf(morph_file, "#define %s %s\n", #key, __print); \
+                __result;                                              \
+        })
+
 #define comp_int(key, ...) comp("%d", key, int, __VA_ARGS__)
 #define comp_float(key, ...) comp("%f", key, float, __VA_ARGS__)
 #define comp_double(key, ...) comp("%lf", key, double, __VA_ARGS__)
