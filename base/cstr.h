@@ -68,6 +68,9 @@ typedef struct {
 #define cstr_to_long aoc_cstr_to_long
 
 #define cstrlen aoc_cstrlen
+
+#define index_of aoc_index_of
+#define index_of_till aoc_index_of_till
 #endif
 
 #define aoc_cstr_to_slice(s, start, end)                      \
@@ -194,6 +197,9 @@ AOCLIBS_PREFIX double aoc_cstr_to_double(const char *ref s, const double _defaul
 AOCLIBS_PREFIX bool aoc_cstr_to_bool(const char *ref s, const bool _default);
 AOCLIBS_PREFIX float aoc_cstr_to_float(const char *ref s, const float _default);
 AOCLIBS_PREFIX long aoc_cstr_to_long(const char *ref s, const long _default);
+
+size_t aoc_index_of(const char *ref buff, char delim);
+size_t aoc_index_of_till(const char *ref buff, char delim, size_t size);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 
@@ -611,6 +617,30 @@ AOCLIBS_PREFIX size_t aoc_cstrlen(const char *ref s, const size_t size) {
         else
                 len = size;
         return len;
+}
+
+size_t aoc_index_of(const char *ref buff, char delim) {
+        ASSERT_NONNULL(buff != NULL);
+        size_t i = 0;
+
+        for (; buff && buff[i] != delim && buff[i] != '\0'; i++)
+                ;
+
+        if (buff[i] == delim) i++;
+
+        return i == 0 ? -1 : i;
+}
+
+size_t aoc_index_of_till(const char *ref buff, char delim, size_t size) {
+        ASSERT_NONNULL(buff != NULL);
+        size_t i = 0;
+
+        for (; buff && buff[i] != delim && buff[i] != '\0'; i++)
+                if (i > size) return -1;
+
+        if (buff[i] == delim) i++;
+
+        return i == 0 ? -1 : i;
 }
 
 #endif
