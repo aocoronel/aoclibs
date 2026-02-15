@@ -71,6 +71,15 @@ typedef struct {
                 .data = alloca((capacity)), .len = 0, .cap = (capacity) \
         }
 
+#define aoc_rc_fmt_append(rc, fmt, ...)                                                   \
+        do {                                                                              \
+                int needed = aoc_cstr_copy_fmt_size(fmt, __VA_ARGS__);                    \
+                _aoc_da_reserve(AOCLIBS_DA_REALLOC, (rc), (rc)->len + needed);            \
+                int written = aoc_cstr_copy_fmt(                                          \
+                        (rc)->data + (rc)->len, (rc)->cap - (rc)->len, fmt, __VA_ARGS__); \
+                (rc)->len += written;                                                     \
+        } while (0)
+
 // Stack concat and appending
 #define aoc_lrcs_cat(rc, items_buff) aoc_das_copy(rc, items_buff, lcstrlen(items_buff))
 #define aoc_rcs_cat(rc, items_buff, items_size) aoc_das_copy(rc, items_buff, items_size)
