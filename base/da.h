@@ -90,17 +90,31 @@
         } while (0)
 
 // Append any type. For C strings, look for the aoc_da_append_cstr
-#define aoc_da_insert(da, data) _aoc_da_append(AOCLIBS_DA_REALLOC, (da), (data))
+#define aoc_da_insert(da, data) _aoc_da_insert(AOCLIBS_DA_REALLOC, (da), (data))
 #define _aoc_da_insert(realloc, da, item)                        \
         do {                                                     \
                 _aoc_da_reserve((realloc), (da), (da)->len + 1); \
                 (da)->data[(da)->len++] = (item);                \
         } while (0)
 
+#define aoc_da_insert_fast(da, item)              \
+        do {                                      \
+                (da)->data[(da)->len++] = (item); \
+        } while (0)
+
 #define aoc_da_copy(da, items_buff, items_size) \
         aoc_da_add(AOCLIBS_DA_REALLOC, da, items_buff, items_size, (da)->len)
 #define _aoc_da_copy(realloc, da, items_buff, items_size) \
         aoc_da_add(realloc, da, items_buff, items_size, (da)->len)
+
+#define aoc_da_copy_fast(da, items_buff, items_size) \
+        aoc_da_add_fast(da, items_buff, items_size, (da)->len)
+
+#define aoc_da_add_fast(da, items_buff, items_size, offset)                                      \
+        do {                                                                                     \
+                memcpy((da)->data + (offset), (items_buff), (items_size) * sizeof(*(da)->data)); \
+                (da)->len += (items_size);                                                       \
+        } while (0)
 
 #define aoc_da_add(realloc, da, items_buff, items_size, offset)                                  \
         do {                                                                                     \
@@ -148,8 +162,7 @@
                 (da)->data[(da)->len++] = (item);    \
         }
 
-#define aoc_das_copy(da, items_buff, items_size) \
-        aoc_das_add(da, items_buff, items_size, (da)->len)
+#define aoc_das_copy(da, items_buff, items_size) aoc_das_add(da, items_buff, items_size, (da)->len)
 
 #define aoc_das_add(da, items_buff, items_size, offset)                                            \
         ((da)->len + items_size < (da)->cap) {                                                     \
