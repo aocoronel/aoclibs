@@ -93,124 +93,137 @@ int main(int argc, char *argv[]) {
 
 ## Morph
 
-Non-obstructive compile-time implementation for C. This library can be used without dramatic changes. You can use it with simple macros like `comp_int`, `comp_char`, `comp_cstr`, `comp_array` and more. If you need to support other types, for simple ones a single line of macro is enough. However, if you want to support structs and unions, you will have to implementation the `comp` macro yourself.
+Morph is a simple and deterministic code generator.
 
-> [!NOTE]
-> These macros will define macros at run-time. If your program has these macros in parts of the code that are not always ran, it won't produce the necessary defines. It's recommended to have a special source file that will generate the necessary defines.
-
-```c
-#define comp_intptr(...) comp("%zu", intptr_t, __VA_ARGS__)
-```
-
-Morph is a simple way to achieve compile-time in C, without overcomplicating anything. This is a standalone, and doesn't depend in anything else from AOCLIBS.
+The goal is to generate code using C, and writing the instructions as close as C.
 
 It doesn't require an external executable to generate code. The only thing you need is a C compiler.
 
-To use it, you can create a comptime expression:
+Currently Morph has these features:
+
+1. Consistent indentation defined by MORPH_INDENTATION.
+
+2. Generate defines, which includes the result of a given expression or function:
+
+This code will create a DEFINE named LOOP_RESULT, which has the value of 30.
 
 ```c
 int loop_10_times(int x) {
      for (int i = 0; i < 10; i++) x++;
      return x;
 }
-int myvar = comp_int(loop_10_times(20)); // returns 30
+
+int myvar = comp_int(LOOP_RESULT, loop_10_times(20));
 ```
 
-These macros won't break your code, and will allow you to run code at runtime. After running this, a file called "comptime.h" will be generated with the return value. If you now try to compile the program again, but with the `MORPH_USECOMP` define, the for loop is never compiled, since its result is cached.
+You can also generate a whole array:
 
-What if you want to store a value in a global variable? Instead of using `comp_int`, you use the shared versions: `scomp_int`.
-
-```c
-int myvar = scomp_int(FOR_LOOP_RESULT, loop_10_times(20)); // returns 30
-```
-
-Now you can use the result several times across your code by using: `usecomp`.
+A length is also available in this case: LOOP_RESULT_LEN.
 
 ```c
-int x = usecomp(FOR_LOOP_RESULT, 0);
-//              ^                ^
-//              define           fallback value
-```
-
-Because, the C compiler will block you from compiling the code, if `FOR_LOOP_RESULT` is not yet generated, and you also haven't provided the expression to generate it (this is a limitation for global variables), you have to provide a fallback value.
-
-`morph` is also capable of generating anything through a different implementation:
-
-```c
-// #define MORPH_USECOMP // for comp_int
-#include "morph.h"
-
-// #include "comptime.h" // result of this program
-
-int main(void) {
-        int time = 20;
-        bool boolean = false;
-        char *host = "server-1";
-        double cpu = comp_int(CPU1_USAGE, 325.0 / 5.0);
-        MORPH_GENERATE(BIND_DOUBLE(cpu), BIND_STRING(host), BIND_INT(time), BIND_BOOL(boolean));
-
-        boolean = true;
-        cpu = comp_int(CPU2_USAGE, 699.99 / 5.0);
-        host = "web-1";
-        MORPH_GENERATE(BIND_DOUBLE(cpu), BIND_STRING(host), BIND_INT(time), BIND_BOOL(boolean));
-
-        //@ // Timestamp: <time>PM
-        //@ // Premium: <boolean>
-        //@ // CPU Usage: <cpu:%.3lf>%
-        //@ // Host: <host>
-
-        char *allocator = "alloca";
-        char *func_name = "_alloca";
-        char *rettype = "void";
-        MORPH_GENERATE(BIND_STRING(rettype), BIND_STRING(func_name), BIND_STRING(allocator));
-
-        allocator = "malloc";
-        func_name = "_malloc";
-        MORPH_GENERATE(SET_STRING(rettype, "int"), BIND_STRING(func_name), BIND_STRING(allocator));
-
-        //@ #include `<alloca.h>`
-        //@ #include `<stdlib.h>`
-        //@ <rettype> <func_name>(int size) {
-        //@             char *ptr = (char *)<allocator>(size);
-        //@             ptr[size + 1] = '\0'; // Segfault!
-        //@             return;
-        //@ }
-
-        return 0;
-}
-```
-
-Output:
-
-```c
-#define CPU1_USAGE 65
-// Timestamp: 2PM
-// Premium: false
-// CPU Usage: 65.000%
-// Host: server-1
-
-#define CPU2_USAGE 139
-// Timestamp: 2PM
-// Premium: true
-// CPU Usage: 139.000%
-// Host: web-1
-
-#include <alloca.h>
-#include <stdlib.h>
-void _alloca(int size) {
-            char *ptr = (char *)alloca(size);
-            ptr[size + 1] = '\0'; // Segfault!
-            return;
+int loop_10_times(int x) {
+     int y[10] = {0};
+     for (int i = 0; i < 10; i++) y[x++] = x;
+     return y;
 }
 
-#include <alloca.h>
-#include <stdlib.h>
-int _malloc(int size) {
-            char *ptr = (char *)malloc(size);
-            ptr[size + 1] = '\0'; // Segfault!
-            return;
-}
+int *myvar = comp_array_int(LOOP_RESULT, loop_10_times(20));
 ```
+
+Lastly, which a little bit of extra effort, you can also do it with structs.
+
+```c
+typedef struct {
+     char *name;
+     int year;
+} Car;
+
+// We need to generate the string
+const char *print_car(Car c) {
+        char *car = malloc(256);
+        snprintf(car, 256, "(Car){ .name = %s, .int = %d }", c.name, c.year);
+        return car;
+}
+
+// Returns the struct. The string is expected to be allocated, and is automatically freed.
+// With this approach, you can reuse this struct to do something else.
+Car mycar = comp_struct(MY_CAR, Car, print_car, .name = "Sedan Crown", .year = 1955);
+```
+
+3. Generate functions, or any code you want:
+
+This will generate a function definition for strlen. Note the `//@` which allows you to insert the template inline, instead of having a separate file. This can be modified by changing the `MORPH_COMMENT` define.
+
+This will generate to a file named "comptime.h", which can be modified.
+
+```c
+MORPH_GENERATE();
+
+//@ int strlen(const char *s);
+```
+
+You can also loop this one-hundread times.
+
+```c
+for (int i = 0; i < 100; i++) {
+     MORPH_GENERATE();
+}
+
+//@ int strlen(const char *s);
+```
+
+The user can also specify variables to replace the generated code:
+
+```c
+char *func_name = "strlen";
+MORPH_GENERATE(BIND_STRING(func_name));
+
+//@ int <func_name>(const char *s);
+```
+
+Reusing the same template is simple:
+
+TODO: Conditionals. For instance, `strnlen` takes a second param, but strlen doesn't
+
+```c
+char *func_name = "strlen";
+MORPH_GENERATE(BIND_STRING(func_name));
+MORPH_GENERATE(SET_STRING(func_name, "strnlen"));
+
+//@ int <func_name>(const char *s);
+```
+
+If you ever generate code that may allocate, don't excitate to use `defer`:
+
+Defer will add its statements before calling return, or reaching the end of a scope.
+
+```c
+//@ int allocate_a_million_bytes(char *buff) {
+//@      buff = malloc(1_000_000);
+//@      if (buff == NULL) return -1;
+//@      defer {
+//@              free(buff);
+//@      }
+//@      char *message = "Hello, world!";
+//@      memcpy(buff, message, strlen(message));
+//@      printf("%s\n", buff);
+//@      return 0;
+//@ }
+```
+
+4. Generate macros:
+
+You don't have to include the ending '\'
+
+```c
+char *macro_name = "add";
+MORPH_DEFINE(BIND_STRING(macro_name));
+
+//@ #define <macro_name>(a, b)
+//@     a + b
+```
+
+5. TODO: Generate from stdout.
 
 ## TUnit
 
