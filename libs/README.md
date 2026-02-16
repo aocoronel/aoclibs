@@ -252,6 +252,8 @@ TEST(add) {
 
 Output:
 
+Notice we just compile the entirety of `tunit.h` without optimization flags, and the execution was fast.
+
 ```console
 ./add_test
  ✓ add 0.01ms
