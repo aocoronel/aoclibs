@@ -46,6 +46,7 @@
 /*
  * === Convenient types ===
 */
+
 typedef void *(*aoc_malloc_t)(size_t);
 typedef void *(*aoc_realloc_t)(void *, size_t);
 typedef void (*aoc_free_t)(void *);
@@ -70,17 +71,17 @@ typedef void (*aoc_free_t)(void *);
 /*
  * Used to panic, when an unreachable code is ran
 */
-#define UNREACHABLE AOCLIBS_ABORT("Panicked:", "unreachable code")
+#define UNREACHABLE AOCLIBS_ABORT("Panicked: ", "unreachable code")
 
 /*
  * Prints message, including metadata and aborts the program
 */
-#define PANIC(...) AOCLIBS_ABORT("Panicked", __VA_ARGS__)
+#define PANIC(...) AOCLIBS_ABORT("Panicked: ", __VA_ARGS__)
 
 /*
  * Marks not implemented code
 */
-#define TODO(...) AOCLIBS_ABORT("TODO", __VA_ARGS__)
+#define TODO(...) AOCLIBS_ABORT("TODO: ", __VA_ARGS__)
 
 /*
  * Asserts an expression, and prints a formatted message
