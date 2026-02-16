@@ -58,13 +58,38 @@ typedef void (*aoc_free_t)(void *);
 #define FN_WARN_UNUSED __attribute__((warn_unused_result))
 
 /*
+ * === Debugging ===
+*/
+
+#define AOCLIBS_ABORT(msg, ...)                                        \
+        (fprintf(stderr, "%s: %s:%u: ", __func__, __FILE__, __LINE__), \
+         fprintf(stderr, #msg ": " __VA_ARGS__),                       \
+         fputc('\n', stderr),                                          \
+         abort())
+
+/*
+ * Used to panic, when an unreachable code is ran
+*/
+#define UNREACHABLE AOCLIBS_ABORT("Panicked:", "unreachable code")
+
+/*
+ * Prints message, including metadata and aborts the program
+*/
+#define PANIC(...) AOCLIBS_ABORT("Panicked", __VA_ARGS__)
+
+/*
+ * Marks not implemented code
+*/
+#define TODO(...) AOCLIBS_ABORT("TODO", __VA_ARGS__)
+
+/*
  * Asserts an expression, and prints a formatted message
 */
 #ifdef NDEBUG
-#define ASSERT(...)
+        #define ASSERT(...)
 #else
-#define ASSERT(exp, ...) \
-        ((exp) ? NULL : aoc_assert(#exp, __FILE__, __LINE__, __func__, __VA_ARGS__))
+        #define ASSERT(expr, ...) \
+                ((expr) ? NULL : AOCLIBS_ABORT("Assertion failed: " #expr "\n\t" __VA_ARGS__))
 #endif
 
 /*
@@ -75,40 +100,11 @@ typedef void (*aoc_free_t)(void *);
 /*
  * Asserts an expression, and prints a formatted message
 */
-AOCLIBS_PREFIX void aoc_assert(const char *expr, const char *file, unsigned line, const char *func,
-                               const char *fmt, ...) {
-        va_list args;
-        va_start(args, fmt);
-        fprintf(stderr, "Assertion failed: ");
-        vfprintf(stderr, fmt, args);
-        fprintf(stderr, "\n%s at %s:%u (%s)\n", expr, file, line, func);
-        va_end(args);
 
-        abort();
-}
+
 
 /*
- * Used to panic, when an unreachable code is ran
 */
-#define _unreachable aoc_panic(__FILE__, __LINE__, __func__, "unreachable code")
-
-/*
- * Prints message, including metadata and aborts the program
-*/
-#define panic(msg) aoc_panic(__FILE__, __LINE__, __func__, msg)
-
-/*
- * Prints message, including metadata and aborts the program
- *
- * Should not be used directly. Use the panic macro, instead.
-*/
-AOCLIBS_PREFIX void aoc_panic(const char *__file, int __line, const char *__func, const char *msg)
-        __attribute__((noreturn));
-AOCLIBS_PREFIX void aoc_panic(const char *__file, int __line, const char *__func, const char *msg) {
-        fprintf(stderr, "PANIC: %s at %s:%d (%s) ", msg, __file, __line, __func);
-        fflush(stderr);
-        abort();
-}
 
 // struct example {
 //    size_t len;
