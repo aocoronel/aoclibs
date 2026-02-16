@@ -22,16 +22,13 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef ARENA_H_
-#define ARENA_H_
-
 #include "base.h"
 #include <stddef.h>
 #include <stdint.h>
 
 #ifndef AOCLIBS_ARENA_NOSTDIO
-#include <stdarg.h>
-#include <stdio.h>
+        #include <stdarg.h>
+        #include <stdio.h>
 #endif // AOCLIBS_ARENA_NOSTDIO
 
 #define AOCLIBS_ARENA_BACKEND_LIBC_MALLOC 0
@@ -39,7 +36,7 @@
 #define AOCLIBS_ARENA_BACKEND_WIN32_VIRTUALALLOC 2
 
 #ifndef AOCLIBS_ARENA_BACKEND
-#define AOCLIBS_ARENA_BACKEND AOCLIBS_ARENA_BACKEND_LIBC_MALLOC
+        #define AOCLIBS_ARENA_BACKEND AOCLIBS_ARENA_BACKEND_LIBC_MALLOC
 #endif // AOCLIBS_ARENA_BACKEND
 
 typedef struct Region Region;
@@ -56,7 +53,7 @@ typedef struct {
 } Arena;
 
 #ifndef AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY
-#define AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY (8 * 1024)
+        #define AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY (8 * 1024)
 #endif // AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY
 
 AOCLIBS_PREFIX Region *aoc_arena_new_region(size_t capacity);
@@ -65,6 +62,7 @@ AOCLIBS_PREFIX void aoc_arena_free_region(Region *ref r);
 AOCLIBS_PREFIX void *aoc_arena_alloc(Arena *ref a, size_t size_bytes);
 AOCLIBS_PREFIX void *aoc_arena_realloc(Arena *ref a, void *ref oldptr, size_t oldsz, size_t newsz);
 AOCLIBS_PREFIX void *aoc_arena_memdup(Arena *ref a, void *ref data, size_t size);
+
 #ifndef AOCLIBS_ARENA_NOSTDIO
 AOCLIBS_PREFIX char *aoc_arena_sprintf(Arena *ref a, const char *format, ...);
 AOCLIBS_PREFIX char *aoc_arena_vsprintf(Arena *ref a, const char *format, va_list args);
@@ -75,33 +73,34 @@ AOCLIBS_PREFIX void aoc_arena_destroy(Arena *ref a);
 AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 
 #ifndef AOCLIBS_ARENA_DA_INIT_CAP
-#define AOCLIBS_ARENA_DA_INIT_CAP 4 * 1024
+        #define AOCLIBS_ARENA_DA_INIT_CAP 4 * 1024
 #endif // AOCLIBS_ARENA_DA_INIT_CAP
 
 #define aoc_arena_da_reserve(a, da, new_cap)                                                \
         do {                                                                                \
-                if ((da)->len >= (da)->cap) {                                               \
+                if ((da)->len > (da)->cap) {                                                \
                         size_t new_capacity = (da)->cap < AOCLIBS_ARENA_DA_INIT_CAP ?       \
                                                       AOCLIBS_ARENA_DA_INIT_CAP :           \
                                                       new_cap;                              \
                         while ((new_cap) > new_capacity) {                                  \
                                 new_capacity *= 2;                                          \
                         }                                                                   \
-                        (da)->data = aoc_arena_realloc((a), (da)->data,                     \
+                        (da)->data = aoc_arena_realloc((a),                                 \
+                                                       (da)->data,                          \
                                                        (da)->cap * sizeof(*(da)->data),     \
                                                        new_capacity * sizeof(*(da)->data)); \
                         (da)->cap = new_capacity;                                           \
                 }                                                                           \
         } while (0)
 
-#define aoc_arena_da_append(a, da, item)                    \
+#define aoc_arena_da_insert(a, da, item)                    \
         do {                                                \
                 aoc_arena_da_reserve(a, da, (da)->len + 1); \
                 (da)->data[(da)->len++] = (item);           \
         } while (0)
 
 // Append several items to a dynamic array
-#define aoc_arena_da_append_many(a, da, items_buff, items_size)                                   \
+#define aoc_arena_da_copy(a, da, items_buff, items_size)                                          \
         do {                                                                                      \
                 aoc_arena_da_reserve(a, da, (da)->len + (items_size));                            \
                 memcpy((da)->data + (da)->len, (items_buff), (items_size) * sizeof(*(da)->data)); \
@@ -110,27 +109,15 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 
 #define aoc_arena_da_append_null(a, da) aoc_arena_da_append(a, da, 0)
 
-// These require cstr.h
-#define aoc_arena_da_append_cstr(a, da, cstr, cstr_cap) \
-        do {                                            \
-                const char *s = (cstr);                 \
-                size_t n = cstrlen(cstr, cstr_cap);     \
-                aoc_arena_da_append_many(a, da, s, n);  \
-        } while (0)
+#define aoc_arena_lrc_copy(a, rc, cstr) aoc_arena_da_copy(a, rc, cstr, STRLEN(cstr))
 
-#define aoc_arena_da_append_cstrl(a, da, cstr) \
-        aoc_arena_da_append_cstr(a, da, cstr, cstrl_len(cstr))
-
-#endif // AOCLIBS_ARENA_H_
-
-#define AOCLIBS_IMPLEMENTATION
+// clang-format off
 #ifdef AOCLIBS_IMPLEMENTATION
-
 #include <string.h>
 #include <assert.h>
 
 #if AOCLIBS_ARENA_BACKEND == AOCLIBS_ARENA_BACKEND_LIBC_MALLOC
-#include <stdlib.h>
+        #include <stdlib.h>
 
 AOCLIBS_PREFIX Region *aoc_arena_new_region(size_t capacity) {
         size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
@@ -147,12 +134,12 @@ AOCLIBS_PREFIX void aoc_arena_free_region(Region *ref r) {
         free(r);
 }
 #elif AOCLIBS_ARENA_BACKEND == AOCLIBS_ARENA_BACKEND_LINUX_MMAP
-#if !defined(__linux__)
-#error "Current platform is not Linux"
-#endif
+        #if !defined(__linux__)
+                #error "Current platform is not Linux"
+        #endif
 
-#include <unistd.h>
-#include <sys/mman.h>
+        #include <unistd.h>
+        #include <sys/mman.h>
 
 AOCLIBS_PREFIX Region *aoc_arena_new_region(size_t capacity) {
         size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
@@ -173,14 +160,14 @@ AOCLIBS_PREFIX void aoc_arena_free_region(Region *r) {
 
 #elif AOCLIBS_ARENA_BACKEND == AOCLIBS_ARENA_BACKEND_WIN32_VIRTUALALLOC
 
-#if !defined(_WIN32)
-#error "Current platform is not Windows"
-#endif
+        #if !defined(_WIN32)
+                #error "Current platform is not Windows"
+        #endif
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+        #define WIN32_LEAN_AND_MEAN
+        #include <windows.h>
 
-#define INV_HANDLE(x) (((x) == NULL) || ((x) == INVALID_HANDLE_VALUE))
+        #define INV_HANDLE(x) (((x) == NULL) || ((x) == INVALID_HANDLE_VALUE))
 
 AOCLIBS_PREFIX Region *aoc_arena_new_region(size_t capacity) {
         SIZE_T size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
@@ -212,7 +199,7 @@ AOCLIBS_PREFIX void aoc_arena_free_region(Region *r) {
         if (FALSE == free_result) assert(0 && "VirtualFreeEx() failed.");
 }
 #else
-#error "Unknown Arena backend"
+        #error "Unknown Arena backend"
 #endif
 
 AOCLIBS_PREFIX void *aoc_arena_alloc(Arena *ref a, size_t size_bytes) {
@@ -323,28 +310,28 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a) {
         }
         a->end->next = NULL;
 }
-
 #endif // AOCLIBS_IMPLEMENTATION
+// clang-format on
 
 #ifdef AOCLIBS_STRIP_PREFIX
-#define arena_new_region aoc_arena_new_region
-#define arena_free_region aoc_arena_free_region
+        #define arena_new_region aoc_arena_new_region
+        #define arena_free_region aoc_arena_free_region
 
-#define arena_alloc aoc_arena_alloc
-#define arena_realloc aoc_arena_realloc
-#define arena_memdup aoc_arena_memdup
-#define arena_sprintf aoc_arena_sprintf
-#define arena_vsprintf aoc_arena_vsprintf
+        #define arena_alloc aoc_arena_alloc
+        #define arena_realloc aoc_arena_realloc
+        #define arena_memdup aoc_arena_memdup
+        #define arena_sprintf aoc_arena_sprintf
+        #define arena_vsprintf aoc_arena_vsprintf
 
-#define arena_reset aoc_arena_reset
-#define arena_destroy aoc_arena_destroy
-#define arena_trim aoc_arena_trim
+        #define arena_reset aoc_arena_reset
+        #define arena_destroy aoc_arena_destroy
+        #define arena_trim aoc_arena_trim
 
-#define arena_da_append aoc_arena_da_append
-#define arena_da_append_cstr aoc_arena_da_append_cstr
-#define arena_da_append_cstrl aoc_arena_da_append_cstrl
-#define arena_da_append_many aoc_arena_da_append_many
-#define arena_da_append_null aoc_arena_da_append_null
+        #define arena_da_append aoc_arena_da_append
+        #define arena_da_append_cstr aoc_arena_da_append_cstr
+        #define arena_da_append_cstrl aoc_arena_da_append_cstrl
+        #define arena_da_append_many aoc_arena_da_append_many
+        #define arena_da_append_null aoc_arena_da_append_null
 #endif
 
 #endif // AOCLIBS_ARENA_H_
