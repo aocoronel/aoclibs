@@ -25,7 +25,7 @@ typedef struct {
 } rc;
 
 #ifndef RC_MALLOC
-#define RC_MALLOC malloc
+        #define RC_MALLOC malloc
 #endif
 
 // In short:
@@ -138,35 +138,35 @@ typedef struct {
 #define aoc_rc_ends_with(r, end_len, end) aoc_cstr_ends_with((r).data, (r).len, (end), (end_len))
 
 #ifdef AOCLIBS_STRIP_PREFIX
-#define _rc_new _aoc_rc_new
-#define rc_bnew aoc_rc_bnew
-#define rc_new aoc_rc_new
+        #define _rc_new _aoc_rc_new
+        #define rc_bnew aoc_rc_bnew
+        #define rc_new aoc_rc_new
 
-#define rcs_bnew aoc_rcs_bnew
-#define rcs_new aoc_rcs_new
+        #define rcs_bnew aoc_rcs_bnew
+        #define rcs_new aoc_rcs_new
 
-#define rcs_cat aoc_rcs_cat
-#define lrcs_cat aoc_lrcs_cat
+        #define rcs_cat aoc_rcs_cat
+        #define lrcs_cat aoc_lrcs_cat
 
-#define rcs_append aoc_rcs_append
-#define lrcs_append aoc_lrcs_append
+        #define rcs_append aoc_rcs_append
+        #define lrcs_append aoc_lrcs_append
 
-#define rc_append aoc_rcs_append
-#define lrc_append aoc_lrcs_append
+        #define rc_append aoc_rcs_append
+        #define lrc_append aoc_lrcs_append
 
-#define rc_cat aoc_rcs_cat
-#define lrc_cat aoc_lrcs_cat
+        #define rc_cat aoc_rcs_cat
+        #define lrc_cat aoc_lrcs_cat
 
-#define rc_to_lower aoc_rc_to_lower
-#define rcn_to_lower aoc_rcn_to_lower
+        #define rc_to_lower aoc_rc_to_lower
+        #define rcn_to_lower aoc_rcn_to_lower
 
-#define rc_eq aoc_rc_eq
-#define rcn_eq aoc_rcn_eq
-#define rc_eq_case aoc_rc_eq_case
-#define rcn_eq_case aoc_rcn_eq_case
+        #define rc_eq aoc_rc_eq
+        #define rcn_eq aoc_rcn_eq
+        #define rc_eq_case aoc_rc_eq_case
+        #define rcn_eq_case aoc_rcn_eq_case
 
-#define rc_begins_with aoc_rc_begins_with
-#define rc_ends_with aoc_rc_ends_with
+        #define rc_begins_with aoc_rc_begins_with
+        #define rc_ends_with aoc_rc_ends_with
 #endif
 
 #endif // AOCLIBS_RC_H_
