@@ -48,7 +48,7 @@
 #define _aoc_da_reserve(realloc, da, new_cap)                                              \
         do {                                                                               \
                 if ((new_cap) > (da)->cap) {                                               \
-                        if ((da)->cap == 0) {                                              \
+                        if ((da)->cap < AOCLIBS_DA_INITIAL_CAPACITY) {                     \
                                 (da)->cap = AOCLIBS_DA_INITIAL_CAPACITY;                   \
                         }                                                                  \
                         while ((new_cap) > (da)->cap) {                                    \
