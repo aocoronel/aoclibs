@@ -46,7 +46,7 @@ typedef struct {
 // rc myrc = rcs_bnew(buff, 0);
 //
 // char buff[100] = "Hello, world!";
-// rc myrc = rcs_bnew(buff, lcstrlen("Hello, world"));
+// rc myrc = rcs_bnew(buff, STRLEN("Hello, world"));
 #define aoc_rcs_bnew(buff, length)                                   \
         (rc) {                                                       \
                 .data = (buff), .len = length, .cap = sizeof((buff)) \
@@ -81,10 +81,10 @@ typedef struct {
         } while (0)
 
 // Stack concat and appending
-#define aoc_lrcs_cat(rc, items_buff) aoc_das_copy(rc, items_buff, lcstrlen(items_buff))
+#define aoc_lrcs_cat(rc, items_buff) aoc_das_copy(rc, items_buff, STRLEN(items_buff))
 #define aoc_rcs_cat(rc, items_buff, items_size) aoc_das_copy(rc, items_buff, items_size)
 
-#define aoc_lrcs_append(rc, items_buff) aoc_rcs_append(rc, items_buff, lcstrlen(items_buff))
+#define aoc_lrcs_append(rc, items_buff) aoc_rcs_append(rc, items_buff, STRLEN(items_buff))
 #define aoc_rcs_append(rc, items_buff, items_size)            \
         ((rc)->len + items_size + 1 < (rc)->cap) {            \
                 _aoc_assert_da_is_not_null(rc);               \
@@ -98,9 +98,9 @@ typedef struct {
 
 // Heap concat and appending
 #define aoc_lrc_cat(rc, items_buff) \
-        aoc_da_add(AOCLIBS_DA_REALLOC, rc, items_buff, lcstrlen(items_buff), (rc)->len)
+        aoc_da_add(AOCLIBS_DA_REALLOC, rc, items_buff, STRLEN(items_buff), (rc)->len)
 #define _aoc_lrc_cat(realloc, rc, items_buff) \
-        aoc_da_add(realloc, rc, items_buff, lcstrlen(items_buff), (rc)->len)
+        aoc_da_add(realloc, rc, items_buff, STRLEN(items_buff), (rc)->len)
 
 #define aoc_rc_cat(rc, items_buff, items_len) \
         aoc_da_add(AOCLIBS_DA_REALLOC, rc, items_buff, items_len, (rc)->len)
@@ -108,9 +108,9 @@ typedef struct {
         aoc_da_add(realloc, rc, items_buff, items_len, (rc)->len)
 
 #define aoc_lrc_append(rc, items_buff) \
-        _aoc_rcs_append(AOCLIBS_DA_REALLOC, rc, items_buff, lcstrlen((items_buff)))
+        _aoc_rcs_append(AOCLIBS_DA_REALLOC, rc, items_buff, STRLEN((items_buff)))
 #define _aoc_lrc_append(realloc, rc, items_buff) \
-        _aoc_rcs_append(realloc, rc, items_buff, lcstrlen((items_buff)))
+        _aoc_rcs_append(realloc, rc, items_buff, STRLEN((items_buff)))
 
 #define aoc_rc_append(rc, items_buff, items_len) \
         _aoc_rc_append(AOCLIBS_DA_REALLOC, rc, items_buff, items_len)

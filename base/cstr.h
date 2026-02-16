@@ -81,7 +81,7 @@ typedef struct {
 // cslice myslice = lcslice("hello, world!");
 #define aoc_lcslice(s)                                                   \
         (cslice) {                                                       \
-                .data = "" s "", .len = lcstrlen(s), .cap = lcstrlen(s), \
+                .data = "" s "", .len = STRLEN(s), .cap = STRLEN(s), \
         }
 
 AOCLIBS_PREFIX char *xnull aoc_cstr_dup(const char *ref s, const size_t len);
@@ -184,7 +184,7 @@ AOCLIBS_PREFIX size_t aoc_cstrnstr_index(const char *xref s,
                                          const size_t pattern_len);
 
 #define aoc_cstrtok(s, delim, s_len) aoc_cstr_tok((s), (#delim), 1)
-#define aoc_lcstrtok(s, delim) aoc_cstr_tok((s), (#delim), lcstrlen(s), 1)
+#define aoc_lcstrtok(s, delim) aoc_cstr_tok((s), (#delim), STRLEN(s), 1)
 #define aoc_cstrstrtok aoc_cstr_tok
 AOCLIBS_PREFIX const char *null aoc_cstrstr_tok(const char *ref s,
                                                 const char *delim,
@@ -546,7 +546,7 @@ AOCLIBS_PREFIX size_t aoc_cstrnstr_index(const char *xref s,
 }
 
 #define aoc_cstrtok(s, delim, s_len) aoc_cstr_tok((s), (#delim), 1)
-#define aoc_lcstrtok(s, delim) aoc_cstr_tok((s), (#delim), lcstrlen(s), 1)
+#define aoc_lcstrtok(s, delim) aoc_cstr_tok((s), (#delim), STRLEN(s), 1)
 #define aoc_cstrstrtok aoc_cstr_tok
 AOCLIBS_PREFIX const char *null aoc_cstrstr_tok(const char *ref s,
                                                 const char *delim,
