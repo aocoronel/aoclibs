@@ -18,59 +18,59 @@ typedef struct {
 } cslice;
 
 #ifndef CSTR_MALLOC
-#define CSTR_MALLOC malloc
+        #define CSTR_MALLOC malloc
 #endif
 
 #ifdef AOCLIBS_STRIP_PREFIX
-#define lcslice aoc_lcslice
-#define cstr_to_slice aoc_cstr_to_slice
+        #define lcslice aoc_lcslice
+        #define cstr_to_slice aoc_cstr_to_slice
 
-#define cstrdup aoc_cstr_dup
-#define cstr_to_lower aoc_cstr_to_lower
-#define cstrn_to_lower aoc_cstrn_to_lower
+        #define cstrdup aoc_cstr_dup
+        #define cstr_to_lower aoc_cstr_to_lower
+        #define cstrn_to_lower aoc_cstrn_to_lower
 
-#define cslice_eq aoc_cslice_eq
-#define cslice_begins_with aoc_cslice_begins_with
-#define cslice_ends_with aoc_cslice_ends_with
-#define cstr_begins_with aoc_cstr_begins_with
-#define cstr_ends_with aoc_cstr_ends_with
-#define cstr_eq aoc_cstr_eq
-#define cstrn_eq aoc_cstrn_eq
-#define cstr_eq_case aoc_cstr_eq_case
-#define cstrn_eq_case aoc_cstrn_eq_case
+        #define cslice_eq aoc_cslice_eq
+        #define cslice_begins_with aoc_cslice_begins_with
+        #define cslice_ends_with aoc_cslice_ends_with
+        #define cstr_begins_with aoc_cstr_begins_with
+        #define cstr_ends_with aoc_cstr_ends_with
+        #define cstr_eq aoc_cstr_eq
+        #define cstrn_eq aoc_cstrn_eq
+        #define cstr_eq_case aoc_cstr_eq_case
+        #define cstrn_eq_case aoc_cstrn_eq_case
 
-#define cstrhas aoc_cstr_has
+        #define cstrhas aoc_cstr_has
 
-#define cstrcopy_size aoc_cstr_copy_size
+        #define cstrcopy_size aoc_cstr_copy_size
 
-#define cstrcopy aoc_cstr_copy
-#define cstrcat aoc_cstrcat
-#define cstrappend aoc_cstrappend
+        #define cstrcopy aoc_cstr_copy
+        #define cstrcat aoc_cstrcat
+        #define cstrappend aoc_cstrappend
 
-#ifndef AOCLIBS_NO_STDIO
-#define cstrcopy_fmt_size aoc_cstr_copy_fmt_size
-#define cstrcopy_fmt aoc_cstr_copy_fmt
-#endif
+        #ifndef AOCLIBS_NO_STDIO
+                #define cstrcopy_fmt_size aoc_cstr_copy_fmt_size
+                #define cstrcopy_fmt aoc_cstr_copy_fmt
+        #endif
 
-#define cstrstr_index aoc_cstrstr_index
-#define cstrnstr_index aoc_cstrnstr_index
+        #define cstrstr_index aoc_cstrstr_index
+        #define cstrnstr_index aoc_cstrnstr_index
 
-#define cstrstr_tok aoc_cstrstr_tok
-#define cstrtok aoc_cstrtok
-#define lcstrtok aoc_lcstrtok
-#define cstrstrtok aoc_cstr_tok
+        #define cstrstr_tok aoc_cstrstr_tok
+        #define cstrtok aoc_cstrtok
+        #define lcstrtok aoc_lcstrtok
+        #define cstrstrtok aoc_cstr_tok
 
-#define cstr_trim_whitespace aoc_cstr_trim_whitespace
+        #define cstr_trim_whitespace aoc_cstr_trim_whitespace
 
-#define cstr_to_bool aoc_cstr_to_bool
-#define cstr_to_double aoc_cstr_to_double
-#define cstr_to_float aoc_cstr_to_float
-#define cstr_to_long aoc_cstr_to_long
+        #define cstr_to_bool aoc_cstr_to_bool
+        #define cstr_to_double aoc_cstr_to_double
+        #define cstr_to_float aoc_cstr_to_float
+        #define cstr_to_long aoc_cstr_to_long
 
-#define cstrlen aoc_cstrlen
+        #define cstrlen aoc_cstrlen
 
-#define index_of aoc_index_of
-#define index_of_till aoc_index_of_till
+        #define index_of aoc_index_of
+        #define index_of_till aoc_index_of_till
 #endif
 
 #define aoc_cstr_to_slice(s, start, end)                      \
@@ -79,8 +79,8 @@ typedef struct {
         }
 
 // cslice myslice = lcslice("hello, world!");
-#define aoc_lcslice(s)                                                   \
-        (cslice) {                                                       \
+#define aoc_lcslice(s)                                               \
+        (cslice) {                                                   \
                 .data = "" s "", .len = STRLEN(s), .cap = STRLEN(s), \
         }
 
@@ -155,7 +155,7 @@ AOCLIBS_PREFIX size_t aoc_cstr_copy_size(size_t dest_buff,
 AOCLIBS_PREFIX size_t aoc_cstr_copy(char *xref dest, const char *xref src, size_t dest_cap);
 
 #ifndef AOCLIBS_NO_STDIO
-#include <stdarg.h>
+        #include <stdarg.h>
 /*
  * Returns needed dest size to fit src.
  *
@@ -203,10 +203,12 @@ size_t aoc_index_of_till(const char *ref buff, char delim, size_t size);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 
+        // clang-format off
 #include <ctype.h>
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
+// clang-format on
 
 void cslice_to_cstr(cslice s, char *buff, const size_t size) {
         int size_to_copy = s.len > size ? size : s.len;
@@ -382,50 +384,13 @@ AOCLIBS_PREFIX bool aoc_cstr_eq_case(const char *xref s, const char *xref patter
 }
 
 AOCLIBS_PREFIX bool
-aoc_cstr_has(const char *xref s, size_t s_len, const char *xref pattern, size_t pattern_len) {
-        if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
-
-        const char *s_ptr = s;
-
-        if (pattern_len == 1) return memchr(s_ptr, *pattern, s_len) != NULL;
-
-        if (((size_t)s_ptr & (ALIGN - 1)) == ((size_t)pattern & (ALIGN - 1))) {
-                size_t *ws = (size_t *)s_ptr;
-                size_t *wp = (size_t *)pattern;
-
-                while (((size_t)s_ptr & (ALIGN - 1)) && s_len && pattern_len) {
-                        if (*s_ptr++ != *pattern++) return false;
-                        s_len--;
-                        pattern_len--;
-                }
-
-                size_t word_len = pattern_len / sizeof(size_t);
-                size_t i;
-                for (i = 0; i < word_len; i++) {
-                        if (ws[i] != wp[i]) return false;
-                }
-
-                s_ptr = (const char *)(ws + i);
-                pattern = (const char *)(wp + i);
-                for (i = 0; i < (pattern_len % sizeof(size_t)); i++) {
-                        if (s_ptr[i] != pattern[i]) return false;
-                }
-
-                return true;
-        } else {
-                for (size_t i = 0; i <= s_len - pattern_len; i++) {
-                        if (memcmp(s_ptr + i, pattern, pattern_len) == 0) return true;
-                }
-                return false;
-        }
-}
-
-AOCLIBS_PREFIX bool
-aoc_cstr_has2(const char *s, size_t s_len, const char *pattern, size_t pattern_len) {
+aoc_cstr_has(const char *s, size_t s_len, const char *pattern, size_t pattern_len) {
         if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
 
         const char *s_ptr = s;
         size_t remaining_len = s_len;
+
+        if (pattern_len == 1) return memchr(s_ptr, *pattern, s_len) != NULL;
 
         while ((s_ptr = (const char *)memchr(s_ptr, pattern[0], remaining_len)) != NULL) {
                 remaining_len = s_len - (s_ptr - s);
@@ -475,7 +440,7 @@ defer:
         return len;
 }
 
-#ifndef AOCLIBS_NO_STDIO
+        #ifndef AOCLIBS_NO_STDIO
 
 AOCLIBS_PREFIX int aoc_cstr_copy_fmt_size(const char *fmt, ...) {
         ASSERT_NONNULL(fmt != NULL);
@@ -501,7 +466,7 @@ AOCLIBS_PREFIX int aoc_cstr_copy_fmt(char *xref s, const size_t s_cap, const cha
 
         return allocated_len;
 }
-#endif
+        #endif
 
 AOCLIBS_PREFIX size_t aoc_cstrstr_index(const char *xref s, const char *xref pattern) {
         ASSERT_NONNULL(s != NULL);
@@ -545,9 +510,9 @@ AOCLIBS_PREFIX size_t aoc_cstrnstr_index(const char *xref s,
         return SIZE_MAX;
 }
 
-#define aoc_cstrtok(s, delim, s_len) aoc_cstr_tok((s), (#delim), 1)
-#define aoc_lcstrtok(s, delim) aoc_cstr_tok((s), (#delim), STRLEN(s), 1)
-#define aoc_cstrstrtok aoc_cstr_tok
+        #define aoc_cstrtok(s, delim, s_len) aoc_cstr_tok((s), (#delim), 1)
+        #define aoc_lcstrtok(s, delim) aoc_cstr_tok((s), (#delim), STRLEN(s), 1)
+        #define aoc_cstrstrtok aoc_cstr_tok
 AOCLIBS_PREFIX const char *null aoc_cstrstr_tok(const char *ref s,
                                                 const char *delim,
                                                 const size_t s_len,
