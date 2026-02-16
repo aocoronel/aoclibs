@@ -38,6 +38,12 @@
 #define _aoc_assert_da_data_is_not_null(da) \
         (assert((da)->data != NULL && "cannot modify NULL pointer"))
 
+#define aoc_da_init(da, new_cap)                                   \
+        do {                                                       \
+                (da)->data = calloc(new_cap, sizeof(*(da)->data)); \
+                (da)->cap = new_cap;                               \
+        } while (0)
+
 // If you know before hand you need a big dynamic array, you can reserve memory.
 //
 // The new capacity is already calculates the size of the type.
