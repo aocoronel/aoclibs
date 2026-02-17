@@ -64,7 +64,7 @@ typedef void (*aoc_free_t)(void *);
 
 #define AOCLIBS_ABORT(msg, ...)                                        \
         (fprintf(stderr, "%s: %s:%u: ", __func__, __FILE__, __LINE__), \
-         fprintf(stderr, #msg ": " __VA_ARGS__),                       \
+         fprintf(stderr, msg ": " __VA_ARGS__),                        \
          fputc('\n', stderr),                                          \
          abort())
 
@@ -90,7 +90,7 @@ typedef void (*aoc_free_t)(void *);
         #define ASSERT(...)
 #else
         #define ASSERT(expr, ...) \
-                ((expr) ? NULL : AOCLIBS_ABORT("Assertion failed: " #expr "\n\t" __VA_ARGS__))
+                ((expr) ? (void)0 : AOCLIBS_ABORT("Assertion failed: " #expr, __VA_ARGS__))
 #endif
 
 /*

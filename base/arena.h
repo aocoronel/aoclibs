@@ -78,7 +78,7 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 
 #define aoc_arena_da_reserve(a, da, new_cap)                                                \
         do {                                                                                \
-                if ((da)->len > (da)->cap) {                                                \
+                if ((da)->len >= (da)->cap) {                                               \
                         size_t new_capacity = (da)->cap < AOCLIBS_ARENA_DA_INIT_CAP ?       \
                                                       AOCLIBS_ARENA_DA_INIT_CAP :           \
                                                       new_cap;                              \
