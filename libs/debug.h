@@ -1,6 +1,7 @@
-#ifdef AOCLIBS_MAIN_DEBUG
 #ifndef AOCLIBS_DEBUG_H_
 #define AOCLIBS_DEBUG_H_
+
+#ifdef AOCLIBS_DEBUG
 
 #define _GNU_SOURCE
 #include <setjmp.h>
@@ -55,5 +56,6 @@ __attribute__((constructor)) void _main(int argc, char *argv[]) {
         }
 }
 
+#endif // AOCLIBS_DEBUG
+
 #endif // AOCLIBS_DEBUG_H_
-#endif // AOCLIBS_MAIN_DEBUG

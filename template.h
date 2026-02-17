@@ -16,24 +16,25 @@
 
 // === Function Definitions ===
 
+// Enabled with AOCLIBS_IMPLEMENTATION
+
 #include "./base/base.h"
 
 #include "./base/arena.h"
 #include "./base/colors.h"
 #include "./base/cstr.h"
+#include "./base/da.h"
 #include "./base/file.h"
 #include "./base/printfc.h"
 #include "./base/rc.h"
 
-#include "./libs/crown.h"
-#include "./libs/debug.h"
-#include "./libs/heap_trace.h"
-#include "./libs/match.h"
-#include "./libs/morph.h"
-#include "./libs/spinner.h"
-#include "./libs/tunit.h"
-
-#endif // AOCLIBS_ALL
+#include "./libs/crown.h" // AOCLIBS_CROWN
+#include "./libs/debug.h" // AOCLIBS_DEBUG
+#include "./libs/heap_trace.h" // HEAP_DEBUG
+#include "./libs/match.h" // AOCLIBS_MATCH
+#include "./libs/morph.h" // AOCLIBS_MORPH
+#include "./libs/spinner.h" // AOCLIBS_SPINNER
+#include "./libs/tunit.h" // TUNIT
 
 /*
  * This project is licensed under Unlicense and MIT. Pick one:

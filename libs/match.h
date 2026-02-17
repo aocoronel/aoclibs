@@ -1,6 +1,8 @@
 #ifndef AOCLIBS_MATCH_H_
 #define AOCLIBS_MATCH_H_
 
+#ifdef AOCLIBS_MATCH
+
 #include <stdbool.h>
 
 // Match is useful when you have several if/else statements, and switch cases are not applicable
@@ -51,5 +53,7 @@
              _Match.iterator++)
 #define when(val) if (_Match.fn(_Match.value, val) == true)
 #define unless(val) if (_Match.fn(_Match.value, val) == false)
+
+#endif
 
 #endif

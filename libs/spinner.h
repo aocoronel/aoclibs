@@ -1,6 +1,8 @@
 #ifndef AOCLIBS_SPINNER_H_
 #define AOCLIBS_SPINNER_H_
 
+#ifdef AOCLIBS_SPINNER
+
 #include <stdint.h>
 
 /*
@@ -16,7 +18,7 @@ const char *aoc_get_spinner(void);
 
 #define AOC_SPINNER_NUM_SYMBOLS (sizeof(SYMBOLS) / sizeof(SYMBOLS[0]))
 
-#ifdef AOCLIBS_IMPLEMENTATION
+#ifdef SPINNER_IMPLEMENTATION
 const char *aoc_get_spinner(void) {
         static const char *SYMBOLS[] = { "⠁", "⠈", "⠐", "⠠", "⢀", "⡀", "⠄", "⠂" };
         static int_fast8_t counter = 0;
@@ -24,6 +26,8 @@ const char *aoc_get_spinner(void) {
         counter = (counter + 1) % AOC_SPINNER_NUM_SYMBOLS;
         return RESULT;
 }
+#endif
+
 #endif
 
 #endif // AOCLIBS_SPINNER_H_

@@ -1,7 +1,6 @@
 #ifndef AOCLIBS_CSTR_H_
 #define AOCLIBS_CSTR_H_
 
-#define AOCLIBS_IMPLEMENTATION
 #include "base.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -20,67 +19,15 @@ typedef struct {
         #define CSTR_MALLOC malloc
 #endif
 
-#ifdef AOCLIBS_STRIP_PREFIX
-        #define lcslice aoc_lcslice
-        #define cstr_to_slice aoc_cstr_to_slice
-
-        #define cstrdup aoc_cstr_dup
-        #define cstr_to_lower aoc_cstr_to_lower
-        #define cstrn_to_lower aoc_cstrn_to_lower
-
-        #define cslice_eq aoc_cslice_eq
-        #define cslice_begins_with aoc_cslice_begins_with
-        #define cslice_ends_with aoc_cslice_ends_with
-        #define cstr_begins_with aoc_cstr_begins_with
-        #define cstr_ends_with aoc_cstr_ends_with
-        #define cstr_eq aoc_cstr_eq
-        #define cstrn_eq aoc_cstrn_eq
-        #define cstr_eq_case aoc_cstr_eq_case
-        #define cstrn_eq_case aoc_cstrn_eq_case
-
-        #define cstrhas aoc_cstr_has
-
-        #define cstrcopy_size aoc_cstr_copy_size
-
-        #define cstrcopy aoc_cstr_copy
-        #define cstrcat aoc_cstrcat
-        #define cstrappend aoc_cstrappend
-
-        #ifndef AOCLIBS_NO_STDIO
-                #define cstrcopy_fmt_size aoc_cstr_copy_fmt_size
-                #define cstrcopy_fmt aoc_cstr_copy_fmt
-        #endif
-
-        #define cstrstr_index aoc_cstrstr_index
-        #define cstrnstr_index aoc_cstrnstr_index
-
-        #define cstrstr_tok aoc_cstrstr_tok
-        #define cstrtok aoc_cstrtok
-        #define lcstrtok aoc_lcstrtok
-        #define cstrstrtok aoc_cstr_tok
-
-        #define cstr_trim_whitespace aoc_cstr_trim_whitespace
-
-        #define cstr_to_bool aoc_cstr_to_bool
-        #define cstr_to_double aoc_cstr_to_double
-        #define cstr_to_float aoc_cstr_to_float
-        #define cstr_to_long aoc_cstr_to_long
-
-        #define cstrlen aoc_cstrlen
-
-        #define index_of aoc_index_of
-        #define index_of_till aoc_index_of_till
-#endif
-
 #define aoc_cstr_to_slice(s, start, end)                      \
         (cslice) {                                            \
                 .data = (s) + (start), .len = (end) - (start) \
         }
 
 // cslice myslice = lcslice("hello, world!");
-#define aoc_lcslice(s)                                               \
-        (cslice) {                                                   \
-                .data = "" s "", .len = STRLEN(s), .cap = STRLEN(s), \
+#define aoc_lcslice(s)                             \
+        (cslice) {                                 \
+                .data = "" s "", .len = STRLEN(s), \
         }
 
 AOCLIBS_PREFIX char *xnull aoc_cstr_dup(const char *ref s, const size_t len);
@@ -633,6 +580,58 @@ size_t aoc_index_of_till(const char *ref buff, char delim, size_t size) {
         return i == 0 ? -1 : i;
 }
 
+#endif
+
+#ifdef AOCLIBS_STRIP_PREFIX
+        #define lcslice aoc_lcslice
+        #define cstr_to_slice aoc_cstr_to_slice
+
+        #define cstrdup aoc_cstr_dup
+        #define cstr_to_lower aoc_cstr_to_lower
+        #define cstrn_to_lower aoc_cstrn_to_lower
+
+        #define cslice_eq aoc_cslice_eq
+        #define cslice_begins_with aoc_cslice_begins_with
+        #define cslice_ends_with aoc_cslice_ends_with
+        #define cstr_begins_with aoc_cstr_begins_with
+        #define cstr_ends_with aoc_cstr_ends_with
+        #define cstr_eq aoc_cstr_eq
+        #define cstrn_eq aoc_cstrn_eq
+        #define cstr_eq_case aoc_cstr_eq_case
+        #define cstrn_eq_case aoc_cstrn_eq_case
+
+        #define cstrhas aoc_cstr_has
+
+        #define cstrcopy_size aoc_cstr_copy_size
+
+        #define cstrcopy aoc_cstr_copy
+        #define cstrcat aoc_cstrcat
+        #define cstrappend aoc_cstrappend
+
+        #ifndef AOCLIBS_NO_STDIO
+                #define cstrcopy_fmt_size aoc_cstr_copy_fmt_size
+                #define cstrcopy_fmt aoc_cstr_copy_fmt
+        #endif
+
+        #define cstrstr_index aoc_cstrstr_index
+        #define cstrnstr_index aoc_cstrnstr_index
+
+        #define cstrstr_tok aoc_cstrstr_tok
+        #define cstrtok aoc_cstrtok
+        #define lcstrtok aoc_lcstrtok
+        #define cstrstrtok aoc_cstr_tok
+
+        #define cstr_trim_whitespace aoc_cstr_trim_whitespace
+
+        #define cstr_to_bool aoc_cstr_to_bool
+        #define cstr_to_double aoc_cstr_to_double
+        #define cstr_to_float aoc_cstr_to_float
+        #define cstr_to_long aoc_cstr_to_long
+
+        #define cstrlen aoc_cstrlen
+
+        #define index_of aoc_index_of
+        #define index_of_till aoc_index_of_till
 #endif
 
 #endif // AOCLIBS_CSTR_H_

@@ -2,6 +2,13 @@
 
 This repository contemplates C libraries developed specially for personal CLI development.
 
+## How to use
+
+```console
+# Generate a single header with all the libraries
+gcc -o merge merge.c && ./merge
+```
+
 ## Explore
 
 - [Convention](./CONVENTION.md)

@@ -63,6 +63,7 @@ FileType aoc_get_filetype(const char *ref path);
 */
 size_t read_by_delim(char **xref lineptr, size_t *xref n, int delim, FILE *xref stream);
 
+#ifdef AOCLIBS_IMPLEMENTATION
 size_t read_by_delim(char **xref lineptr, size_t *xref n, int delim, FILE *xref stream) {
         if (!lineptr || !n || !stream) {
                 errno = EINVAL;
@@ -171,5 +172,6 @@ FileType aoc_get_filetype(const char *ref path) {
 
         return F_NULL;
 }
+#endif
 
 #endif // AOCLIBS_FILE_H_

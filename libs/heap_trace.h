@@ -1,6 +1,7 @@
-#ifdef HEAP_TRACE
 #ifndef AOCLIBS_HEAP_TRACE_H_
 #define AOCLIBS_HEAP_TRACE_H_
+
+#ifdef HEAP_TRACE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -165,5 +166,6 @@ static inline void aoc_heap_trace_summary(FILE *fd) {
 #define realloc(p, x) __trace_realloc(p, x, __func__, __FILE__, __LINE__)
 #define free(x) __trace_free(x, __func__, __FILE__, __LINE__)
 
-#endif // AOCLIBS_HEAP_TRACE_H_
 #endif
+
+#endif // AOCLIBS_HEAP_TRACE_H_
