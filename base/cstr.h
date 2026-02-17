@@ -1,12 +1,11 @@
 #ifndef AOCLIBS_CSTR_H_
 #define AOCLIBS_CSTR_H_
 
-#include <stdio.h>
-#include <stdlib.h>
 #define AOCLIBS_IMPLEMENTATION
-
 #include "base.h"
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 // --> printf("%s "SLICE_FMT" stuff...", "do", VSLICE(myslice));
 #define SLICE_FMT "%.*s"
@@ -401,6 +400,32 @@ aoc_cstr_has(const char *s, size_t s_len, const char *pattern, size_t pattern_le
         }
 
         return false;
+}
+
+AOCLIBS_PREFIX size_t aoc_cstr_has_at(const char *s,
+                                      size_t s_len,
+                                      const char *pattern,
+                                      size_t pattern_len) {
+        if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
+
+        const char *s_ptr = s;
+        size_t remaining_len = s_len;
+
+        if (pattern_len == 1) {
+                s_ptr = (const char *)memchr(s_ptr, *pattern, s_len);
+                remaining_len = s_len - (s_ptr - s);
+                return s_len - remaining_len;
+        }
+
+        while ((s_ptr = (const char *)memchr(s_ptr, pattern[0], remaining_len)) != NULL) {
+                remaining_len = s_len - (s_ptr - s);
+                if (remaining_len >= pattern_len && memcmp(s_ptr, pattern, pattern_len) == 0)
+                        return s_len - remaining_len;
+                s_ptr++;
+                remaining_len--;
+        }
+
+        return SIZE_MAX;
 }
 
 AOCLIBS_PREFIX size_t aoc_cstr_copy_size(size_t dest_buff,
