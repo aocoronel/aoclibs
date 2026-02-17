@@ -1,11 +1,11 @@
 #ifndef AOCLIBS_CROWN_H_
 #define AOCLIBS_CROWN_H_
 
-#include "../base/base.h"
-#include "../base/colors.h"
-#include "../base/cstr.h"
-#include "../base/arena.h"
-#include "../base/rc.h"
+#include "base.h"
+#include "colors.h"
+#include "cstr.h"
+#include "arena.h"
+#include "rc.h"
 #include <assert.h>
 #include <ctype.h>
 #include <stdbool.h>
