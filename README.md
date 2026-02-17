@@ -4,7 +4,7 @@ This repository contemplates C libraries developed specially for personal CLI de
 
 ## How to use
 
-```console
+```shell
 # Generate a single header with all the libraries
 gcc -o merge merge.c && ./merge
 ```
