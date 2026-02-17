@@ -1,7 +1,7 @@
-#ifdef AOCLIBS_IMPLEMENTATION
 #ifndef AOCLIBS_H
 #define AOCLIBS_H
 
+#ifdef AOCLIBS_IMPLEMENTATION
 /*
  * AOCLIBS - Augusto Coronel's C Libraries
  *
@@ -17,34 +17,22 @@
 // === Function Definitions ===
 
 #include "./base/base.h"
-#include "./base/colors.h"
-#include "./base/printfc.h"
 
-#include "./base/rc.h"
 #include "./base/arena.h"
-#include "./base/vec.h"
+#include "./base/colors.h"
+#include "./base/cstr.h"
+#include "./base/file.h"
+#include "./base/printfc.h"
+#include "./base/rc.h"
 
-#include "./modules/debug.h"
-#include "./modules/heap_trace.h"
-#include "./modules/tunit.h"
+#include "./libs/crown.h"
+#include "./libs/debug.h"
+#include "./libs/heap_trace.h"
+#include "./libs/match.h"
+#include "./libs/morph.h"
+#include "./libs/spinner.h"
+#include "./libs/tunit.h"
 
-#ifdef AOCLIBS_ALL
-#include "./modules/cli.h"
-#include "./modules/spinner.h"
-#include "./modules/file.h"
-#else
-
-#ifdef AOCLIBS_SPINNER
-#include "./modules/spinner.h"
-#endif
-
-#ifdef AOCLIBS_CLI
-#include "./modules/cli.h"
-#endif
-
-#ifdef AOCLIBS_FILE
-#include "./modules/file.h"
-#endif
 #endif // AOCLIBS_ALL
 
 /*
@@ -95,5 +83,5 @@
  * =============================================================================
 */
 
-#endif // AOCLIBS_H
 #endif // AOCLIBS_IMPLEMENTATION
+#endif // AOCLIBS_H
