@@ -216,10 +216,9 @@ AOCLIBS_PREFIX int aoc_crown_getopt(CrownCommand *null cmds, char *argv[], int a
 */
 AOCLIBS_PREFIX int aoc_crown_getcmd(CrownCommand *null cmds, char *argv[], int argc);
 
-#ifdef CROWN_IMPLEMENTATION
+#ifdef AOCLIBS_CROWN
 
         #include <ctype.h>
-        #include "rc.h"
         #include "cstr.h"
         #include "colors.h"
 
@@ -391,7 +390,7 @@ internal inline bool aoc_has_commands(CrownCommand *cmds) {
         if (cmd == NULL) return false;
         if (cmd->len == 0) return false;
         #ifndef NDEBUG
-        ASSERT(cmd->data != NULL, "No command is defined, but length is %d\n", cmd->len);
+        ASSERT(cmd->data != NULL, "No command is defined, but length is %zu\n", cmd->len);
         for (size_t i = 0; i < cmd->len; i++)
                 ASSERT(cmd->data[i].name != NULL,
                        "Found a subcommand without name in %s",
@@ -405,7 +404,7 @@ internal inline bool aoc_has_options(CrownCommand *cmds) {
         if (opt == NULL) return false;
         if (opt->len == 0) return false;
         #ifndef NDEBUG
-        ASSERT(opt->data != NULL, "No option is defined, but length is %d\n", opt->len);
+        ASSERT(opt->data != NULL, "No option is defined, but length is %zu\n", opt->len);
         for (size_t i = 0; i < opt->len; i++)
                 ASSERT(opt->data[i].short_opt != NULL || opt->data[i].long_opt != NULL,
                        "Found a option without a least one short/long flag in %s",
@@ -838,7 +837,7 @@ AOCLIBS_PREFIX void aoc_crown_iprint(const char *msg, int indent) {
         }
         fputc(' ', CROWN_OUTPUT);
 }
-#endif // CROWN_IMPLEMENTATION
+#endif // AOCLIBS_CROWN
 
 #ifdef AOCLIBS_STRIP_PREFIX
         #define crown_iprint aoc_crown_iprint
