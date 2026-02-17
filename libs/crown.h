@@ -20,7 +20,7 @@
 #define CROWN_INDENTATION 10 // Indentation by spaces
 
 #ifndef CROWN_OUTPUT
-#define CROWN_OUTPUT stdout
+        #define CROWN_OUTPUT stdout
 #endif
 
 int optind = 0; // == getopt
@@ -191,18 +191,20 @@ AOCLIBS_PREFIX char *aoc_crown_getarg(char *argv[], int argc);
 
 // Important errors when using getopt:
 
-// Returned when CrownOption.args is not NULL, and no argument has been found.
-#define ArgMissingOptarg -1
-// Returned when input is not recognized to be a flag.
-// This can be used to parse commands and positional arguments.
-#define ArgNotOpt -2
-// This is relevant only for developers, and notices when there was an error
-// on defining and option.
-#define ArgNotDefined -3
-// This should NEVER return. It only returns if optind is higher than argc.
-#define EndOfArgs -4
-// User attempted to enter an option that doesn't exist.
-#define ArgNotFound -5
+enum {
+        // Returned when CrownOption.args is not NULL, and no argument has been found.
+        ArgMissingOptarg = -1,
+        // Returned when input is not recognized to be a flag.
+        // This can be used to parse commands and positional arguments.
+        ArgNotOpt,
+        // This is relevant only for developers, and notices when there was an error
+        // on defining and option.
+        ArgNotDefined,
+        // This should NEVER return. It only returns if optind is higher than argc.
+        EndOfArgs,
+        // User attempted to enter an option that doesn't exist.
+        ArgNotFound,
+};
 
 /*
  * Flag parser. If "cmds" is NULL, fallsback to flags defined in Programs.
@@ -504,7 +506,6 @@ internal inline void aoc_crown_help_options(CrownCommand *cmds) {
 
 AOCLIBS_PREFIX void aoc_crown_help(CrownCommand *null cmd) {
         // NULL in case you want to print the general flags and commands
-
 
         CrownCommand *print = cmd == NULL ? NULL : cmd;
         if (cmd == NULL) {
@@ -828,25 +829,25 @@ AOCLIBS_PREFIX void aoc_crown_iprint(const char *msg, int indent) {
 }
 
 #ifdef AOCLIBS_STRIP_PREFIX
-#define crown_iprint aoc_crown_iprint
-#define crown_bashgen aoc_crown_bashgen
-#define crown_normalize_name aoc_crown_normalize_name
-#define crown_help aoc_crown_help
-#define crown_zshgen aoc_crown_zshgen
-#define crown_getarg aoc_crown_getarg
+        #define crown_iprint aoc_crown_iprint
+        #define crown_bashgen aoc_crown_bashgen
+        #define crown_normalize_name aoc_crown_normalize_name
+        #define crown_help aoc_crown_help
+        #define crown_zshgen aoc_crown_zshgen
+        #define crown_getarg aoc_crown_getarg
 
-#define crown_parseopt aoc_crown_parseopt
-#define crown_parsecmd aoc_crown_parsecmd
+        #define crown_parseopt aoc_crown_parseopt
+        #define crown_parsecmd aoc_crown_parsecmd
 
-#define crown_init aoc_crown_init
-#define crown_deinit aoc_crown_deinit
+        #define crown_init aoc_crown_init
+        #define crown_deinit aoc_crown_deinit
 
-#define crown_new_arg aoc_crown_new_arg
-#define crown_new_opt aoc_crown_new_opt
-#define crown_new_cmd aoc_crown_new_cmd
+        #define crown_new_arg aoc_crown_new_arg
+        #define crown_new_opt aoc_crown_new_opt
+        #define crown_new_cmd aoc_crown_new_cmd
 
-#define crown_new_subopt aoc_crown_new_subopt
-#define crown_new_subcmd aoc_crown_new_subcmd
+        #define crown_new_subopt aoc_crown_new_subopt
+        #define crown_new_subcmd aoc_crown_new_subcmd
 #endif
 
 #endif // AOCLIBS_CROWN_H_
