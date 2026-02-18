@@ -186,34 +186,34 @@
 #define aoc_da_is_null(da) !(da) || !(da)->data
 
 #ifdef AOCLIBS_STRIP_PREFIX
-        #define _da_append_null _aoc_da_append_null
-        #define _da_clone _aoc_da_clone
-        #define _da_copy _aoc_da_copy
-        #define _da_free _aoc_da_free
-        #define _da_reserve _aoc_da_reserve
+#define _da_append_null _aoc_da_append_null
+#define _da_clone _aoc_da_clone
+#define _da_copy _aoc_da_copy
+#define _da_free _aoc_da_free
+#define _da_reserve _aoc_da_reserve
 
-        #define da_add aoc_da_add
-        #define da_append_null aoc_da_append_null
-        #define da_clone aoc_da_clone
-        #define da_copy aoc_da_copy
-        #define da_free aoc_da_free
-        #define da_insert aoc_da_insert
-        #define da_reserve aoc_da_reserve
+#define da_add aoc_da_add
+#define da_append_null aoc_da_append_null
+#define da_clone aoc_da_clone
+#define da_copy aoc_da_copy
+#define da_free aoc_da_free
+#define da_insert aoc_da_insert
+#define da_reserve aoc_da_reserve
 
-        #define da_clear aoc_da_clear
-        #define da_drop aoc_da_drop
-        #define da_erase aoc_da_erase
-        #define da_last aoc_da_last
-        #define da_pop aoc_da_pop
-        #define da_sort aoc_da_sort
-        #define da_swap aoc_da_swap
+#define da_clear aoc_da_clear
+#define da_drop aoc_da_drop
+#define da_erase aoc_da_erase
+#define da_last aoc_da_last
+#define da_pop aoc_da_pop
+#define da_sort aoc_da_sort
+#define da_swap aoc_da_swap
 
-        #define das_add aoc_das_add
-        #define das_copy aoc_das_copy
-        #define das_append_null aoc_das_append_null
-        #define das_insert aoc_das_insert
+#define das_add aoc_das_add
+#define das_copy aoc_das_copy
+#define das_append_null aoc_das_append_null
+#define das_insert aoc_das_insert
 
-        #define da_is_null aoc_da_is_null
+#define da_is_null aoc_da_is_null
 #endif
 
 #endif

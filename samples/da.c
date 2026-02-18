@@ -1,133 +1,107 @@
 #define AOCLIBS_IMPLEMENTATION
-#define AOCLIBS_STRIP_PREFIX
-#include "../base/arena.h"
-#include <assert.h>
-#include <stddef.h>
+#include "base.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-
-// Dynamic Arena
-// Acts like a Dynamic Array, but uses an Arena for allocation
+#define AOCLIBS_STRIP_PREFIX
+#include <stdint.h>
+#include <stdlib.h>
+#include "cstr.h"
+#include "rc.h"
+#include "da.h"
 
 typedef struct {
-        char *msg;
-        int err_code;
-} ErrorInfo;
+        size_t cap;
+        size_t len;
+        int *data;
+} Da_Int;
 
-ErrorInfo errors[] = {
-        { "Out of memory",  -1 },
-        { "Divide by zero", -2 },
-        { "Null pointer",   -3 }
-};
+typedef struct {
+        size_t cap;
+        size_t len;
+        char *data;
+} Da_Char;
 
-int main() {
-        Arena arena = aoc_arena_create(10);
-        assert(arena.buffer != NULL);
+int compare_string(const void *a, const void *b) {
+        char ca = tolower(*(const char *)a);
+        char cb = tolower(*(const char *)b);
+        if (ca != cb) return ca - cb;
+        return *(const char *)a - *(const char *)b;
+}
 
-        DynamicArena mychar = { 0 };
-        mychar.arena = &arena;
+int main(int argc, char *argv[]) {
+        Da_Char my_da = { 0 };
 
-        int hello_len = strlen("hello, world!");
+        // If you know before hand you need many allocations:
+        // preallocate space (500 * sizeof(*my_da.data))
+        da_reserve(&my_da, 500);
 
-        dar_append_cstr(&mychar, "acorn", strlen("acorn"));
-        // or
-        dar_append_cstrl(&mychar, "acorn");
+        // my_da.data can be NULL here, it's going to allocate a new buffer
+        da_copy(&my_da, "ABC", 3);
+        da_copy(&my_da, "abc", 3);
 
-        printf("last: %s\n", (char *)dar_last(&mychar));
+        Da_Char my_da2 = { 0 };
+        da_clone(&my_da2, &my_da);
+        my_da2.data[0] = 'b';
 
-        dar_append_cstr(&mychar, "berlim", strlen("berlim"));
+        printf("before sort: %s\n", my_da2.data);
+        da_sort(&my_da2, compare_string);
+        printf("after sort:%s\n", my_da2.data);
 
-        printf("last: %s\n", (char *)dar_last(&mychar));
+        printf("0: %c\n1: %c\n", my_da2.data[0], my_da2.data[1]);
+        da_swap(char, &my_da2, 0, 1);
+        printf("0: %c\n1: %c\n", my_da2.data[0], my_da2.data[1]);
+        printf("%c (len: %zu)\n", da_last(&my_da2), my_da2.len);
 
-        dar_append_cstr(&mychar, "Ball", strlen("Ball"));
+        // In this case, the len is reduced by 1, but this still prints 6
+        // Somehow myda2.len is calculated before the pop operation
+        printf("%c (len: %zu)\n", da_pop(&my_da2), my_da2.len);
+        // To confirm it's indeed 5:
+        printf("%zu\n", my_da2.len);
 
-        printf("last: %s\n", (char *)dar_last(&mychar));
+        da_free(&my_da);
 
-        dar_append_cstr(&mychar, "Tripto Tripto Tripto Tripto",
-                        strlen("Tripto Tripto Tripto Tripto"));
+        int buff[256];
+        Da_Int myint = { 0 };
+        myint.data = buff;
+        myint.cap = 256;
 
-        printf("last: %s\n", (char *)dar_last(&mychar));
+        // myint.data can NOT be NULL here. If you don't set the NDEBUG flag
+        // this will assert myint.data != NULL
+        int int2 = 1;
+        if aoc_das_copy (&myint, &int2, 1) else NULL;
+        printf("%d (%zu:%zu)\n", myint.data[0], myint.len, myint.cap);
 
-        const char *strings[] = { "hi", "hi2", "hi3" };
-        dar_append_many_cstr(&mychar, strings, 3);
+        if aoc_das_insert (&myint, int2) else NULL;
+        printf("%d (%zu:%zu)\n", myint.data[0], myint.len, myint.cap);
 
-        char *str = (char *)dar_last(&mychar);
-        str[0] = 'b'; // hi3 is allocated in the heap
+        int d[] = { 1, 0, 3 };
+        if aoc_das_copy (&myint, d, array_len(d)) else NULL;
 
-        for (int i = 0; i < mychar.len; i++) {
-                printf("%s\n", (char *)dar_get(&mychar, i));
+        if aoc_das_append_null (&myint) else NULL;
+
+        foreach (&myint, i) {
+                printf("%d\n", myint.data[i]);
         }
 
-        DynamicArena myerrors = { 0 };
-        myerrors.arena = &arena;
-        dar_append_many(&myerrors, errors, 3, sizeof(ErrorInfo), _Alignof(ErrorInfo));
-        printf("%d\n", ((ErrorInfo *)dar_get(&myerrors, 1))->err_code); // prints -2
-        printf("Current myerror: last value is %d and index is %zu\n",
-               ((ErrorInfo *)dar_last(&myerrors))->err_code, myerrors.len);
-        ErrorInfo *myerror = (ErrorInfo *)dar_pop(&myerrors);
-        printf("Value returned from pop: %d\n", myerror->err_code);
-        printf("Current myerror: last value is %d and index is %zu\n",
-               ((ErrorInfo *)dar_last(&myerrors))->err_code, myerrors.len);
+        da_erase(&myint);
 
-        foreach (&myerrors, i) {
-                ErrorInfo *x = (ErrorInfo *)dar_get(&myerrors, i);
-                printf("Error Code (Index %zu) : %d\n", i, x->err_code);
-        };
+        char mychar_buff[256];
+        rc mychar = rcs_bnew(mychar_buff, 0);
+        const char* lti = "hello, world! dog dog dog";
+        assert(strlen(lti) == lcstrlen("hello, world! dog dog dog"));
+        if lrcs_cat (&mychar, "hello, world! dog dog dog") else printf("failed");
+        if lrcs_cat (&mychar, "hello, world! dog dog dog") else printf("failed");
+        if lrcs_append (&mychar, "hello, world! dog dog dog") else printf("failed");
+        if lrcs_append (&mychar, "hello, world! dog dog dog") else printf("failed");
 
-        printf("Before squizzle\n");
-        printf("w = %d\n", ((ErrorInfo *)dar_get(&myerrors, 0))->err_code); // -1
-        printf("z = %d\n", ((ErrorInfo *)dar_get(&myerrors, 1))->err_code); // -2
+        if (aoc_da_is_null(&mychar)) printf("mychar is null!");
+        printf("%s (%zu:%zu)\n", mychar.data, mychar.len, mychar.cap);
 
-        dar_swap(&myerrors, 0, 1);
+        rc mychar2 = rc_new(256);
 
-        printf("Squizzled:\n");
-        printf("w = %d\n", ((ErrorInfo *)dar_get(&myerrors, 0))->err_code); // -2
-        printf("z = %d\n", ((ErrorInfo *)dar_get(&myerrors, 1))->err_code); // -1
-
-        printf("myerror = %d\n", ((ErrorInfo *)dar_get(&myerrors, 0))->err_code);
-
-        DynamicArena int_da = { .arena = &arena };
-        int a = 5, b = 2, c = 8, d = 1, e = 3;
-
-        dar_append(&int_da, &a, sizeof(int));
-        dar_append(&int_da, &b, sizeof(int));
-        dar_append(&int_da, &c, sizeof(int));
-        dar_append(&int_da, &d, sizeof(int));
-        dar_append(&int_da, &e, sizeof(int));
-
-        int *i = (int *)dar_get(&int_da, 0);
-        printf("%d\n", *i);
-
-        dar_set(int *, &int_da, 0, b);
-        printf("%d\n", *i);
-
-        for (size_t i = 0; i < int_da.len; i++) {
-                printf("%d ", *(int *)dar_get(&int_da, i));
-        }
-        // Output: 2 2 8 1 3
-
-        dar_free(&mychar);
-        dar_free(&myerrors);
-        dar_free(&int_da);
-
-        // Notice how just a single arena was used.
-        // It was used to allocate strings, structs and ints.
-        //
-        // Arenas are particularly not useful to store strings that
-        // are known to need to grow, since this implementation can
-        // waste (not leak) a little bit of memory for each reallocation.
-        //
-        // Whenever the string needs to grow, a new part of the arena is
-        // reserved and all the previous data is copied to the new location.
-        // The old one is still valid, and contains the same data.
-        //
-        // I personally don't know if it's worth to keep it as is, or to
-        // try to make the Arena a little bit smarter and slower to save some
-        // memory.
-        //
-        // Destroys all allocated memory at once with a single free call.
-        aoc_arena_destroy(&arena);
+        aoc_rc_cat(&mychar2, "hello, world! dog dog dog", 25);
+        aoc_rc_cat(&mychar2, "hello, world! dog dog dog", 25);
+        printf("string: %s (%zu)\n", mychar2.data, mychar2.len);
 
         return 0;
 }

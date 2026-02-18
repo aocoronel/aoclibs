@@ -179,10 +179,15 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
                         clock_gettime(CLOCK_MONOTONIC, &end);
                         double duration_ms = get_time_diff_ms(&start);
                         if (WIFSIGNALED(status)) {
-                                fprintf(stderr, " ✗ %s %.2fms (CRASH: signal %d)\n", CURRENT_TEST,
-                                        duration_ms, WTERMSIG(status));
+                                fprintf(stderr,
+                                        " ✗ %s %.2fms (CRASH: signal %d)\n",
+                                        CURRENT_TEST,
+                                        duration_ms,
+                                        WTERMSIG(status));
                         } else {
-                                fprintf(stderr, " ✗ %s %.2fms (UNKNOWN ERROR)\n", CURRENT_TEST,
+                                fprintf(stderr,
+                                        " ✗ %s %.2fms (UNKNOWN ERROR)\n",
+                                        CURRENT_TEST,
                                         duration_ms);
                         }
                         TESTS_FAIL++;
@@ -234,11 +239,16 @@ static inline void tunit_register_test(const char *desc, void (*func)(void)) {
         __TUnitTail = tc;
 }
 
-static inline void tunit_assert(int expr, const char *expr_str, const char *msg, const char *file,
-                                 int line) {
+static inline void
+tunit_assert(int expr, const char *expr_str, const char *msg, const char *file, int line) {
         if (!expr) {
-                fprintf(stderr, "  [FAIL] Assertion failed: %s in test %s: %s at %s:%d\n", msg,
-                        CURRENT_TEST ? CURRENT_TEST : "(unknown)", expr_str, file, line);
+                fprintf(stderr,
+                        "  [FAIL] Assertion failed: %s in test %s: %s at %s:%d\n",
+                        msg,
+                        CURRENT_TEST ? CURRENT_TEST : "(unknown)",
+                        expr_str,
+                        file,
+                        line);
                 TESTS_FAIL++;
                 longjmp(__TUnitJMP, 1);
         }
@@ -263,8 +273,12 @@ static inline void __tunit_run_all_tests(void) {
 
         double suite_duration_ms = get_time_diff_ms(&suite_start);
         fprintf(stderr, " === Test Summary ===\n");
-        fprintf(stderr, "%d succeed, %d failed and %d skipped (%.2fms total)\n", TESTS_RUN,
-                TESTS_FAIL, TESTS_SKIP, suite_duration_ms);
+        fprintf(stderr,
+                "%d succeed, %d failed and %d skipped (%.2fms total)\n",
+                TESTS_RUN,
+                TESTS_FAIL,
+                TESTS_SKIP,
+                suite_duration_ms);
 }
 
 static inline void __tunit_init_log(const char *log_path) {
@@ -297,7 +311,8 @@ static inline void __tunit_log(const char *msg) {
 
         fprintf(TUNIT_LOG_FILE,
                 "===============================================\n=== %s - %s ===\n===============================================\n",
-                msg, buffer);
+                msg,
+                buffer);
         fflush(TUNIT_LOG_FILE);
 }
 

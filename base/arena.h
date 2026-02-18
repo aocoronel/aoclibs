@@ -27,8 +27,8 @@
 #include <stdint.h>
 
 #ifndef AOCLIBS_ARENA_NOSTDIO
-        #include <stdarg.h>
-        #include <stdio.h>
+#include <stdarg.h>
+#include <stdio.h>
 #endif // AOCLIBS_ARENA_NOSTDIO
 
 #define AOCLIBS_ARENA_BACKEND_LIBC_MALLOC 0
@@ -36,7 +36,7 @@
 #define AOCLIBS_ARENA_BACKEND_WIN32_VIRTUALALLOC 2
 
 #ifndef AOCLIBS_ARENA_BACKEND
-        #define AOCLIBS_ARENA_BACKEND AOCLIBS_ARENA_BACKEND_LIBC_MALLOC
+#define AOCLIBS_ARENA_BACKEND AOCLIBS_ARENA_BACKEND_LIBC_MALLOC
 #endif // AOCLIBS_ARENA_BACKEND
 
 typedef struct Region Region;
@@ -53,7 +53,7 @@ typedef struct {
 } Arena;
 
 #ifndef AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY
-        #define AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY (8 * 1024)
+#define AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY (8 * 1024)
 #endif // AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY
 
 AOCLIBS_PREFIX Region *aoc_arena_new_region(size_t capacity);
@@ -73,7 +73,7 @@ AOCLIBS_PREFIX void aoc_arena_destroy(Arena *ref a);
 AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 
 #ifndef AOCLIBS_ARENA_DA_INIT_CAP
-        #define AOCLIBS_ARENA_DA_INIT_CAP 4 * 1024
+#define AOCLIBS_ARENA_DA_INIT_CAP 4 * 1024
 #endif // AOCLIBS_ARENA_DA_INIT_CAP
 
 #define aoc_arena_da_reserve(a, da, new_cap)                                                \
@@ -314,24 +314,24 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a) {
 // clang-format on
 
 #ifdef AOCLIBS_STRIP_PREFIX
-        #define arena_new_region aoc_arena_new_region
-        #define arena_free_region aoc_arena_free_region
+#define arena_new_region aoc_arena_new_region
+#define arena_free_region aoc_arena_free_region
 
-        #define arena_alloc aoc_arena_alloc
-        #define arena_realloc aoc_arena_realloc
-        #define arena_memdup aoc_arena_memdup
-        #define arena_sprintf aoc_arena_sprintf
-        #define arena_vsprintf aoc_arena_vsprintf
+#define arena_alloc aoc_arena_alloc
+#define arena_realloc aoc_arena_realloc
+#define arena_memdup aoc_arena_memdup
+#define arena_sprintf aoc_arena_sprintf
+#define arena_vsprintf aoc_arena_vsprintf
 
-        #define arena_reset aoc_arena_reset
-        #define arena_destroy aoc_arena_destroy
-        #define arena_trim aoc_arena_trim
+#define arena_reset aoc_arena_reset
+#define arena_destroy aoc_arena_destroy
+#define arena_trim aoc_arena_trim
 
-        #define arena_da_append aoc_arena_da_append
-        #define arena_da_append_cstr aoc_arena_da_append_cstr
-        #define arena_da_append_cstrl aoc_arena_da_append_cstrl
-        #define arena_da_append_many aoc_arena_da_append_many
-        #define arena_da_append_null aoc_arena_da_append_null
+#define arena_da_append aoc_arena_da_append
+#define arena_da_append_cstr aoc_arena_da_append_cstr
+#define arena_da_append_cstrl aoc_arena_da_append_cstrl
+#define arena_da_append_many aoc_arena_da_append_many
+#define arena_da_append_null aoc_arena_da_append_null
 #endif
 
 #endif // AOCLIBS_ARENA_H_

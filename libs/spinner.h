@@ -13,7 +13,7 @@
 const char *aoc_get_spinner(void);
 
 #ifdef AOCLIBS_STRIP_PREFIX
-        #define get_spinner aoc_get_spinner
+#define get_spinner aoc_get_spinner
 #endif
 
 #define AOC_SPINNER_NUM_SYMBOLS (sizeof(SYMBOLS) / sizeof(SYMBOLS[0]))

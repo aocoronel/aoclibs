@@ -58,8 +58,8 @@ static __heap_trace_entry *__entry_head = NULL;
 static int __trace_alloc_count = 0;
 static int __trace_free_count = 0;
 
-static inline void __trace_add_entry(void *ptr, size_t size, const char *func, const char *file,
-                                     int line) {
+static inline void
+__trace_add_entry(void *ptr, size_t size, const char *func, const char *file, int line) {
         __init_trace_std_alloc_fn();
         __heap_trace_entry *entry =
                 (__heap_trace_entry *)__trace_std_malloc(sizeof(__heap_trace_entry));
@@ -99,8 +99,8 @@ static inline void *__trace_malloc(size_t size, const char *func, const char *fi
         return ptr;
 }
 
-static inline void *__trace_calloc(size_t nmemb, size_t size, const char *func, const char *file,
-                                   int line) {
+static inline void *
+__trace_calloc(size_t nmemb, size_t size, const char *func, const char *file, int line) {
         __init_trace_std_alloc_fn();
         void *ptr = __trace_std_calloc(nmemb, size);
         if (ptr) {
@@ -109,8 +109,8 @@ static inline void *__trace_calloc(size_t nmemb, size_t size, const char *func, 
         return ptr;
 }
 
-static inline void *__trace_realloc(void *ptr, size_t size, const char *func, const char *file,
-                                    int line) {
+static inline void *
+__trace_realloc(void *ptr, size_t size, const char *func, const char *file, int line) {
         __init_trace_std_alloc_fn();
         if (ptr == NULL) {
                 void *new_ptr = __trace_std_malloc(size);
@@ -151,8 +151,13 @@ static inline void aoc_heap_trace_summary(FILE *fd) {
         fprintf(fd, "Total frees: %d\n", __trace_free_count);
         fprintf(fd, "Active allocations (leaks): %d\n", __trace_alloc_count - __trace_free_count);
         while (curr) {
-                fprintf(fd, "%zu bytes at %s() in %s:%d (ptr: %p)\n", curr->size, curr->func,
-                        curr->file, curr->line, curr->ptr);
+                fprintf(fd,
+                        "%zu bytes at %s() in %s:%d (ptr: %p)\n",
+                        curr->size,
+                        curr->func,
+                        curr->file,
+                        curr->line,
+                        curr->ptr);
                 leaks_found += curr->size;
                 curr = curr->next;
         }

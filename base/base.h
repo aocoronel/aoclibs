@@ -8,7 +8,7 @@
  * #define AOCLIBS_PREFIX static inline
 */
 #ifndef AOCLIBS_PREFIX
-        #define AOCLIBS_PREFIX
+#define AOCLIBS_PREFIX
 #endif
 
 /*
@@ -28,15 +28,15 @@
 */
 
 #ifndef __clang__
-        #define ref
-        #define xref restrict
-        #define null
-        #define xnull restrict
+#define ref
+#define xref restrict
+#define null
+#define xnull restrict
 #else
-        #define ref _Nonnull
-        #define xref _Nonnull restrict
-        #define null _Nullable
-        #define xnull _Nullable restrict
+#define ref _Nonnull
+#define xref _Nonnull restrict
+#define null _Nullable
+#define xnull _Nullable restrict
 #endif
 
 // To be used in function declarations. "static" is a very broad keyword in C,
@@ -87,10 +87,10 @@ typedef void (*aoc_free_t)(void *);
  * Asserts an expression, and prints a formatted message
 */
 #ifdef NDEBUG
-        #define ASSERT(...)
+#define ASSERT(...)
 #else
-        #define ASSERT(expr, ...) \
-                ((expr) ? (void)0 : AOCLIBS_ABORT("Assertion failed: " #expr, __VA_ARGS__))
+#define ASSERT(expr, ...) \
+        ((expr) ? (void)0 : AOCLIBS_ABORT("Assertion failed: " #expr, __VA_ARGS__))
 #endif
 
 /*
