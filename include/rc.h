@@ -98,12 +98,12 @@ typedef struct {
 
 // Heap concat and appending
 #define aoc_rcl_cat(rc, items_buff) \
-        aoc_da_add(AOCLIBS_DA_REALLOC, rc, items_buff, STRLEN(items_buff), (rc)->len)
+        aoc_da_add(rc, items_buff, STRLEN(items_buff), (rc)->len)
 #define _aoc_rcl_cat(realloc, rc, items_buff) \
         aoc_da_add(realloc, rc, items_buff, STRLEN(items_buff), (rc)->len)
 
 #define aoc_rc_cat(rc, items_buff, items_len) \
-        aoc_da_add(AOCLIBS_DA_REALLOC, rc, items_buff, items_len, (rc)->len)
+        aoc_da_add(rc, items_buff, items_len, (rc)->len)
 #define _aoc_rc_cat(realloc, rc, items_buff, items_len) \
         aoc_da_add(realloc, rc, items_buff, items_len, (rc)->len)
 

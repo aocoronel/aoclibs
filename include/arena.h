@@ -24,6 +24,7 @@
 
 #include "base.h"
 #include <stdint.h>
+#include <stdarg.h>
 
 #define AOCLIBS_ARENA_BACKEND_LIBC_MALLOC 0
 #define AOCLIBS_ARENA_BACKEND_VIRTUAL_ALLOC 1
@@ -77,8 +78,6 @@ AOCLIBS_PREFIX void *aoc_arena_realloc(Arena *ref a, void *ref oldptr, size_t ol
 // NULL :: failed to allocate << arena_new_region
 AOCLIBS_PREFIX void *aoc_arena_memdup(Arena *ref a, void *ref data, size_t size);
 
-#ifndef AOCLIBS_ARENA_NOSTDIO
-#include <stdarg.h>
 // Reserve space from the arena, and copies formatted string with given "format".
 //
 // This serves as higher abstraction to arena_vsprintf.
@@ -86,7 +85,6 @@ AOCLIBS_PREFIX void *aoc_arena_memdup(Arena *ref a, void *ref data, size_t size)
 // NULL :: failed to allocate << arena_new_region
 AOCLIBS_PREFIX char *aoc_arena_sprintf(Arena *ref a, const char *format, ...);
 AOCLIBS_PREFIX char *aoc_arena_vsprintf(Arena *ref a, const char *format, va_list args);
-#endif // AOCLIBS_ARENA_NOSTDIO
 
 // Resets all contents, without freeing memory. Allows reuse.
 AOCLIBS_PREFIX void aoc_arena_reset(Arena *ref a);
@@ -228,6 +226,9 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 #define dar_add_fast aoc_dar_add_fast
 #define dar_copy_fast aoc_dar_copy_fast
 #define dar_insert_fast aoc_dar_insert_fast
+
+#define arc_cat_fast aoc_arena_rc_cat_fast
+#define arc_append_fast aoc_arc_append_fast
 #endif
 
 #endif // AOCLIBS_ARENA_H_

@@ -1,10 +1,7 @@
 #pragma once
 
 #include "arena.h"
-
-#ifndef AOCLIBS_NOSTDIO
 #include <stdio.h>
-#endif
 
 #include <stddef.h>
 #include <string.h>
@@ -147,7 +144,6 @@ AOCLIBS_PREFIX void *aoc_arena_memdup(Arena *ref a, void *ref data, size_t size)
         return memcpy(aoc_arena_alloc(a, size), data, size);
 }
 
-#ifndef AOCLIBS_NOSTDIO
 AOCLIBS_PREFIX char *aoc_arena_vsprintf(Arena *ref a, const char *format, va_list args) {
         ASSERT_NONNULL(a != NULL);
         va_list args_copy;
@@ -171,7 +167,6 @@ AOCLIBS_PREFIX char *aoc_arena_sprintf(Arena *ref a, const char *format, ...) {
 
         return result;
 }
-#endif // AOCLIBS_NOSTDIO
 
 AOCLIBS_PREFIX void aoc_arena_reset(Arena *ref a) {
         ASSERT_NONNULL(a != NULL);

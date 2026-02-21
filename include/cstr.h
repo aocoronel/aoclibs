@@ -14,24 +14,24 @@
 typedef struct {
         size_t len;
         const char *data;
-} cslice;
+} CSlice;
 
 #ifndef CSTR_MALLOC
 #define CSTR_MALLOC malloc
 #endif
 
 #define aoc_cstr_to_slice(s, start, end)                      \
-        (cslice) {                                            \
+        (CSlice) {                                            \
                 .data = (s) + (start), .len = (end) - (start) \
         }
 
-// cslice myslice = lcslice("hello, world!");
-#define aoc_lcslice(s)                             \
-        (cslice) {                                 \
+// CSlice myslice = cslice("hello, world!");
+#define aoc_cslice(s)                             \
+        (CSlice) {                                 \
                 .data = "" s "", .len = STRLEN(s), \
         }
 
-AOCLIBS_PREFIX char *xnull aoc_cstr_dup(const char *ref s, const size_t len);
+AOCLIBS_PREFIX char *null aoc_cstr_dup(const char *ref s, const size_t len);
 AOCLIBS_PREFIX void aoc_cstr_to_lower(char *ref s);
 AOCLIBS_PREFIX void aoc_cstrn_to_lower(char *ref s, const size_t len);
 
@@ -157,7 +157,7 @@ size_t aoc_index_of_till(const char *ref buff, char delim, size_t size);
 #endif
 
 #ifdef AOCLIBS_STRIP_PREFIX
-#define lcslice aoc_lcslice
+#define cslice aoc_cslice
 #define cstr_to_slice aoc_cstr_to_slice
 
 #define cstrdup aoc_cstr_dup

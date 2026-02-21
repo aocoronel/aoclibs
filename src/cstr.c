@@ -6,26 +6,26 @@
 #include <stdint.h>
 #include <string.h>
 
-void cslice_to_cstr(cslice s, char *buff, const size_t size) {
+void cslice_to_cstr(CSlice s, char *buff, const size_t size) {
         int size_to_copy = s.len > size ? size : s.len;
         memcpy(buff, s.data, size_to_copy);
         buff[size_to_copy] = '\0';
 }
 
-AOCLIBS_PREFIX char *xnull aoc_cstr_dup(const char *ref s, const size_t len) {
+AOCLIBS_PREFIX char *aoc_cstr_dup(const char *s, const size_t len) {
         ASSERT_NONNULL(s != NULL);
         char *d = CSTR_MALLOC(len);
         if (!d) return NULL;
         return memcpy(d, s, len);
 }
 
-AOCLIBS_PREFIX void aoc_cstr_to_lower(char *ref s) {
+AOCLIBS_PREFIX void aoc_cstr_to_lower(char *s) {
         ASSERT_NONNULL(s != NULL);
         for (; *s; s++)
                 *s = tolower(*s);
 }
 
-AOCLIBS_PREFIX void aoc_cstrn_to_lower(char *ref s, const size_t len) {
+AOCLIBS_PREFIX void aoc_cstrn_to_lower(char *s, const size_t len) {
         ASSERT_NONNULL(s != NULL);
         for (size_t i = 0; i < len; i++)
                 s[i] = tolower(s[i]);
@@ -135,8 +135,8 @@ AOCLIBS_PREFIX size_t aoc_cstr_has_at(const char *s,
 }
 
 AOCLIBS_PREFIX size_t aoc_cstrcpy_size(size_t dest_buff,
-                                         const size_t dest_offset,
-                                         const size_t src_len) {
+                                       const size_t dest_offset,
+                                       const size_t src_len) {
         size_t needed_size = src_len + 1;
         return needed_size > dest_buff - dest_offset ? needed_size : dest_buff;
 }
@@ -244,17 +244,15 @@ AOCLIBS_PREFIX size_t aoc_cstrnstr_index(const char *xref s,
 #define aoc_cstrtok(s, delim, s_len) aoc_cstr_tok((s), (#delim), 1)
 #define aoc_lcstrtok(s, delim) aoc_cstr_tok((s), (#delim), STRLEN(s), 1)
 #define aoc_cstrstrtok aoc_cstr_tok
-AOCLIBS_PREFIX const char *null aoc_cstrstr_tok(const char *ref s,
-                                                const char *delim,
-                                                const size_t s_len,
-                                                const size_t delim_len) {
+AOCLIBS_PREFIX const char *
+aoc_cstrstr_tok(const char *s, const char *delim, const size_t s_len, const size_t delim_len) {
         size_t pos = aoc_cstrnstr_index(s, delim, s_len, delim_len);
         if (pos == SIZE_MAX) return NULL;
 
         return s + pos + 1;
 }
 
-AOCLIBS_PREFIX size_t aoc_cstr_trim_whitespace(char *ref s, const size_t len) {
+AOCLIBS_PREFIX size_t aoc_cstr_trim_whitespace(char *s, const size_t len) {
         ASSERT_NONNULL(s != NULL);
 
         if (len == 0) return 0;
@@ -267,7 +265,7 @@ AOCLIBS_PREFIX size_t aoc_cstr_trim_whitespace(char *ref s, const size_t len) {
         return len;
 }
 
-AOCLIBS_PREFIX double aoc_cstr_to_double(const char *ref s, const double _default) {
+AOCLIBS_PREFIX double aoc_cstr_to_double(const char *s, const double _default) {
         ASSERT_NONNULL(s != NULL);
         char *endptr;
         double val = strtod(s, &endptr);
@@ -277,14 +275,14 @@ AOCLIBS_PREFIX double aoc_cstr_to_double(const char *ref s, const double _defaul
         return val;
 }
 
-AOCLIBS_PREFIX bool aoc_cstr_to_bool(const char *ref s, const bool _default) {
+AOCLIBS_PREFIX bool aoc_cstr_to_bool(const char *s, const bool _default) {
         ASSERT_NONNULL(s != NULL);
         if (aoc_cstr_eq_case(s, "true") || aoc_cstr_eq(s, "1")) return true;
         if (aoc_cstr_eq_case(s, "false") || aoc_cstr_eq(s, "0")) return false;
         return _default;
 }
 
-AOCLIBS_PREFIX float aoc_cstr_to_float(const char *ref s, const float _default) {
+AOCLIBS_PREFIX float aoc_cstr_to_float(const char *s, const float _default) {
         ASSERT_NONNULL(s != NULL);
         char *endptr;
         float val = strtof(s, &endptr);
@@ -294,7 +292,7 @@ AOCLIBS_PREFIX float aoc_cstr_to_float(const char *ref s, const float _default) 
         return val;
 }
 
-AOCLIBS_PREFIX long aoc_cstr_to_long(const char *ref s, const long _default) {
+AOCLIBS_PREFIX long aoc_cstr_to_long(const char *s, const long _default) {
         ASSERT_NONNULL(s != NULL);
         char *endptr;
         long val = strtol(s, &endptr, 10);
@@ -304,7 +302,7 @@ AOCLIBS_PREFIX long aoc_cstr_to_long(const char *ref s, const long _default) {
         return val;
 }
 
-size_t aoc_index_of(const char *ref buff, char delim) {
+size_t aoc_index_of(const char *buff, char delim) {
         ASSERT_NONNULL(buff != NULL);
         size_t i = 0;
 
@@ -316,7 +314,7 @@ size_t aoc_index_of(const char *ref buff, char delim) {
         return i == 0 ? -1 : i;
 }
 
-size_t aoc_index_of_till(const char *ref buff, char delim, size_t size) {
+size_t aoc_index_of_till(const char *buff, char delim, size_t size) {
         ASSERT_NONNULL(buff != NULL);
         size_t i = 0;
 
