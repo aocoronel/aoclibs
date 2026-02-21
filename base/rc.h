@@ -81,10 +81,10 @@ typedef struct {
         } while (0)
 
 // Stack concat and appending
-#define aoc_lrcs_cat(rc, items_buff) aoc_das_copy(rc, items_buff, STRLEN(items_buff))
+#define aoc_rcls_cat(rc, items_buff) aoc_das_copy(rc, items_buff, STRLEN(items_buff))
 #define aoc_rcs_cat(rc, items_buff, items_size) aoc_das_copy(rc, items_buff, items_size)
 
-#define aoc_lrcs_append(rc, items_buff) aoc_rcs_append(rc, items_buff, STRLEN(items_buff))
+#define aoc_rcls_append(rc, items_buff) aoc_rcs_append(rc, items_buff, STRLEN(items_buff))
 #define aoc_rcs_append(rc, items_buff, items_size)            \
         ((rc)->len + items_size + 1 < (rc)->cap) {            \
                 _aoc_assert_da_is_not_null(rc);               \
@@ -97,9 +97,9 @@ typedef struct {
         }
 
 // Heap concat and appending
-#define aoc_lrc_cat(rc, items_buff) \
+#define aoc_rcl_cat(rc, items_buff) \
         aoc_da_add(AOCLIBS_DA_REALLOC, rc, items_buff, STRLEN(items_buff), (rc)->len)
-#define _aoc_lrc_cat(realloc, rc, items_buff) \
+#define _aoc_rcl_cat(realloc, rc, items_buff) \
         aoc_da_add(realloc, rc, items_buff, STRLEN(items_buff), (rc)->len)
 
 #define aoc_rc_cat(rc, items_buff, items_len) \
@@ -107,9 +107,9 @@ typedef struct {
 #define _aoc_rc_cat(realloc, rc, items_buff, items_len) \
         aoc_da_add(realloc, rc, items_buff, items_len, (rc)->len)
 
-#define aoc_lrc_append(rc, items_buff) \
+#define aoc_rcl_append(rc, items_buff) \
         _aoc_rcs_append(AOCLIBS_DA_REALLOC, rc, items_buff, STRLEN((items_buff)))
-#define _aoc_lrc_append(realloc, rc, items_buff) \
+#define _aoc_rcl_append(realloc, rc, items_buff) \
         _aoc_rcs_append(realloc, rc, items_buff, STRLEN((items_buff)))
 
 #define aoc_rc_append(rc, items_buff, items_len) \
@@ -137,6 +137,20 @@ typedef struct {
         aoc_cstr_begins_with((r).data, (r).len, (begin), (begin_len))
 #define aoc_rc_ends_with(r, end_len, end) aoc_cstr_ends_with((r).data, (r).len, (end), (end_len))
 
+// =================================
+// These macros skips the reserve step, for faster operations with less checks.
+// Use at own risk.
+#define aoc_rc_cat_fast(rc, items_buff, items_len) \
+        aoc_da_add_fast(rc, items_buff, items_len, (rc)->len)
+
+#define aoc_rc_append_fast(rc, items_buff, items_size)                                            \
+        do {                                                                                      \
+                (rc)->data[(rc)->len++] = ' ';                                                    \
+                memcpy((rc)->data + (rc)->len, (items_buff), (items_size) * sizeof(*(rc)->data)); \
+                (rc)->len += (items_size);                                                        \
+        } while (0)
+// =================================
+
 #ifdef AOCLIBS_STRIP_PREFIX
 #define _rc_new _aoc_rc_new
 #define rc_bnew aoc_rc_bnew
@@ -146,16 +160,19 @@ typedef struct {
 #define rcs_new aoc_rcs_new
 
 #define rcs_cat aoc_rcs_cat
-#define lrcs_cat aoc_lrcs_cat
+#define rcls_cat aoc_rcls_cat
 
 #define rcs_append aoc_rcs_append
-#define lrcs_append aoc_lrcs_append
+#define rcls_append aoc_rcls_append
 
 #define rc_append aoc_rcs_append
-#define lrc_append aoc_lrcs_append
+#define rcl_append aoc_rcls_append
 
 #define rc_cat aoc_rcs_cat
-#define lrc_cat aoc_lrcs_cat
+#define rcl_cat aoc_rcls_cat
+
+#define rc_cat_fast aoc_rc_cat_fast
+#define rc_append_fast aoc_rc_append_fast
 
 #define rc_to_lower aoc_rc_to_lower
 #define rcn_to_lower aoc_rcn_to_lower
