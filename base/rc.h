@@ -73,9 +73,9 @@ typedef struct {
 
 #define aoc_rc_fmt_append(rc, fmt, ...)                                                   \
         do {                                                                              \
-                int needed = aoc_cstr_copy_fmt_size(fmt, __VA_ARGS__);                    \
+                int needed = aoc_cstrcpy_fmt_size(fmt, __VA_ARGS__);                    \
                 _aoc_da_reserve(AOCLIBS_DA_REALLOC, (rc), (rc)->len + needed);            \
-                int written = aoc_cstr_copy_fmt(                                          \
+                int written = aoc_cstrcpy_fmt(                                          \
                         (rc)->data + (rc)->len, (rc)->cap - (rc)->len, fmt, __VA_ARGS__); \
                 (rc)->len += written;                                                     \
         } while (0)
