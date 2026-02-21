@@ -1,7 +1,6 @@
 #ifndef AOCLIBS_H
 #define AOCLIBS_H
 
-#ifdef AOCLIBS_IMPLEMENTATION
 /*
  * AOCLIBS - Augusto Coronel's C Libraries
  *
@@ -84,5 +83,8 @@
  * =============================================================================
 */
 
+#ifdef AOCLIBS_IMPLEMENTATION
+
 #endif // AOCLIBS_IMPLEMENTATION
+
 #endif // AOCLIBS_H

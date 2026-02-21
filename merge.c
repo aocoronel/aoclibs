@@ -3,13 +3,17 @@
 #include "base/cstr.h"
 #include "base/file.h"
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #define OUTPUT_FILE "aoclibs.h"
 #define TEMPLATE_FILE "template.h"
+#define TEMPLATE_FILE_LEN STRLEN(TEMPLATE_FILE)
 
 FILE *output = NULL;
 const char *file_to_open = NULL;
+
+void read_source_files(const char *path);
 
 bool read_file(const char *ref file, bool ignore_include) {
         FILE *fp = fopen(file, "r");
@@ -27,9 +31,10 @@ bool read_file(const char *ref file, bool ignore_include) {
         while ((nread = read_by_delim(&buffer, &size, '\n', fp)) != SIZE_MAX) {
                 line_count++;
 
+#define MERGE_MATCH(s) aoc_cstr_has_at(buffer, size, s, STRLEN(s))
+
                 size_t idx = 0;
-                if ((idx = aoc_cstr_has_at(buffer, size, "#include", STRLEN("#include"))) !=
-                    SIZE_MAX) {
+                if ((idx = MERGE_MATCH("#include")) != SIZE_MAX) {
                         //        #include ...
                         //        ^ idx
                         assert(buffer[idx] == '#');
@@ -58,6 +63,12 @@ bool read_file(const char *ref file, bool ignore_include) {
                                 continue;
                         }
                         continue;
+                } else if (memcmp(file, TEMPLATE_FILE, TEMPLATE_FILE_LEN) == 0 &&
+                           (idx = MERGE_MATCH("#ifdef AOCLIBS_IMPLEMENTATION")) != SIZE_MAX) {
+                        aoc_dir_walk("base", true, NULL, read_source_files, NULL, NULL, NULL);
+                        aoc_dir_walk("libs", true, NULL, read_source_files, NULL, NULL, NULL);
+                        fprintf(output, "%s", buffer);
+                        continue;
                 }
 print:
                 fprintf(output, "%s", buffer);
@@ -68,6 +79,12 @@ print:
         assert(fp != NULL);
         fclose(fp);
         return true;
+}
+
+void read_source_files(const char *path) {
+        if (!aoc_cstr_ends_with(path, strlen(path), ".c", 2)) return;
+        if (!read_file(path, true)) return;
+        return;
 }
 
 int main(void) {
