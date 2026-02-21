@@ -1,7 +1,7 @@
 #ifndef AOCLIBS_DA_H_
 #define AOCLIBS_DA_H_
 
-#include <assert.h>
+#include "base.h"
 
 // This is implementation has few modifications and additions, and is inspired by
 // the dynamic array available here: https://github.com/tsoding/nob.h
@@ -33,11 +33,15 @@
 // Except for some like the very following ones, which are internal
 
 // Convenient assertions to prevent access out of bounds
-#define _aoc_assert_da_index_is_valid(da) (assert((da)->len > 0 && "out of bounds access"))
-#define _aoc_assert_da_is_not_null(da) (assert((da)->data != NULL && "cannot modify NULL pointer"))
-#define _aoc_assert_da_data_is_not_null(da) \
-        (assert((da)->data != NULL && "cannot modify NULL pointer"))
+#define _aoc_assert_da_index_is_valid(da, index)                              \
+        (ASSERT((da)->len > 0 && (da)->len < (da)->cap,                       \
+                "invalid access to array at index %zu: len = %zu, cap = %zu", \
+                (index),                                                      \
+                (da)->len,                                                    \
+                (da)->cap))
+#define _aoc_assert_da_is_not_null(da) (ASSERT((da)->data != NULL, "cannot modify NULL pointer"))
 
+// Zero initialize
 #define aoc_da_init(da, new_cap)                                   \
         do {                                                       \
                 (da)->data = calloc(new_cap, sizeof(*(da)->data)); \
@@ -74,28 +78,6 @@
                 (da)->cap = 0;                             \
         } while (0)
 
-// Returns last pointer
-#define aoc_da_last(da) (da)->data[_aoc_assert_da_index_is_valid(da), (da)->len - 1]
-
-// Returns last pointer, and removes it from the DA
-#define aoc_da_pop(da) \
-        (da)->data[(assert((da)->len < (da)->cap && "buffer underflow")), --(da)->len]
-
-#define aoc_da_reset(da) (da)->len = 0
-
-#define aoc_da_erase(da) memset((da)->data, 0, (da)->cap)
-
-// Removes an item from the dynamic array from an index
-#define aoc_da_drop(da, index)                                                              \
-        do {                                                                                \
-                _aoc_assert_da_is_not_null(da);                                             \
-                assert((da)->len > (index);     \
-                memmove((da)->data[(index)], (da)->data[(index) + 1], (da)->len - (index)); \
-                (da)->len--; \
-                (da)->data[(da)->len] = 0;                                                  \
-        } while (0)
-
-// Append any type. For C strings, look for the aoc_da_append_cstr
 #define aoc_da_insert(da, data) _aoc_da_insert(AOCLIBS_DA_REALLOC, (da), (data))
 #define _aoc_da_insert(realloc, da, item)                        \
         do {                                                     \
@@ -103,15 +85,27 @@
                 (da)->data[(da)->len++] = (item);                \
         } while (0)
 
+#define aoc_da_copy(da, items_buff, items_size) \
+        _aoc_da_add(AOCLIBS_DA_REALLOC, da, items_buff, items_size, (da)->len)
+#define _aoc_da_copy(realloc, da, items_buff, items_size) \
+        _aoc_da_add(realloc, da, items_buff, items_size, (da)->len)
+
+#define aoc_da_add(da, items_buff, items_size, offset) \
+        _aoc_da_add(AOCLIBS_DA_REALLOC, da, items_buff, items_size, offset)
+#define _aoc_da_add(realloc, da, items_buff, items_size, offset)                                 \
+        do {                                                                                     \
+                _aoc_da_reserve(realloc, (da), (da)->len + (items_size));                        \
+                memcpy((da)->data + (offset), (items_buff), (items_size) * sizeof(*(da)->data)); \
+                (da)->len += (items_size);                                                       \
+        } while (0)
+
+// =================================
+// These macros skips the reserve step, for faster operations with less checks.
+// Use at own risk.
 #define aoc_da_insert_fast(da, item)              \
         do {                                      \
                 (da)->data[(da)->len++] = (item); \
         } while (0)
-
-#define aoc_da_copy(da, items_buff, items_size) \
-        aoc_da_add(AOCLIBS_DA_REALLOC, da, items_buff, items_size, (da)->len)
-#define _aoc_da_copy(realloc, da, items_buff, items_size) \
-        aoc_da_add(realloc, da, items_buff, items_size, (da)->len)
 
 #define aoc_da_copy_fast(da, items_buff, items_size) \
         aoc_da_add_fast(da, items_buff, items_size, (da)->len)
@@ -121,16 +115,10 @@
                 memcpy((da)->data + (offset), (items_buff), (items_size) * sizeof(*(da)->data)); \
                 (da)->len += (items_size);                                                       \
         } while (0)
+// =================================
 
-#define aoc_da_add(realloc, da, items_buff, items_size, offset)                                  \
-        do {                                                                                     \
-                _aoc_da_reserve(realloc, (da), (da)->len + (items_size));                        \
-                memcpy((da)->data + (offset), (items_buff), (items_size) * sizeof(*(da)->data)); \
-                (da)->len += (items_size);                                                       \
-        } while (0)
-
-#define aoc_da_append_null(sb) aoc_da_append(AOCLIBS_DA_REALLOC, sb, "", 1)
-#define _aoc_da_append_null(realloc, sb) _aoc_da_append(realloc, sb, "", 1)
+#define aoc_da_add_null(da) aoc_da_copy(da, "\0", 1)
+#define _aoc_da_add_null(realloc, da) _aoc_da_copy(realloc, da, "\0", 1)
 
 #define aoc_da_clone(dest, src) _aoc_da_clone(AOCLIBS_DA_REALLOC, dest, src)
 #define _aoc_da_clone(realloc, dest, src)                                       \
@@ -140,8 +128,38 @@
                 memcpy((dest)->data, (src)->data, (src)->len * sizeof(void *)); \
         } while (0)
 
-#define aoc_da_swap(Type, da, i1, i2) aoc_swap(Type, (da)->data[i1], (da)->data[i2])
+// Returns last pointer
+#define aoc_da_last(da) (da)->data[_aoc_assert_da_index_is_valid(da, (da)->len - 1), (da)->len - 1]
 
+// Returns last pointer, and removes it from the DA
+#define aoc_da_pop(da) (da)->data[_aoc_assert_da_index_is_valid(da, (da)->len - 1), --(da)->len]
+
+#define aoc_da_reset(da) (da)->len = 0
+
+#define aoc_da_erase(da) memset((da)->data, 0, (da)->cap)
+
+// Removes an item from the dynamic array from an index
+#define aoc_da_drop(da, index)                                                              \
+        do {                                                                                \
+                _aoc_assert_da_is_not_null(da);                                             \
+                ASSERT((da)->len > (index);     \
+                memmove((da)->data[(index)], (da)->data[(index) + 1], (da)->len - (index)); \
+                (da)->len--; \
+                (da)->data[(da)->len] = 0;                                                  \
+        } while (0)
+
+// Faster da_drop
+#define aoc_da_unordered_drop(da, i)                         \
+        do {                                                 \
+                size_t j = (i);                              \
+                ASSERT(j < (da)->count);                     \
+                (da)->items[j] = (da)->items[--(da)->count]; \
+        } while (0)
+
+// Swaps indexes "i1" and "i2"
+#define aoc_da_swap(Type, da, i1, i2) swap(Type, (da)->data[i1], (da)->data[i2])
+
+// Sorts using qsort and user-provided function "fn".
 #define aoc_da_sort(da, fn) qsort((da)->data, (da)->len, sizeof((da)->data[0]), fn)
 
 // Case a dynamic array is used with a buffer allocated in the stack, the following
@@ -161,11 +179,10 @@
 //
 // These macros don't expect the da->data to be NULL.
 
-#define aoc_das_insert(da, item)                     \
-        ((da)->len + 1 < (da)->cap) {                \
-                _aoc_assert_da_is_not_null(da);      \
-                _aoc_assert_da_data_is_not_null(da); \
-                (da)->data[(da)->len++] = (item);    \
+#define aoc_das_insert(da, item)                  \
+        ((da)->len + 1 < (da)->cap) {             \
+                _aoc_assert_da_is_not_null(da);   \
+                (da)->data[(da)->len++] = (item); \
         }
 
 #define aoc_das_copy(da, items_buff, items_size) aoc_das_add(da, items_buff, items_size, (da)->len)
@@ -173,32 +190,34 @@
 #define aoc_das_add(da, items_buff, items_size, offset)                                            \
         ((da)->len + items_size < (da)->cap) {                                                     \
                 _aoc_assert_da_is_not_null(da);                                                    \
-                _aoc_assert_da_data_is_not_null(da);                                               \
                 memcpy((da)->data + (offset), (items_buff), (items_size) * (sizeof(*(da)->data))); \
                 (da)->len += (items_size);                                                         \
         }
 
-#define aoc_das_append_null(da)               \
-        ((da)->len + 1 < (da)->cap) {         \
-                (da)->data[(da)->len] = '\0'; \
-        }
+#define aoc_das_add_null(da) (da)->data[(da)->len] = '\0'
 
 #define aoc_da_is_null(da) !(da) || !(da)->data
 
 #ifdef AOCLIBS_STRIP_PREFIX
-#define _da_append_null _aoc_da_append_null
+#define _da_add _aoc_da_add
+#define _da_add_null _aoc_da_add_null
 #define _da_clone _aoc_da_clone
 #define _da_copy _aoc_da_copy
 #define _da_free _aoc_da_free
+#define _da_insert _aoc_da_insert
 #define _da_reserve _aoc_da_reserve
 
 #define da_add aoc_da_add
-#define da_append_null aoc_da_append_null
-#define da_clone aoc_da_clone
 #define da_copy aoc_da_copy
-#define da_free aoc_da_free
 #define da_insert aoc_da_insert
+#define da_add_null aoc_da_add_null
+#define da_clone aoc_da_clone
+#define da_free aoc_da_free
 #define da_reserve aoc_da_reserve
+
+#define da_add_fast aoc_da_add_fast
+#define da_copy_fast aoc_da_copy_fast
+#define da_insert_fast aoc_da_insert_fast
 
 #define da_clear aoc_da_clear
 #define da_drop aoc_da_drop
@@ -207,10 +226,11 @@
 #define da_pop aoc_da_pop
 #define da_sort aoc_da_sort
 #define da_swap aoc_da_swap
+#define da_unordered_drop aoc_da_unordered_drop
 
 #define das_add aoc_das_add
 #define das_copy aoc_das_copy
-#define das_append_null aoc_das_append_null
+#define das_add_null aoc_das_add_null
 #define das_insert aoc_das_insert
 
 #define da_is_null aoc_da_is_null
