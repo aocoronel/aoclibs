@@ -1,5 +1,8 @@
 -std=c99
--Ibase
+
+-Iinclude
+-Isrc
 -Ilibs
+
 -DAOCLIBS_IMPLEMENTATION
 -DAOCLIBS_CROWN
