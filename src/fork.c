@@ -1,6 +1,8 @@
 #pragma once
 
 #include "fork.h"
+#include <unistd.h>
+#include <sys/wait.h>
 
 ForkCmd aoc_fork_cmd(char **argv) {
         int stdin_pipe[2], stdout_pipe[2];
