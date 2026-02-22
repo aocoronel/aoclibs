@@ -24,10 +24,6 @@ typedef struct {
         char *data;
 } rc;
 
-#ifndef RC_MALLOC
-#define RC_MALLOC malloc
-#endif
-
 // In short:
 // rcs --> row char stack
 // rc --> row char heap
@@ -54,15 +50,9 @@ typedef struct {
 
 // Allocates a new stack/heap RC.
 // rc myrc = rc_new(100);
-#define aoc_rc_new(capacity)                                               \
-        (rc) {                                                             \
-                .data = RC_MALLOC((capacity)), .len = 0, .cap = (capacity) \
-        }
-
-// rc myrc = _rc_new(malloc, 100);
-#define _aoc_rc_new(allocator, capacity)                                   \
-        (rc) {                                                             \
-                .data = allocator((capacity)), .len = 0, .cap = (capacity) \
+#define aoc_rc_new(capacity)                                                        \
+        (rc) {                                                                      \
+                .data = AOCLIBS_DA_REALLOC((capacity)), .len = 0, .cap = (capacity) \
         }
 
 // rc myrc = rcs_new(100);
@@ -73,9 +63,9 @@ typedef struct {
 
 #define aoc_rc_fmt_append(rc, fmt, ...)                                                   \
         do {                                                                              \
-                int needed = aoc_cstrcpy_fmt_size(fmt, __VA_ARGS__);                    \
-                _aoc_da_reserve(AOCLIBS_DA_REALLOC, (rc), (rc)->len + needed);            \
-                int written = aoc_cstrcpy_fmt(                                          \
+                int needed = aoc_cstrcpy_fmt_size(fmt, __VA_ARGS__);                      \
+                aoc_da_reserve((rc), (rc)->len + needed);                                 \
+                int written = aoc_cstrcpy_fmt(                                            \
                         (rc)->data + (rc)->len, (rc)->cap - (rc)->len, fmt, __VA_ARGS__); \
                 (rc)->len += written;                                                     \
         } while (0)
@@ -97,26 +87,13 @@ typedef struct {
         }
 
 // Heap concat and appending
-#define aoc_rcl_cat(rc, items_buff) \
-        aoc_da_add(rc, items_buff, STRLEN(items_buff), (rc)->len)
-#define _aoc_rcl_cat(realloc, rc, items_buff) \
-        aoc_da_add(realloc, rc, items_buff, STRLEN(items_buff), (rc)->len)
+#define aoc_rcl_cat(rc, items_buff) aoc_da_add(rc, items_buff, STRLEN(items_buff), (rc)->len)
+#define aoc_rc_cat(rc, items_buff, items_len) aoc_da_add(rc, items_buff, items_len, (rc)->len)
 
-#define aoc_rc_cat(rc, items_buff, items_len) \
-        aoc_da_add(rc, items_buff, items_len, (rc)->len)
-#define _aoc_rc_cat(realloc, rc, items_buff, items_len) \
-        aoc_da_add(realloc, rc, items_buff, items_len, (rc)->len)
-
-#define aoc_rcl_append(rc, items_buff) \
-        _aoc_rcs_append(AOCLIBS_DA_REALLOC, rc, items_buff, STRLEN((items_buff)))
-#define _aoc_rcl_append(realloc, rc, items_buff) \
-        _aoc_rcs_append(realloc, rc, items_buff, STRLEN((items_buff)))
-
-#define aoc_rc_append(rc, items_buff, items_len) \
-        _aoc_rc_append(AOCLIBS_DA_REALLOC, rc, items_buff, items_len)
-#define _aoc_rc_append(realloc, rc, items_buff, items_size)                                       \
+#define aoc_rcl_append(rc, items_buff) aoc_rc_append(rc, items_buff, STRLEN((items_buff)))
+#define aoc_rc_append(rc, items_buff, items_size)                                                 \
         do {                                                                                      \
-                _aoc_da_reserve(realloc, (rc), 1 + (rc)->len + (items_size));                     \
+                aoc_da_reserve((rc), 1 + (rc)->len + (items_size));                               \
                 (rc)->data[(rc)->len++] = ' ';                                                    \
                 memcpy((rc)->data + (rc)->len, (items_buff), (items_size) * sizeof(*(rc)->data)); \
                 (rc)->len += (items_size);                                                        \
@@ -152,7 +129,6 @@ typedef struct {
 // =================================
 
 #ifdef AOCLIBS_STRIP_PREFIX
-#define _rc_new _aoc_rc_new
 #define rc_bnew aoc_rc_bnew
 #define rc_new aoc_rc_new
 
