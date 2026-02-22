@@ -105,7 +105,7 @@ FileType aoc_get_filetype(const char *ref path) {
         ASSERT_NONNULL(path != NULL);
 
         struct stat st;
-        if (lstat(path, &st) == -1) return F_NULL;
+        if (lstat(path, &st) == -1) return F_FAIL;
 
         if (S_ISREG(st.st_mode))
                 return F_REG;
