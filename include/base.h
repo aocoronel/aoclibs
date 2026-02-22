@@ -68,24 +68,16 @@ typedef void (*aoc_free_t)(void *);
          fputc('\n', stderr),                                          \
          abort())
 
-/*
- * Used to panic, when an unreachable code is ran
-*/
+// Used to panic, when an unreachable code is ran
 #define UNREACHABLE AOCLIBS_ABORT("Panicked: ", "unreachable code")
 
-/*
- * Prints message, including metadata and aborts the program
-*/
+// Prints message, including metadata and aborts the program
 #define PANIC(...) AOCLIBS_ABORT("Panicked: ", __VA_ARGS__)
 
-/*
- * Marks not implemented code
-*/
+// Marks not implemented code
 #define TODO(...) AOCLIBS_ABORT("TODO: ", __VA_ARGS__)
 
-/*
- * Asserts an expression, and prints a formatted message
-*/
+// Asserts an expression, and prints a formatted message
 #ifdef NDEBUG
 #define ASSERT(...)
 #else
@@ -93,9 +85,7 @@ typedef void (*aoc_free_t)(void *);
         ((expr) ? (void)0 : AOCLIBS_ABORT("Assertion failed: " #expr, __VA_ARGS__))
 #endif
 
-/*
- * Convenience assert messages
-*/
+// Convenience assert messages
 #define ASSERT_NONNULL(exp) ASSERT((exp), "passing NULL pointer to Nonnull parameter")
 
 /*
@@ -133,14 +123,5 @@ typedef void (*aoc_free_t)(void *);
 //      printf("%d\n", i);
 // }
 #define foreach(struct_with_len, it) for (size_t it = 0; it < (struct_with_len)->len; it++)
-
-/*
- * === Binary operations ===
-*/
-
-#define ALIGN (sizeof(size_t))
-#define ONES ((size_t)-1 / UCHAR_MAX)
-#define HIGHS (ONES * (UCHAR_MAX / 2 + 1))
-#define HASZERO(x) (((x) - ONES) & ~(x) & HIGHS)
 
 #endif // AOCLIBS_BASE_H_
