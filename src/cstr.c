@@ -2,9 +2,17 @@
 
 #include "cstr.h"
 #include <ctype.h>
+#include <errno.h>
 #include <limits.h>
+#include <stdarg.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
+
+#define ALIGN (sizeof(size_t))
+#define ONES ((size_t)-1 / UCHAR_MAX)
+#define HIGHS (ONES * (UCHAR_MAX / 2 + 1))
+#define HASZERO(x) (((x) - ONES) & ~(x) & HIGHS)
 
 void cslice_to_cstr(CSlice s, char *buff, const size_t size) {
         int size_to_copy = s.len > size ? size : s.len;
@@ -31,38 +39,29 @@ AOCLIBS_PREFIX void aoc_cstrn_to_lower(char *s, const size_t len) {
                 s[i] = tolower(s[i]);
 }
 
-AOCLIBS_PREFIX bool aoc_cstr_ends_with(const char *xref s,
-                                       const size_t s_len,
-                                       const char *xref pattern,
-                                       size_t pattern_len) {
+AOCLIBS_PREFIX bool
+aoc_cstr_ends_with(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
         ASSERT_NONNULL(s);
         ASSERT_NONNULL(pattern);
         if (s_len < pattern_len) return false;
         return memcmp(s + s_len - pattern_len, pattern, pattern_len) == 0;
 }
 
-AOCLIBS_PREFIX bool aoc_cstr_begins_with(const char *xref s,
-                                         const size_t s_len,
-                                         const char *xref pattern,
-                                         size_t pattern_len) {
+AOCLIBS_PREFIX bool
+aoc_cstr_begins_with(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
         return aoc_cstrn_eq(s, s_len, pattern, pattern_len);
 }
 
 AOCLIBS_PREFIX bool
-aoc_cstrn_eq(const char *xref s, const size_t s_len, const char *xref pattern, size_t pattern_len) {
-        ASSERT_NONNULL(s);
-        ASSERT_NONNULL(pattern);
+aoc_cstrn_eq(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
+        if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
         if (s_len < pattern_len) return false;
         return memcmp(s, pattern, pattern_len) == 0;
 }
 
-AOCLIBS_PREFIX bool aoc_cstrn_eq_case(const char *xref s,
-                                      const size_t s_len,
-                                      const char *xref pattern,
-                                      size_t pattern_len) {
-        ASSERT_NONNULL(s);
-        ASSERT_NONNULL(pattern);
-        if (s_len < pattern_len) return false;
+AOCLIBS_PREFIX bool
+aoc_cstrn_eq_case(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
+        if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
 
         char *s_tmp = aoc_cstr_dup(s, s_len);
         if (s_tmp == NULL) {
@@ -134,14 +133,28 @@ AOCLIBS_PREFIX size_t aoc_cstr_has_at(const char *s,
         return SIZE_MAX;
 }
 
-AOCLIBS_PREFIX size_t aoc_cstrcpy_size(size_t dest_buff,
+size_t aoc_index_of(const char *s, char delim, size_t size) {
+        ASSERT_NONNULL(s != NULL);
+
+        const char *ptr = memchr(s, delim, size);
+
+        return ptr - s;
+}
+
+AOCLIBS_PREFIX size_t aoc_cstrcpy_size(size_t dest_size,
                                        const size_t dest_offset,
                                        const size_t src_len) {
         size_t needed_size = src_len + 1;
-        return needed_size > dest_buff - dest_offset ? needed_size : dest_buff;
+        return needed_size > dest_size - dest_offset ? needed_size : dest_size;
 }
 
-AOCLIBS_PREFIX size_t aoc_cstrcpy(char *xref dest, const char *xref src, size_t dest_cap) {
+#ifdef AOCLIBS_CSTRCPY_AS_MEMCPY
+AOCLIBS_PREFIX size_t aoc_cstrcpy(char *dest, const char *src, size_t dest_cap) {
+        const char *ptr = memcpy(dest, src, dest_cap);
+        return ptr - dest;
+}
+#else
+AOCLIBS_PREFIX size_t aoc_cstrcpy(char *dest, const char *src, size_t dest_cap) {
         ASSERT_NONNULL(dest != NULL);
         ASSERT_NONNULL(src != NULL);
 
@@ -170,10 +183,20 @@ defer:
         dest[len] = '\0';
         return len;
 }
+#endif
 
-#ifndef AOCLIBS_NO_STDIO
+AOCLIBS_PREFIX
+size_t aoc_cstrappend(char *dest, const char *src, size_t dest_len, size_t dest_cap) {
+        size_t len = aoc_cstrcpy(dest + dest_len + 1, src, dest_cap);
+        dest[dest_len] = ' ';
+        return len;
+}
 
-AOCLIBS_PREFIX int aoc_cstrcpy_fmt_size(const char *fmt, ...) {
+AOCLIBS_PREFIX size_t aoc_cstrcat(char *dest, const char *src, size_t dest_len, size_t dest_cap) {
+        return aoc_cstrcpy(dest + dest_len, src, dest_cap);
+}
+
+AOCLIBS_PREFIX int aoc_cstr_fmt_size(const char *fmt, ...) {
         ASSERT_NONNULL(fmt != NULL);
 
         va_list args;
@@ -184,7 +207,7 @@ AOCLIBS_PREFIX int aoc_cstrcpy_fmt_size(const char *fmt, ...) {
         return needed_len;
 }
 
-AOCLIBS_PREFIX int aoc_cstrcpy_fmt(char *xref s, const size_t s_cap, const char *xref fmt, ...) {
+AOCLIBS_PREFIX int aoc_cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...) {
         ASSERT_NONNULL(s != NULL);
         ASSERT_NONNULL(fmt != NULL);
 
@@ -196,73 +219,6 @@ AOCLIBS_PREFIX int aoc_cstrcpy_fmt(char *xref s, const size_t s_cap, const char 
         va_end(args);
 
         return allocated_len;
-}
-#endif
-
-AOCLIBS_PREFIX size_t aoc_cstrstr_index(const char *xref s, const char *xref pattern) {
-        ASSERT_NONNULL(s != NULL);
-        ASSERT_NONNULL(pattern != NULL);
-        if (!*pattern) return SIZE_MAX;
-
-        const char *p = s;
-        size_t pattern_len = strlen(pattern);
-
-        while (*p) {
-                const char *found = memchr(p, *pattern, strlen(p));
-                if (!found) return SIZE_MAX;
-
-                if (strncmp(found, pattern, pattern_len) == 0) return found - s;
-
-                p = found + 1;
-        }
-
-        return SIZE_MAX;
-}
-
-AOCLIBS_PREFIX size_t aoc_cstrnstr_index(const char *xref s,
-                                         const char *xref pattern,
-                                         const size_t s_len,
-                                         const size_t pattern_len) {
-        ASSERT_NONNULL(s != NULL);
-        ASSERT_NONNULL(pattern != NULL);
-        if (!*pattern) return SIZE_MAX;
-
-        const char *p = s;
-
-        while (*p) {
-                const char *found = memchr(p, *pattern, s_len);
-                if (!found) return SIZE_MAX;
-
-                if (strncmp(found, pattern, pattern_len) == 0) return found - s;
-
-                p = found + 1;
-        }
-
-        return SIZE_MAX;
-}
-
-#define aoc_cstrtok(s, delim, s_len) aoc_cstr_tok((s), (#delim), 1)
-#define aoc_lcstrtok(s, delim) aoc_cstr_tok((s), (#delim), STRLEN(s), 1)
-#define aoc_cstrstrtok aoc_cstr_tok
-AOCLIBS_PREFIX const char *
-aoc_cstrstr_tok(const char *s, const char *delim, const size_t s_len, const size_t delim_len) {
-        size_t pos = aoc_cstrnstr_index(s, delim, s_len, delim_len);
-        if (pos == SIZE_MAX) return NULL;
-
-        return s + pos + 1;
-}
-
-AOCLIBS_PREFIX size_t aoc_cstr_trim_whitespace(char *s, const size_t len) {
-        ASSERT_NONNULL(s != NULL);
-
-        if (len == 0) return 0;
-
-        size_t i = len;
-        while (i > 0 && isspace((unsigned char)s[i - 1])) {
-                i--;
-        }
-        s[i] = '\0';
-        return len;
 }
 
 AOCLIBS_PREFIX double aoc_cstr_to_double(const char *s, const double _default) {
@@ -300,28 +256,4 @@ AOCLIBS_PREFIX long aoc_cstr_to_long(const char *s, const long _default) {
                 return _default;
         }
         return val;
-}
-
-size_t aoc_index_of(const char *buff, char delim) {
-        ASSERT_NONNULL(buff != NULL);
-        size_t i = 0;
-
-        for (; buff && buff[i] != delim && buff[i] != '\0'; i++)
-                ;
-
-        if (buff[i] == delim) i++;
-
-        return i == 0 ? -1 : i;
-}
-
-size_t aoc_index_of_till(const char *buff, char delim, size_t size) {
-        ASSERT_NONNULL(buff != NULL);
-        size_t i = 0;
-
-        for (; buff && buff[i] != delim && buff[i] != '\0'; i++)
-                if (i > size) return -1;
-
-        if (buff[i] == delim) i++;
-
-        return i == 0 ? -1 : i;
 }
