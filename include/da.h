@@ -77,7 +77,7 @@
                 (da)->cap = 0;                             \
         } while (0)
 
-#define aoc_da_insert(da, data)                      \
+#define aoc_da_insert(da, item)                      \
         do {                                         \
                 aoc_da_reserve((da), (da)->len + 1); \
                 (da)->data[(da)->len++] = (item);    \

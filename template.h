@@ -17,16 +17,26 @@
 
 // Enabled with AOCLIBS_IMPLEMENTATION
 
-#include "./base/base.h"
+#include "./include/base.h"
 
-#include "./base/arena.h"
-#include "./base/colors.h"
-#include "./base/cstr.h"
-#include "./base/da.h"
-#include "./base/file.h"
-#include "./base/printfc.h"
-#include "./base/rc.h"
+// Standalones
+#include "./include/colors.h"
+#include "./include/printfc.h"
 
+// Dynamic Arrays
+#include "./include/da.h"
+#include "./include/rc.h"
+
+#include "./include/cstr.h"
+#include "./include/arena.h"
+#include "./include/file.h"
+#include "./include/fork.h"
+
+#ifdef AOCLIBS_IMPLEMENTATION
+
+#endif // AOCLIBS_IMPLEMENTATION
+
+// Libraries
 #include "./libs/crown.h" // AOCLIBS_CROWN
 #include "./libs/debug.h" // AOCLIBS_DEBUG
 #include "./libs/heap_trace.h" // HEAP_DEBUG
@@ -82,9 +92,5 @@
  * SOFTWARE.
  * =============================================================================
 */
-
-#ifdef AOCLIBS_IMPLEMENTATION
-
-#endif // AOCLIBS_IMPLEMENTATION
 
 #endif // AOCLIBS_H

@@ -148,9 +148,9 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 
 #define aoc_arc_fmt_append(a, rc, fmt, ...)                                               \
         do {                                                                              \
-                int needed = aoc_cstrcpy_fmt_size(fmt, __VA_ARGS__);                    \
+                int needed = aoc_cstr_fmt_size(fmt, __VA_ARGS__);                         \
                 aoc_dar_reserve(a, rc, (rc)->len + needed);                               \
-                int written = aoc_cstrcpy_fmt(                                          \
+                int written = aoc_cstr_fmt_write(                                         \
                         (rc)->data + (rc)->len, (rc)->cap - (rc)->len, fmt, __VA_ARGS__); \
                 (rc)->len += written;                                                     \
         } while (0)

@@ -24,6 +24,10 @@ typedef struct {
         char *data;
 } rc;
 
+#ifndef AOCLIBS_RC_MALLOC
+#define AOCLIBS_RC_MALLOC malloc
+#endif
+
 // In short:
 // rcs --> row char stack
 // rc --> row char heap
@@ -50,9 +54,9 @@ typedef struct {
 
 // Allocates a new stack/heap RC.
 // rc myrc = rc_new(100);
-#define aoc_rc_new(capacity)                                                        \
-        (rc) {                                                                      \
-                .data = AOCLIBS_DA_REALLOC((capacity)), .len = 0, .cap = (capacity) \
+#define aoc_rc_new(capacity)                                                       \
+        (rc) {                                                                     \
+                .data = AOCLIBS_RC_MALLOC((capacity)), .len = 0, .cap = (capacity) \
         }
 
 // rc myrc = rcs_new(100);
@@ -63,9 +67,9 @@ typedef struct {
 
 #define aoc_rc_fmt_append(rc, fmt, ...)                                                   \
         do {                                                                              \
-                int needed = aoc_cstrcpy_fmt_size(fmt, __VA_ARGS__);                      \
+                int needed = aoc_cstr_fmt_size(fmt, __VA_ARGS__);                         \
                 aoc_da_reserve((rc), (rc)->len + needed);                                 \
-                int written = aoc_cstrcpy_fmt(                                            \
+                int written = aoc_cstr_fmt_write(                                         \
                         (rc)->data + (rc)->len, (rc)->cap - (rc)->len, fmt, __VA_ARGS__); \
                 (rc)->len += written;                                                     \
         } while (0)

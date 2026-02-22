@@ -1,7 +1,7 @@
 #define AOCLIBS_IMPLEMENTATION
-#include "base/base.h"
-#include "base/cstr.h"
-#include "base/file.h"
+#include "include/base.h"
+#include "include/cstr.h"
+#include "include/file.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
