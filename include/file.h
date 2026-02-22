@@ -18,23 +18,18 @@ typedef enum FileType {
 
 typedef void (*dw_fn)(const char *path);
 
-/*
- * Walks into a directory and read it's content
- *
- * aoc_dir_walk can run four user provided functions based on each filetype:
- * reg, directory, lnk and null.
- *
- * If the user prefers to ignore a certain filetype, the function values can be
- * passed as NULL.
- *
- * When recurse is set to true, when a directory is found, aoc_dir_walk will recurse
- * in it.
- *
- * Defines:
- * - NDEBUG :: Disable asserts
- *
- * Failure: errno << opendir
-*/
+// Walks into a directory and read it's content
+//
+// aoc_dir_walk can run four user provided functions based on each filetype:
+// reg, directory, lnk and null.
+//
+// If the user prefers to ignore a certain filetype, the function values can be
+// passed as NULL.
+//
+// When recurse is set to true, when a directory is found, aoc_dir_walk will recurse
+// in it.
+//
+// Sets errno << opendir
 int aoc_dir_walk(const char *ref path,
                  bool recurse,
                  dw_fn isdir,
@@ -48,11 +43,10 @@ int aoc_dir_walk(const char *ref path,
 // F_FAIL :: failed to stat. Sets errno << lstat
 FileType aoc_get_filetype(const char *ref path);
 
-/*
- * Reads file, splitting the read buffer by the delimiter
- *
- * Allocates to lineptr. The user owns the allocation.
-*/
+// Reads file, splitting the read buffer by the delimiter.
+// Returns how many bytes has been read.
+//
+// Allocates to lineptr. The user owns the allocation.
 size_t read_by_delim(char **xref lineptr, size_t *xref n, int delim, FILE *xref stream);
 
 #ifdef AOCLIBS_IMPLEMENTATION
