@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
         while (optind < argc) {
                 // open is just an index which will find the command "open"
                 // in the Program CrownProgram
-                int opt_idx = crown_parseopt(NULL, argv, argc);
+                int opt_idx = crown_parseopt(NULL);
                 printf("%d\n", opt_idx);
                 // Match is defined in base.h.
                 // It's handy, but you don't need it.
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
                         else when(ArgNotOpt) {
                                 // open is just an index which will find the command "open"
                                 // in the Program CrownProgram
-                                int opt_idx = crown_parsecmd(NULL, argv, argc);
+                                int opt_idx = crown_parsecmd(NULL);
                                 printf("getcmd -> %d\n", opt_idx);
                                 match(int, opt_idx, match_int) {
                                         when(open_cmd) printf("handle open\n");
