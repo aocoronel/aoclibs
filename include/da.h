@@ -54,17 +54,18 @@
 //
 // DynamicArray my_da = { 0 };
 // da_reserve(&my_da, (&my_da)->len + 1); // Needs to allocate one value
-#define aoc_da_reserve(da, new_cap)                                                                \
-        do {                                                                                       \
-                if ((new_cap) > (da)->cap) {                                                       \
-                        if ((da)->cap < AOCLIBS_DA_INITIAL_CAPACITY) {                             \
-                                (da)->cap = AOCLIBS_DA_INITIAL_CAPACITY;                           \
-                        }                                                                          \
-                        while ((new_cap) > (da)->cap) {                                            \
-                                (da)->cap *= 2;                                                    \
-                        }                                                                          \
-                        (da)->data = AOCLIBS_DA_FREE((da)->data, (da)->cap * sizeof(*(da)->data)); \
-                }                                                                                  \
+#define aoc_da_reserve(da, new_cap)                                                              \
+        do {                                                                                     \
+                if ((new_cap) > (da)->cap) {                                                     \
+                        if ((da)->cap < AOCLIBS_DA_INITIAL_CAPACITY) {                           \
+                                (da)->cap = AOCLIBS_DA_INITIAL_CAPACITY;                         \
+                        }                                                                        \
+                        while ((new_cap) > (da)->cap) {                                          \
+                                (da)->cap *= 2;                                                  \
+                        }                                                                        \
+                        (da)->data =                                                             \
+                                AOCLIBS_DA_REALLOC((da)->data, (da)->cap * sizeof(*(da)->data)); \
+                }                                                                                \
         } while (0)
 
 #define aoc_da_free(da)                                    \
