@@ -4,6 +4,7 @@
 #include "arena.h"
 #include "base.h"
 #include <assert.h>
+#include <alloca.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -14,6 +15,10 @@
 
 #define CROWN_BUFFER 256 // used by crown_normalize_name
 #define CROWN_INDENTATION 10 // Indentation by spaces
+
+// Coloring
+#define CROWN_HEADER_COLOR COLOR_BOLD_UNDERLINE
+#define CROWN_COMMAND_COLOR COLOR_BOLD
 
 #ifndef CROWN_OUTPUT
 #define CROWN_OUTPUT stdout
@@ -33,7 +38,7 @@ typedef struct {
 typedef struct {
         const char *short_opt;
         const char *long_opt;
-        const CrownArgument *args;
+        size_t args;
         const char *desc;
 } CrownOption;
 
@@ -57,7 +62,7 @@ typedef struct {
 
 struct CrownCommand {
         const char *name;
-        const CrownArgument *args;
+        size_t args;
         const char *desc;
         CrownCmds *subcmd;
         CrownOpts *flags;
@@ -78,9 +83,9 @@ typedef struct {
         const char *version;
 } CrownProgram;
 
-CrownCmds ProgramCommand = { 0 };
-CrownOpts ProgramOption = { 0 };
-CrownArgs ProgramArgument = { 0 };
+CrownCmds Crown_Command = { 0 };
+CrownOpts Crown_Option = { 0 };
+CrownArgs Crown_Argument = { 0 };
 
 CrownProgram *Program;
 Arena Program_Arena = { 0 };
@@ -89,65 +94,66 @@ static CrownCommand *last_cmd = NULL;
 
 // Important to initialize, before anything at the beginning of the main()
 // You may set .name, .usage and .desc here.
-#define aoc_crown_init(...)                                            \
+#define crown_init(...)                                                \
         do {                                                           \
                 CrownProgram *_Program = alloca(sizeof(CrownProgram)); \
-                *_Program = (CrownProgram){ .subcmd = &ProgramCommand, \
-                                            .flags = &ProgramOption,   \
-                                            .args = &ProgramArgument,  \
+                *_Program = (CrownProgram){ .subcmd = &Crown_Command,  \
+                                            .flags = &Crown_Option,    \
+                                            .args = &Crown_Argument,   \
                                             __VA_ARGS__ };             \
                 Program = _Program;                                    \
+                Program->args->len = 1;                                \
         } while (0)
 
-// You can either use as global or local variable
-// It's interesting to use this to "register" a new argument, so you can simply
-// provide a pointer to CrownOption or CrownCommand, potentially reusing the
-// same argument for different options and commands
-#define aoc_crown_new_arg(key, ...) CrownArgument key = { __VA_ARGS__ }
+// Add new argument
+// It has a key which is used to be referenced by flags and commands
+#define crown_new_arg(key, ...)                \
+        size_t key##_arg = Program->args->len; \
+        crown_append(CrownArgument, Program->args, (CrownArgument){ __VA_ARGS__ })
 
-#define aoc_crown_new_opt(key, opt, ...)      \
+#define crown_new_opt(key, opt, ...)          \
         size_t key##_opt = (opt)->flags->len; \
-        aoc_crown_append(CrownOption, (opt)->flags, (CrownOption){ __VA_ARGS__ })
+        crown_append(CrownOption, (opt)->flags, (CrownOption){ __VA_ARGS__ })
 
-// aoc_crown_new_cmd(open, Program, ...)
-#define aoc_crown_new_cmd(key, opt, ...)                                                      \
-        size_t key##_cmd = (opt)->subcmd->len;                                                \
-        do {                                                                                  \
-                aoc_crown_append(CrownCommand, (opt)->subcmd, (CrownCommand){ __VA_ARGS__ }); \
-                last_cmd = &(opt)->subcmd->data[(opt)->subcmd->len - 1];                      \
-                last_cmd->subcmd = aoc_arena_calloc(&Program_Arena, sizeof(CrownCmds));       \
-                last_cmd->flags = aoc_arena_calloc(&Program_Arena, sizeof(CrownOpts));        \
-        } while (0);                                                                          \
+// crown_new_cmd(open, Program, ...)
+#define crown_new_cmd(key, opt, ...)                                                      \
+        size_t key##_cmd = (opt)->subcmd->len;                                            \
+        do {                                                                              \
+                crown_append(CrownCommand, (opt)->subcmd, (CrownCommand){ __VA_ARGS__ }); \
+                last_cmd = &(opt)->subcmd->data[(opt)->subcmd->len - 1];                  \
+                last_cmd->subcmd = aoc_arena_calloc(&Program_Arena, sizeof(CrownCmds));   \
+                last_cmd->flags = aoc_arena_calloc(&Program_Arena, sizeof(CrownOpts));    \
+        } while (0);                                                                      \
         CrownCommand *key = &(opt)->subcmd->data[key##_cmd];
 
-// Syntactic sugar for aoc_crown_new_opt(last_cmd->flags, ...)
-#define aoc_crown_new_subopt(key, ...)                                                        \
-        size_t key##_opt = last_cmd->flags->len;                                              \
-        do {                                                                                  \
-                assert(last_cmd != NULL);                                                     \
-                aoc_crown_append(CrownOption, last_cmd->flags, (CrownOption){ __VA_ARGS__ }); \
+// Syntactic sugar for crown_new_opt(last_cmd->flags, ...)
+#define crown_new_subopt(key, ...)                                                        \
+        size_t key##_opt = last_cmd->flags->len;                                          \
+        do {                                                                              \
+                assert(last_cmd != NULL);                                                 \
+                crown_append(CrownOption, last_cmd->flags, (CrownOption){ __VA_ARGS__ }); \
         } while (0)
 
-#define aoc_crown_new_subcmd(key, ...)                                                           \
-        size_t key##_cmd = last_cmd->subcmd->len;                                                \
-        do {                                                                                     \
-                assert(last_cmd != NULL);                                                        \
-                aoc_crown_append(CrownCommand, last_cmd->subcmd, (CrownCommand){ __VA_ARGS__ }); \
-                last_cmd->subcmd->data[key##_cmd].subcmd =                                       \
-                        aoc_arena_calloc(&Program_Arena, sizeof(CrownCmds));                     \
-                last_cmd->subcmd->data[key##_cmd].flags =                                        \
-                        aoc_arena_calloc(&Program_Arena, sizeof(CrownOpts));                     \
-        } while (0);                                                                             \
+#define crown_new_subcmd(key, ...)                                                           \
+        size_t key##_cmd = last_cmd->subcmd->len;                                            \
+        do {                                                                                 \
+                assert(last_cmd != NULL);                                                    \
+                crown_append(CrownCommand, last_cmd->subcmd, (CrownCommand){ __VA_ARGS__ }); \
+                last_cmd->subcmd->data[key##_cmd].subcmd =                                   \
+                        aoc_arena_calloc(&Program_Arena, sizeof(CrownCmds));                 \
+                last_cmd->subcmd->data[key##_cmd].flags =                                    \
+                        aoc_arena_calloc(&Program_Arena, sizeof(CrownOpts));                 \
+        } while (0);                                                                         \
         CrownCommand *key = &last_cmd->subcmd->data[key##_cmd];
 
 // Internal macro
-#define aoc_crown_append(T, opt, ...)                                      \
-        do {                                                               \
-                T _tmp = __VA_ARGS__;                                      \
-                void *ptr = &_tmp;                                         \
-                aoc_arena_da_reserve(&Program_Arena, opt, (opt)->len + 1); \
-                memcpy(&(opt)->data[(opt)->len], ptr, sizeof(T));          \
-                (opt)->len += 1;                                           \
+#define crown_append(T, opt, ...)                                     \
+        do {                                                          \
+                T _tmp = __VA_ARGS__;                                 \
+                void *ptr = &_tmp;                                    \
+                aoc_dar_reserve(&Program_Arena, opt, (opt)->len + 1); \
+                memcpy(&(opt)->data[(opt)->len], ptr, sizeof(T));     \
+                (opt)->len += 1;                                      \
         } while (0)
 
 /*
@@ -155,12 +161,12 @@ static CrownCommand *last_cmd = NULL;
  *
  * If the size of the terminal cannot be obtained, fallback to 80 columns
  */
-AOCLIBS_PREFIX void aoc_crown_iprint(const char *msg, int indent);
+AOCLIBS_PREFIX void crown_iprint(const char *msg, int indent);
 
 /*
  * Generates bash completions for commands, flags and arguments
  */
-AOCLIBS_PREFIX void aoc_crown_bashgen(const CrownEnv *env, size_t envc);
+AOCLIBS_PREFIX void crown_bashgen(const CrownEnv *null env, size_t envc);
 
 /*
  * Normalizes a strstrg strto a valid shell function name, by replacstrg
@@ -168,22 +174,22 @@ AOCLIBS_PREFIX void aoc_crown_bashgen(const CrownEnv *env, size_t envc);
  *
  * May truncate to buff_size
  */
-AOCLIBS_PREFIX void aoc_crown_normalize_name(char *buff, const char *str, size_t buff_size);
+AOCLIBS_PREFIX void crown_normalize_name(char *buff, const char *str, size_t buff_size);
 
 /*
  * Prints help message
  */
-AOCLIBS_PREFIX void aoc_crown_help(CrownCommand *null cmd);
+AOCLIBS_PREFIX void crown_help(CrownCommand *null cmd);
 
 /*
  * Generates bash completions for commands, flags and arguments
  */
-AOCLIBS_PREFIX void aoc_crown_zshgen(const CrownEnv *env, size_t envc);
+AOCLIBS_PREFIX void crown_zshgen(const CrownEnv *null env, size_t envc);
 
 /*
  * Get next argument from argv
  */
-AOCLIBS_PREFIX char *aoc_crown_getarg(char *argv[], int argc);
+AOCLIBS_PREFIX char *crown_getarg(char *argv[], int argc);
 
 // Important errors when using getopt:
 
@@ -207,14 +213,14 @@ enum {
  * By providing a specific command, getopt will return the index, related to
  * the options defined in the provided command.
  */
-AOCLIBS_PREFIX int aoc_crown_getopt(CrownCommand *null cmds, char *argv[], int argc);
+AOCLIBS_PREFIX int crown_getopt(CrownCommand *null cmds, char *argv[], int argc);
 
 /*
  * Command parser. If "cmds" is NULL, fallsback to commands defined in Programs.
  * By providing a specific command, getcmd will return the index, related to
  * the subcommand defined in the provided command.
  */
-AOCLIBS_PREFIX int aoc_crown_getcmd(CrownCommand *null cmds, char *argv[], int argc);
+AOCLIBS_PREFIX int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc);
 
 #ifdef AOCLIBS_CROWN
 
@@ -223,7 +229,7 @@ AOCLIBS_PREFIX int aoc_crown_getcmd(CrownCommand *null cmds, char *argv[], int a
 #include <ctype.h>
 
 // TODO: Subcommands and subcommand options
-AOCLIBS_PREFIX void aoc_crown_bashgen(const CrownEnv *env, size_t envc) {
+AOCLIBS_PREFIX void crown_bashgen(const CrownEnv *env, size_t envc) {
         puts("#!/usr/bin/env bash");
 
         // Sets all environment variables to the top
@@ -238,7 +244,7 @@ AOCLIBS_PREFIX void aoc_crown_bashgen(const CrownEnv *env, size_t envc) {
                 CrownArgument args = Program->args->data[i];
                 char ARG[CROWN_BUFFER];
                 if (args.completion)
-                        aoc_crown_normalize_name(ARG, args.name, CROWN_BUFFER);
+                        crown_normalize_name(ARG, args.name, CROWN_BUFFER);
                 else
                         return;
                 fprintf(CROWN_OUTPUT, "_%s() {\n  %s\n}\n", ARG, args.completion);
@@ -272,8 +278,9 @@ AOCLIBS_PREFIX void aoc_crown_bashgen(const CrownEnv *env, size_t envc) {
         for (size_t i = 0; i < Program->subcmd->len; i++) {
                 char ARG[CROWN_BUFFER];
                 CrownCommand cmds = Program->subcmd->data[i];
-                if (cmds.args && cmds.args->completion)
-                        aoc_crown_normalize_name(ARG, cmds.args->name, CROWN_BUFFER);
+                CrownArgument arg = Program->args->data[cmds.args];
+                if (arg.name)
+                        crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
                 else
                         return;
                 fprintf(CROWN_OUTPUT, "  %s)\n", cmds.name);
@@ -286,8 +293,9 @@ AOCLIBS_PREFIX void aoc_crown_bashgen(const CrownEnv *env, size_t envc) {
         for (size_t i = 0; i < Program->flags->len; i++) {
                 CrownOption flags = Program->flags->data[i];
                 char ARG[CROWN_BUFFER];
-                if (flags.args && flags.args->completion)
-                        aoc_crown_normalize_name(ARG, flags.args->name, CROWN_BUFFER);
+                CrownArgument arg = Program->args->data[flags.args];
+                if (arg.name)
+                        crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
                 else
                         return;
                 const char *SHORT_FLAG = flags.short_opt;
@@ -323,7 +331,7 @@ AOCLIBS_PREFIX void aoc_crown_bashgen(const CrownEnv *env, size_t envc) {
         fprintf(CROWN_OUTPUT, "complete -F _%s %s\n", Program->name, Program->name);
 }
 
-AOCLIBS_PREFIX void aoc_crown_normalize_name(char *buff, const char *str, size_t buff_size) {
+AOCLIBS_PREFIX void crown_normalize_name(char *buff, const char *str, size_t buff_size) {
         if (!buff || !str || buff_size == 0) {
                 if (buff && buff_size > 0) buff[0] = '\0';
                 return;
@@ -355,14 +363,14 @@ AOCLIBS_PREFIX void aoc_crown_normalize_name(char *buff, const char *str, size_t
 /*
  * Helper to print headings
  */
-internal inline void aoc_print_header(const char *msg, const char *style) {
-        fprintf(CROWN_OUTPUT, "%s%s%s", style, msg, COLOR_RESET);
+internal inline void crown_print_header(const char *msg) {
+        fprintf(CROWN_OUTPUT, "%s%s%s", CROWN_HEADER_COLOR, msg, COLOR_RESET);
 }
 
 /*
  * Helper qsort to sort commands
  */
-internal inline int aoc_crown_help_qsort_cmd(const void *a, const void *b) {
+internal inline int crown_help_qsort_cmd(const void *a, const void *b) {
         const CrownCommand *CMD_A = (const CrownCommand *)a;
         const CrownCommand *CMD_B = (const CrownCommand *)b;
 
@@ -378,14 +386,14 @@ internal inline const char *qsort_get_opt(const CrownOption *flag) {
 /*
  * Helper qsort to sort options
  */
-internal inline int aoc_crown_help_qsort_opt(const void *a, const void *b) {
+internal inline int crown_help_qsort_opt(const void *a, const void *b) {
         const CrownOption *FLAG_A = (const CrownOption *)a;
         const CrownOption *FLAG_B = (const CrownOption *)b;
 
         return strcmp(qsort_get_opt(FLAG_A), qsort_get_opt(FLAG_B));
 }
 
-internal inline bool aoc_has_commands(CrownCommand *cmds) {
+internal inline bool crown_has_commands(CrownCommand *cmds) {
         CrownCmds *cmd = cmds && cmds->subcmd != NULL ? cmds->subcmd : Program->subcmd;
         if (cmd == NULL) return false;
         if (cmd->len == 0) return false;
@@ -399,7 +407,7 @@ internal inline bool aoc_has_commands(CrownCommand *cmds) {
         return true;
 }
 
-internal inline bool aoc_has_options(CrownCommand *cmds) {
+internal inline bool crown_has_options(CrownCommand *cmds) {
         CrownOpts *opt = cmds && cmds->flags != NULL ? cmds->flags : Program->flags;
         if (opt == NULL) return false;
         if (opt->len == 0) return false;
@@ -414,24 +422,42 @@ internal inline bool aoc_has_options(CrownCommand *cmds) {
 }
 
 // Used in crown_help_commands and crown_help
-#define aoc_crown_help_command(command)                                            \
-        do {                                                                       \
-                if ((command)->args) {                                             \
-                        fprintf(CROWN_OUTPUT,                                      \
-                                "  %s%s%s [%s]\n",                                 \
-                                COLOR_BOLD,                                        \
-                                (command)->name,                                   \
-                                COLOR_RESET,                                       \
-                                (command)->args && (command)->args->name != NULL ? \
-                                        (command)->args->name :                    \
-                                        "");                                       \
-                } else {                                                           \
-                        fprintf(CROWN_OUTPUT,                                      \
-                                "  %s%s%s\n",                                      \
-                                COLOR_BOLD,                                        \
-                                (command)->name,                                   \
-                                COLOR_RESET);                                      \
-                }                                                                  \
+#define crown_help_command(command)                                       \
+        do {                                                              \
+                CrownArgument arg = Program->args->data[(command)->args]; \
+                if (arg.name) {                                           \
+                        fprintf(CROWN_OUTPUT,                             \
+                                "  %s%s%s [%s]\n",                        \
+                                CROWN_COMMAND_COLOR,                      \
+                                (command)->name,                          \
+                                COLOR_RESET,                              \
+                                arg.name);                                \
+                } else {                                                  \
+                        fprintf(CROWN_OUTPUT,                             \
+                                "  %s%s%s\n",                             \
+                                CROWN_COMMAND_COLOR,                      \
+                                (command)->name,                          \
+                                COLOR_RESET);                             \
+                }                                                         \
+        } while (0)
+
+#define crown_help_usage(command)                                         \
+        do {                                                              \
+                CrownArgument arg = Program->args->data[(command)->args]; \
+                if (arg.name) {                                           \
+                        fprintf(CROWN_OUTPUT,                             \
+                                " %s%s%s [%s]\n",                         \
+                                CROWN_COMMAND_COLOR,                      \
+                                (command)->name,                          \
+                                COLOR_RESET,                              \
+                                arg.name);                                \
+                } else {                                                  \
+                        fprintf(CROWN_OUTPUT,                             \
+                                " %s%s%s\n",                              \
+                                CROWN_COMMAND_COLOR,                      \
+                                (command)->name,                          \
+                                COLOR_RESET);                             \
+                }                                                         \
         } while (0)
 
 // Commands:
@@ -439,8 +465,8 @@ internal inline bool aoc_has_options(CrownCommand *cmds) {
 //       Description
 //   cmd2 [ARG]
 //       Description
-internal inline void aoc_crown_help_commands(CrownCommand *cmds) {
-        aoc_print_header("Commands:\n", COLOR_BOLD_UNDERLINE);
+internal inline void crown_help_commands(CrownCommand *cmds) {
+        crown_print_header("Commands:\n");
 
         const CrownCmds *COMMAND = cmds && cmds->subcmd != NULL ? cmds->subcmd : Program->subcmd;
 
@@ -448,37 +474,46 @@ internal inline void aoc_crown_help_commands(CrownCommand *cmds) {
                 if (COMMAND->data == NULL) continue;
                 CrownCommand cmd = COMMAND->data[i];
 
-                aoc_crown_help_command(&cmd);
+                crown_help_command(&cmd);
 
                 if (cmd.desc && cmd.desc[0] != '\0') {
-                        aoc_crown_iprint(cmd.desc, CROWN_INDENTATION);
+                        crown_iprint(cmd.desc, CROWN_INDENTATION);
                         fputc('\n', CROWN_OUTPUT);
                 }
         }
         fputc('\n', CROWN_OUTPUT);
 }
 
-#define aoc_crown_help_option(opt)                                                             \
-        do {                                                                                   \
-                const char *SHORT_OPT = (opt)->short_opt;                                      \
-                const char *LONG_OPT = (opt)->long_opt;                                        \
-                if (SHORT_OPT && LONG_OPT) {                                                   \
-                        fprintf(CROWN_OUTPUT,                                                  \
-                                "  %s%s%s, %s%s%s",                                            \
-                                COLOR_BOLD,                                                    \
-                                SHORT_OPT,                                                     \
-                                COLOR_RESET,                                                   \
-                                COLOR_BOLD,                                                    \
-                                LONG_OPT,                                                      \
-                                COLOR_RESET);                                                  \
-                } else if (LONG_OPT) {                                                         \
-                        fprintf(CROWN_OUTPUT, "  %s%s%s", COLOR_BOLD, LONG_OPT, COLOR_RESET);  \
-                } else if (SHORT_OPT) {                                                        \
-                        fprintf(CROWN_OUTPUT, "  %s%s%s", COLOR_BOLD, SHORT_OPT, COLOR_RESET); \
-                } else {                                                                       \
-                        continue;                                                              \
-                }                                                                              \
-                if ((opt)->args) fprintf(CROWN_OUTPUT, " [%s]", (opt)->args->name);            \
+#define crown_help_option(opt)                                          \
+        do {                                                            \
+                const char *SHORT_OPT = (opt)->short_opt;               \
+                const char *LONG_OPT = (opt)->long_opt;                 \
+                CrownArgument arg = Program->args->data[(opt)->args];   \
+                if (SHORT_OPT && LONG_OPT) {                            \
+                        fprintf(CROWN_OUTPUT,                           \
+                                "  %s%s%s, %s%s%s",                     \
+                                CROWN_COMMAND_COLOR,                    \
+                                SHORT_OPT,                              \
+                                COLOR_RESET,                            \
+                                CROWN_COMMAND_COLOR,                    \
+                                LONG_OPT,                               \
+                                COLOR_RESET);                           \
+                } else if (LONG_OPT) {                                  \
+                        fprintf(CROWN_OUTPUT,                           \
+                                "  %s%s%s",                             \
+                                CROWN_COMMAND_COLOR,                    \
+                                LONG_OPT,                               \
+                                COLOR_RESET);                           \
+                } else if (SHORT_OPT) {                                 \
+                        fprintf(CROWN_OUTPUT,                           \
+                                "  %s%s%s",                             \
+                                CROWN_COMMAND_COLOR,                    \
+                                SHORT_OPT,                              \
+                                COLOR_RESET);                           \
+                } else {                                                \
+                        continue;                                       \
+                }                                                       \
+                if (arg.name) fprintf(CROWN_OUTPUT, " [%s]", arg.name); \
         } while (0)
 
 // Options:
@@ -486,8 +521,8 @@ internal inline void aoc_crown_help_commands(CrownCommand *cmds) {
 //   -l, --long [ARG]
 //   -h, --help
 //       Description
-internal inline void aoc_crown_help_options(CrownCommand *cmds) {
-        aoc_print_header("Options:\n", COLOR_BOLD_UNDERLINE);
+internal inline void crown_help_options(CrownCommand *cmds) {
+        crown_print_header("Options:\n");
 
         const CrownOpts *FLAG = cmds && cmds->flags != NULL ? cmds->flags : Program->flags;
 
@@ -495,18 +530,18 @@ internal inline void aoc_crown_help_options(CrownCommand *cmds) {
                 if (FLAG->data == NULL) continue;
                 CrownOption flags = FLAG->data[i];
 
-                aoc_crown_help_option(&flags);
+                crown_help_option(&flags);
 
                 fputc('\n', CROWN_OUTPUT);
                 if (flags.desc && flags.desc[0] != '\0') {
-                        aoc_crown_iprint(flags.desc, CROWN_INDENTATION);
+                        crown_iprint(flags.desc, CROWN_INDENTATION);
                         fputc('\n', CROWN_OUTPUT);
                 }
         }
         fputc('\n', CROWN_OUTPUT);
 }
 
-AOCLIBS_PREFIX void aoc_crown_help(CrownCommand *null cmd) {
+AOCLIBS_PREFIX void crown_help(CrownCommand *null cmd) {
         // NULL in case you want to print the general flags and commands
 
         CrownCommand *print = cmd == NULL ? NULL : cmd;
@@ -514,44 +549,46 @@ AOCLIBS_PREFIX void aoc_crown_help(CrownCommand *null cmd) {
                 qsort(Program->subcmd->data,
                       Program->subcmd->len,
                       sizeof(CrownCommand),
-                      aoc_crown_help_qsort_cmd);
+                      crown_help_qsort_cmd);
                 qsort(Program->flags->data,
                       Program->flags->len,
                       sizeof(CrownOption),
-                      aoc_crown_help_qsort_opt);
+                      crown_help_qsort_opt);
 
                 // program name | program description
                 fprintf(CROWN_OUTPUT, "%s | %s\n\n", Program->name, Program->desc);
 
                 // Usage: program usage
-                printf("  %s%s%s %s\n\n", COLOR_BOLD, Program->name, COLOR_RESET, Program->usage);
+                crown_print_header("Usage:");
+                printf(" %s%s%s %s\n\n",
+                       CROWN_COMMAND_COLOR,
+                       Program->name,
+                       COLOR_RESET,
+                       Program->usage);
         } else {
                 qsort(cmd->subcmd->data,
                       cmd->subcmd->len,
                       sizeof(CrownCommand),
-                      aoc_crown_help_qsort_cmd);
-                qsort(cmd->flags->data,
-                      cmd->flags->len,
-                      sizeof(CrownOption),
-                      aoc_crown_help_qsort_opt);
+                      crown_help_qsort_cmd);
+                qsort(cmd->flags->data, cmd->flags->len, sizeof(CrownOption), crown_help_qsort_opt);
 
                 // command name | command description
                 fprintf(CROWN_OUTPUT, "%s\n\n", cmd->desc);
 
-                aoc_print_header("Usage:", COLOR_BOLD_UNDERLINE);
-                aoc_crown_help_command(cmd);
+                crown_print_header("Usage:");
+                crown_help_usage(cmd);
                 fputc('\n', CROWN_OUTPUT);
         }
-        if (aoc_has_commands(print)) aoc_crown_help_commands(print);
-        if (aoc_has_options(print)) aoc_crown_help_options(print);
+        if (crown_has_commands(print)) crown_help_commands(print);
+        if (crown_has_options(print)) crown_help_options(print);
 }
 
 // crown_zshgen
 
-internal inline void aoc_crown_zshgen_print_arg_autocomplete(const CrownArgument *args) {
+internal inline void crown_zshgen_print_arg_autocomplete(const CrownArgument *args) {
         char ARG[CROWN_BUFFER] = { 0 };
         if (args)
-                aoc_crown_normalize_name(ARG, args->name, CROWN_BUFFER);
+                crown_normalize_name(ARG, args->name, CROWN_BUFFER);
         else
                 return;
         const char *COMPLETIONS = args->completion;
@@ -564,16 +601,17 @@ internal inline void aoc_crown_zshgen_print_arg_autocomplete(const CrownArgument
         }
 }
 
-internal void aoc_crown_zshgen_print_flag_arg(const CrownOption *flag) {
+internal void crown_zshgen_print_flag_arg(const CrownOption *flag) {
         char ARG[CROWN_BUFFER];
         const char *SHORT_FLAG = flag->short_opt;
         const char *LONG_FLAG = flag->long_opt;
-        if (flag->args)
-                aoc_crown_normalize_name(ARG, flag->args->name, CROWN_BUFFER);
+        CrownArgument arg = Program->args->data[flag->args];
+        if (arg.name)
+                crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
         else
                 return;
         const char *DESC = flag->desc;
-        const char *COMP = (flag->args) ? flag->args->completion : NULL;
+        const char *COMP = arg.completion;
 
         if (!COMP) return;
 
@@ -599,13 +637,14 @@ internal void aoc_crown_zshgen_print_flag_arg(const CrownOption *flag) {
         }
 }
 
-internal inline void aoc_crown_zshgen_print_command_case(const CrownCommand *cmd) {
+internal inline void crown_zshgen_print_command_case(const CrownCommand *cmd) {
         char ARG[CROWN_BUFFER];
-        if (cmd->args)
-                aoc_crown_normalize_name(ARG, cmd->args->name, CROWN_BUFFER);
+        CrownArgument arg = Program->args->data[cmd->args];
+        if (arg.name)
+                crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
         else
                 return;
-        const char *COMP = (cmd->args) ? cmd->args->completion : NULL;
+        const char *COMP = arg.completion;
         if (!COMP) return;
 
         fprintf(CROWN_OUTPUT, "        %s)\n", cmd->name);
@@ -614,15 +653,16 @@ internal inline void aoc_crown_zshgen_print_command_case(const CrownCommand *cmd
         fprintf(CROWN_OUTPUT, "          ;;\n");
 }
 
-internal inline void aoc_crown_zshgen_print_flag_case(const CrownOption *flag) {
+internal inline void crown_zshgen_print_flag_case(const CrownOption *flag) {
         char ARG[CROWN_BUFFER];
         const char *SHORT_FLAG = flag->short_opt;
         const char *LONG_FLAG = flag->long_opt;
-        if (flag->args)
-                aoc_crown_normalize_name(ARG, flag->args->name, CROWN_BUFFER);
+        CrownArgument arg = Program->args->data[flag->args];
+        if (arg.name)
+                crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
         else
                 return;
-        const char *COMPLETIONS = (flag->args) ? flag->args->completion : NULL;
+        const char *COMPLETIONS = arg.completion;
         if (!COMPLETIONS) return;
 
         if (SHORT_FLAG != NULL && LONG_FLAG != NULL) {
@@ -639,7 +679,7 @@ internal inline void aoc_crown_zshgen_print_flag_case(const CrownOption *flag) {
 }
 
 // TODO: Subcommands and subcommand options
-AOCLIBS_PREFIX void aoc_crown_zshgen(const CrownEnv *env, size_t envc) {
+AOCLIBS_PREFIX void crown_zshgen(const CrownEnv *env, size_t envc) {
         // Header
         fprintf(CROWN_OUTPUT, "#compdef %s\n\n", Program->name);
 
@@ -665,7 +705,7 @@ AOCLIBS_PREFIX void aoc_crown_zshgen(const CrownEnv *env, size_t envc) {
         fprintf(CROWN_OUTPUT, "    '1:command:->subcmds' \\\n");
         for (size_t i = 0; i < Program->flags->len; i++) {
                 CrownOption flags = Program->flags->data[i];
-                aoc_crown_zshgen_print_flag_arg(&flags);
+                crown_zshgen_print_flag_arg(&flags);
         }
         fprintf(CROWN_OUTPUT, "    '*::args:->command_args'\n\n");
 
@@ -681,12 +721,12 @@ AOCLIBS_PREFIX void aoc_crown_zshgen(const CrownEnv *env, size_t envc) {
         // Autocomplete arguments from commands
         for (size_t i = 0; i < Program->subcmd->len; i++) {
                 CrownCommand cmds = Program->subcmd->data[i];
-                aoc_crown_zshgen_print_command_case(&cmds);
+                crown_zshgen_print_command_case(&cmds);
         }
         // Autocomplete arguments from flags
         for (size_t i = 0; i < Program->flags->len; i++) {
                 CrownOption flags = Program->flags->data[i];
-                aoc_crown_zshgen_print_flag_case(&flags);
+                crown_zshgen_print_flag_case(&flags);
         }
         fprintf(CROWN_OUTPUT, "      esac\n");
         fprintf(CROWN_OUTPUT, "      ;;\n");
@@ -696,7 +736,7 @@ AOCLIBS_PREFIX void aoc_crown_zshgen(const CrownEnv *env, size_t envc) {
         // Define helper functions to autocomplete arguments
         for (size_t i = 0; i < Program->args->len; i++) {
                 CrownArgument args = Program->args->data[i];
-                aoc_crown_zshgen_print_arg_autocomplete(&args);
+                crown_zshgen_print_arg_autocomplete(&args);
         }
 
         // Assign function to program
@@ -705,15 +745,15 @@ AOCLIBS_PREFIX void aoc_crown_zshgen(const CrownEnv *env, size_t envc) {
 
 // CLI Argument Parser
 
-AOCLIBS_PREFIX char *aoc_crown_getarg(char *argv[], int argc) {
+AOCLIBS_PREFIX char *crown_getarg(char *argv[], int argc) {
         if (optind >= argc) return NULL;
         return argv[optind++];
 }
 
-#define aoc_crown_parseopt(opt, argv, argc) aoc_crown_getopt((opt), (argv), (argc))
+#define crown_parseopt(opt, argv, argc) crown_getopt((opt), (argv), (argc))
 
-AOCLIBS_PREFIX int aoc_crown_getopt(CrownCommand *null cmds, char *argv[], int argc) {
-        const char *arg = aoc_crown_getarg(argv, argc);
+AOCLIBS_PREFIX int crown_getopt(CrownCommand *null cmds, char *argv[], int argc) {
+        const char *arg = crown_getarg(argv, argc);
         optcur = (char *)arg;
 
         if (!arg) return EndOfArgs;
@@ -728,11 +768,12 @@ AOCLIBS_PREFIX int aoc_crown_getopt(CrownCommand *null cmds, char *argv[], int a
         for (size_t i = 0; i < len; i++) {
                 const char *long_opt = opt[i].long_opt;
                 const char *short_opt = opt[i].short_opt;
-                const CrownArgument *flag_arg = opt[i].args;
+                const size_t flag_arg_idx = opt[i].args;
+                const char *flag_arg = Program->args->data[i].name;
 
                 if (long_opt != NULL && aoc_cstr_eq(arg, long_opt)) {
                         if (flag_arg != NULL) {
-                                optarg = aoc_crown_getarg(argv, argc);
+                                optarg = crown_getarg(argv, argc);
                                 if (optarg == NULL || optarg[0] == '-') return ArgMissingOptarg;
                         }
                         return i; // Success
@@ -740,7 +781,7 @@ AOCLIBS_PREFIX int aoc_crown_getopt(CrownCommand *null cmds, char *argv[], int a
 
                 if (short_opt != NULL && aoc_cstr_eq(arg, short_opt)) {
                         if (flag_arg != NULL) {
-                                optarg = aoc_crown_getarg(argv, argc);
+                                optarg = crown_getarg(argv, argc);
                                 if (optarg == NULL || optarg[0] == '-') return ArgMissingOptarg;
                         }
                         return i; // Success
@@ -749,11 +790,11 @@ AOCLIBS_PREFIX int aoc_crown_getopt(CrownCommand *null cmds, char *argv[], int a
         return ArgNotFound;
 }
 
-#define aoc_subcmd(opt, idx) (opt)->subcmd->data[(idx)]
+#define crown_subcmd(opt, idx) (opt)->subcmd->data[(idx)]
 
-#define aoc_crown_parsecmd(opt, argv, argc) aoc_crown_getcmd((opt), (argv), (argc))
+#define crown_parsecmd(opt, argv, argc) crown_getcmd((opt), (argv), (argc))
 
-AOCLIBS_PREFIX int aoc_crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
+AOCLIBS_PREFIX int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
         const CrownCommand *opt = cmds && cmds->subcmd != NULL ? cmds->subcmd->data :
                                                                  Program->subcmd->data;
         const size_t len = cmds && cmds->subcmd != NULL ? cmds->subcmd->len : Program->subcmd->len;
@@ -762,13 +803,14 @@ AOCLIBS_PREFIX int aoc_crown_getcmd(CrownCommand *null cmds, char *argv[], int a
 
         for (size_t i = 0; i < len; i++) {
                 const char *cmd = opt[i].name;
-                const CrownArgument *cmd_arg = opt[i].args;
+                const size_t cmd_arg_idx = opt[i].args;
+                const char *cmd_arg = Program->args->data[i].name;
                 const CrownCommand *cmd_subcmd =
                         opt[i].subcmd && opt[i].subcmd->data != NULL ? opt[i].subcmd->data : NULL;
 
                 if (cmd != NULL && aoc_cstr_eq(optcur, cmd)) {
                         if (cmd_arg != NULL) {
-                                optarg = aoc_crown_getarg(argv, argc);
+                                optarg = crown_getarg(argv, argc);
                                 if (cmd_subcmd != NULL) return i;
                                 if (optarg == NULL || optarg[0] == '-') return ArgMissingOptarg;
                         }
@@ -778,11 +820,11 @@ AOCLIBS_PREFIX int aoc_crown_getcmd(CrownCommand *null cmds, char *argv[], int a
         return ArgNotDefined;
 }
 
-AOCLIBS_PREFIX void aoc_crown_deinit(void) {
+AOCLIBS_PREFIX void crown_deinit(void) {
         aoc_arena_destroy(&Program_Arena);
 }
 
-AOCLIBS_PREFIX void aoc_crown_iprint(const char *msg, int indent) {
+AOCLIBS_PREFIX void crown_iprint(const char *msg, int indent) {
         struct winsize w;
         if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 || w.ws_col == 0) {
                 w.ws_col = 80;
@@ -830,27 +872,5 @@ AOCLIBS_PREFIX void aoc_crown_iprint(const char *msg, int indent) {
         fputc(' ', CROWN_OUTPUT);
 }
 #endif // AOCLIBS_CROWN
-
-#ifdef AOCLIBS_STRIP_PREFIX
-#define crown_iprint aoc_crown_iprint
-#define crown_bashgen aoc_crown_bashgen
-#define crown_normalize_name aoc_crown_normalize_name
-#define crown_help aoc_crown_help
-#define crown_zshgen aoc_crown_zshgen
-#define crown_getarg aoc_crown_getarg
-
-#define crown_parseopt aoc_crown_parseopt
-#define crown_parsecmd aoc_crown_parsecmd
-
-#define crown_init aoc_crown_init
-#define crown_deinit aoc_crown_deinit
-
-#define crown_new_arg aoc_crown_new_arg
-#define crown_new_opt aoc_crown_new_opt
-#define crown_new_cmd aoc_crown_new_cmd
-
-#define crown_new_subopt aoc_crown_new_subopt
-#define crown_new_subcmd aoc_crown_new_subcmd
-#endif
 
 #endif // AOCLIBS_CROWN_H_
