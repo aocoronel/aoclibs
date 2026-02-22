@@ -54,47 +54,39 @@
 //
 // DynamicArray my_da = { 0 };
 // da_reserve(&my_da, (&my_da)->len + 1); // Needs to allocate one value
-#define aoc_da_reserve(da, new_cap) _aoc_da_reserve(AOCLIBS_DA_REALLOC, (da), (new_cap))
-#define _aoc_da_reserve(realloc, da, new_cap)                                              \
-        do {                                                                               \
-                if ((new_cap) > (da)->cap) {                                               \
-                        if ((da)->cap < AOCLIBS_DA_INITIAL_CAPACITY) {                     \
-                                (da)->cap = AOCLIBS_DA_INITIAL_CAPACITY;                   \
-                        }                                                                  \
-                        while ((new_cap) > (da)->cap) {                                    \
-                                (da)->cap *= 2;                                            \
-                        }                                                                  \
-                        (da)->data = realloc((da)->data, (da)->cap * sizeof(*(da)->data)); \
-                }                                                                          \
+#define aoc_da_reserve(da, new_cap)                                                                \
+        do {                                                                                       \
+                if ((new_cap) > (da)->cap) {                                                       \
+                        if ((da)->cap < AOCLIBS_DA_INITIAL_CAPACITY) {                             \
+                                (da)->cap = AOCLIBS_DA_INITIAL_CAPACITY;                           \
+                        }                                                                          \
+                        while ((new_cap) > (da)->cap) {                                            \
+                                (da)->cap *= 2;                                                    \
+                        }                                                                          \
+                        (da)->data = AOCLIBS_DA_FREE((da)->data, (da)->cap * sizeof(*(da)->data)); \
+                }                                                                                  \
         } while (0)
 
-#define aoc_da_free(da) _aoc_da_free(AOCLIBS_DA_FREE, da)
-#define _aoc_da_free(free, da)                             \
+#define aoc_da_free(da)                                    \
         do {                                               \
                 ASSERT(da != NULL, "double free attempt"); \
-                free((da)->data);                          \
+                AOCLIBS_DA_FREE((da)->data);               \
                 (da)->data = NULL;                         \
                 (da)->len = 0;                             \
                 (da)->cap = 0;                             \
         } while (0)
 
-#define aoc_da_insert(da, data) _aoc_da_insert(AOCLIBS_DA_REALLOC, (da), (data))
-#define _aoc_da_insert(realloc, da, item)                        \
-        do {                                                     \
-                _aoc_da_reserve((realloc), (da), (da)->len + 1); \
-                (da)->data[(da)->len++] = (item);                \
+#define aoc_da_insert(da, data)                      \
+        do {                                         \
+                aoc_da_reserve((da), (da)->len + 1); \
+                (da)->data[(da)->len++] = (item);    \
         } while (0)
 
-#define aoc_da_copy(da, items_buff, items_size) \
-        _aoc_da_add(AOCLIBS_DA_REALLOC, da, items_buff, items_size, (da)->len)
-#define _aoc_da_copy(realloc, da, items_buff, items_size) \
-        _aoc_da_add(realloc, da, items_buff, items_size, (da)->len)
+#define aoc_da_copy(da, items_buff, items_size) aoc_da_add(da, items_buff, items_size, (da)->len)
 
-#define aoc_da_add(da, items_buff, items_size, offset) \
-        _aoc_da_add(AOCLIBS_DA_REALLOC, da, items_buff, items_size, offset)
-#define _aoc_da_add(realloc, da, items_buff, items_size, offset)                                 \
+#define aoc_da_add(da, items_buff, items_size, offset)                                           \
         do {                                                                                     \
-                _aoc_da_reserve(realloc, (da), (da)->len + (items_size));                        \
+                aoc_da_reserve((da), (da)->len + (items_size));                                  \
                 memcpy((da)->data + (offset), (items_buff), (items_size) * sizeof(*(da)->data)); \
                 (da)->len += (items_size);                                                       \
         } while (0)
@@ -118,12 +110,10 @@
 // =================================
 
 #define aoc_da_add_null(da) aoc_da_copy(da, "\0", 1)
-#define _aoc_da_add_null(realloc, da) _aoc_da_copy(realloc, da, "\0", 1)
 
-#define aoc_da_clone(dest, src) _aoc_da_clone(AOCLIBS_DA_REALLOC, dest, src)
-#define _aoc_da_clone(realloc, dest, src)                                       \
+#define aoc_da_clone(dest, src)                                                 \
         do {                                                                    \
-                _aoc_da_reserve(realloc, dest, (src)->cap);                     \
+                aoc_da_reserve(dest, (src)->cap);                               \
                 (dest)->len = (src)->len;                                       \
                 memcpy((dest)->data, (src)->data, (src)->len * sizeof(void *)); \
         } while (0)
@@ -199,14 +189,6 @@
 #define aoc_da_is_null(da) !(da) || !(da)->data
 
 #ifdef AOCLIBS_STRIP_PREFIX
-#define _da_add _aoc_da_add
-#define _da_add_null _aoc_da_add_null
-#define _da_clone _aoc_da_clone
-#define _da_copy _aoc_da_copy
-#define _da_free _aoc_da_free
-#define _da_insert _aoc_da_insert
-#define _da_reserve _aoc_da_reserve
-
 #define da_add aoc_da_add
 #define da_copy aoc_da_copy
 #define da_insert aoc_da_insert
