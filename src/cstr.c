@@ -14,6 +14,25 @@
 #define HIGHS (ONES * (UCHAR_MAX / 2 + 1))
 #define HASZERO(x) (((x) - ONES) & ~(x) & HIGHS)
 
+CSlice extract_between_whitespace(const char *s, size_t begin, size_t end) {
+        const char *s_ptr = s + begin;
+        size_t n_begin = begin;
+        size_t n_end = end;
+
+        while (s_ptr < s + end && *s_ptr == ' ') {
+                s_ptr++;
+                n_begin++;
+        }
+
+        s_ptr = s + end - 1;
+        while (s_ptr >= s + n_begin && *s_ptr == ' ') {
+                s_ptr--;
+                n_end--;
+        }
+
+        return (CSlice){ .data = s + n_begin, .len = n_end - n_begin };
+}
+
 void cslice_to_cstr(CSlice s, char *buff, const size_t size) {
         int size_to_copy = s.len > size ? size : s.len;
         memcpy(buff, s.data, size_to_copy);

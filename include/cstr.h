@@ -18,6 +18,16 @@ typedef struct {
 #define CSTR_MALLOC malloc
 #endif
 
+// Returns slice on first occurance of a word between whitespaces.
+//
+// Example:
+//      char msg[] = "Hello, World! Hopefully, this example is useful";
+//      CSlice slice = extract_between_whitespace(msg, 0, sizeof(msg));
+//      printf("%.*s\n", slice.len, slice.data); // => "Hello,"
+//      slice = extract_between_whitespace(msg, slice.len, sizeof(msg));
+//      printf("%.*s\n", slice.len, slice.data); // => "World!"
+CSlice extract_between_whitespace(const char *ref s, size_t begin, size_t end);
+
 #define aoc_cstr_to_slice(s, start, end)                      \
         (CSlice) {                                            \
                 .data = (s) + (start), .len = (end) - (start) \
