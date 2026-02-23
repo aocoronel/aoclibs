@@ -1,9 +1,12 @@
 #pragma once
 
 #include "file.h"
+#include "da.h"
+#include "rc.h"
 #include <dirent.h>
 #include <errno.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -115,4 +118,45 @@ FileType aoc_get_filetype(const char *ref path) {
                 return F_LNK;
 
         return F_NULL;
+}
+
+rc read_entire_file(const char *filepath) {
+        FILE *fp = fopen(filepath, "r");
+
+        struct stat st;
+        bool reserve = false;
+        if (stat(filepath, &st) != -1) reserve = true;
+
+        rc lines = { 0 };
+
+        if (reserve == true) {
+                aoc_da_reserve(&lines, st.st_size);
+                int c = 0;
+                while (lines.len < lines.cap) {
+                        c = getc(fp);
+                        if (c == EOF) break;
+                        aoc_da_insert_fast(&lines, c);
+                }
+        } else {
+                aoc_da_reserve(&lines, 256);
+                for (;;) {
+                        int c = getc(fp);
+
+                        if (c == EOF) {
+                                if (lines.len == 0) {
+                                        fclose(fp);
+                                        aoc_da_free(&lines);
+                                        return (rc){};
+                                }
+                                break;
+                        }
+
+                        aoc_da_insert(&lines, c);
+                }
+        }
+
+        aoc_da_add_null(&lines);
+
+        fclose(fp);
+        return lines;
 }

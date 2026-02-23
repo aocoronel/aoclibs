@@ -3,6 +3,7 @@
 
 #define _GNU_SOURCE
 #include "base.h"
+#include "rc.h"
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -48,6 +49,8 @@ FileType aoc_get_filetype(const char *ref path);
 //
 // Allocates to lineptr. The user owns the allocation.
 size_t read_by_delim(char **xref lineptr, size_t *xref n, int delim, FILE *xref stream);
+
+rc read_entire_file(const char *filepath);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "file.c"
