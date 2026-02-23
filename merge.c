@@ -66,8 +66,7 @@ bool read_file(const char *ref file, bool ignore_include) {
                 } else if (memcmp(file, TEMPLATE_FILE, TEMPLATE_FILE_LEN) == 0 &&
                            (idx = MERGE_MATCH("#ifdef AOCLIBS_IMPLEMENTATION")) != SIZE_MAX) {
                         fprintf(output, "%s", buffer);
-                        aoc_dir_walk("base", true, NULL, read_source_files, NULL, NULL, NULL);
-                        aoc_dir_walk("libs", true, NULL, read_source_files, NULL, NULL, NULL);
+                        aoc_dir_walk("src", true, NULL, read_source_files, NULL, NULL, NULL);
                         continue;
                 }
 print:
