@@ -137,6 +137,7 @@ size_t aoc_index_of(const char *s, char delim, size_t size) {
         ASSERT_NONNULL(s != NULL);
 
         const char *ptr = memchr(s, delim, size);
+        if (ptr == NULL) return SIZE_MAX;
 
         return ptr - s;
 }
