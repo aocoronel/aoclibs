@@ -228,7 +228,119 @@ AOCLIBS_PREFIX int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc)
 #include "cstr.h"
 #include <ctype.h>
 
-// TODO: Subcommands and subcommand options
+AOCLIBS_PREFIX void crown_indent_completion(int indent) {
+        for (int i = 0; i < indent; i++) {
+                fputc(' ', CROWN_OUTPUT);
+        }
+}
+
+AOCLIBS_PREFIX void crown_bashgen_case_prev_open(void) {
+        fprintf(CROWN_OUTPUT, "  case \"${prev}\" in\n");
+}
+
+AOCLIBS_PREFIX void crown_bashgen_case_prev_close(int indent) {
+        crown_indent_completion(indent);
+        fprintf(CROWN_OUTPUT, "  esac\n");
+}
+
+AOCLIBS_PREFIX void crown_bashgen_options(CrownOpts *cmds, int indent) {
+        CrownOpts *curr_cmd = cmds == NULL ? Program->flags : cmds;
+        ASSERT(curr_cmd != NULL);
+
+        foreach (curr_cmd, i) {
+                char ARG[CROWN_BUFFER];
+                CrownOption flags = curr_cmd->data[i];
+                CrownArgument arg = Program->args->data[flags.args];
+                if (arg.name) crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
+                const char *SHORT_FLAG = flags.short_opt;
+                const char *LONG_FLAG = flags.long_opt;
+
+                ASSERT(LONG_FLAG || SHORT_FLAG, "Option doesn't has a short or long flag");
+
+                crown_indent_completion(indent);
+                if (LONG_FLAG && SHORT_FLAG)
+                        fprintf(CROWN_OUTPUT, "  %s|%s)\n", SHORT_FLAG, LONG_FLAG);
+                else if (LONG_FLAG)
+                        fprintf(CROWN_OUTPUT, "  %s)\n", LONG_FLAG);
+                else if (SHORT_FLAG)
+                        fprintf(CROWN_OUTPUT, "  %s)\n", SHORT_FLAG);
+
+                if (arg.name) {
+                        crown_indent_completion(indent);
+                        fprintf(CROWN_OUTPUT,
+                                "    mapfile -t COMPREPLY < <(compgen -W \"$(_%s)\" -- \"${cur}\")\n",
+                                ARG);
+                }
+                crown_indent_completion(indent);
+                fprintf(CROWN_OUTPUT, "    return 0\n");
+                crown_indent_completion(indent);
+                fprintf(CROWN_OUTPUT, "    ;;\n");
+        }
+}
+
+AOCLIBS_PREFIX void crown_bashgen_subcommand(CrownCmds *cmds, int indent) {
+        CrownCmds *curr_cmd = cmds == NULL ? Program->subcmd : cmds;
+        ASSERT(curr_cmd != NULL);
+
+        foreach (curr_cmd, i) {
+                char ARG[CROWN_BUFFER];
+                CrownCommand cmd = curr_cmd->data[i];
+                CrownArgument arg = Program->args->data[cmd.args];
+                if (arg.name) crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
+
+                crown_indent_completion(indent);
+                fprintf(CROWN_OUTPUT, "  %s)\n", cmd.name);
+
+                if (cmd.subcmd && cmd.subcmd->data) {
+                        crown_indent_completion(indent + 2);
+                        crown_bashgen_case_prev_open();
+                        foreach (cmd.subcmd, j) {
+                                crown_bashgen_subcommand(cmd.subcmd, indent + 4);
+                        }
+                        crown_bashgen_case_prev_close(indent + 2);
+                }
+
+                if (cmd.flags && cmd.flags->data) {
+                        crown_indent_completion(indent + 2);
+                        crown_bashgen_case_prev_open();
+                        foreach (cmd.flags, j) {
+                                crown_bashgen_options(cmd.flags, indent + 4);
+                        }
+                        crown_bashgen_case_prev_close(indent + 2);
+                }
+
+                if (arg.name) {
+                        crown_indent_completion(indent);
+                        fprintf(CROWN_OUTPUT,
+                                "    mapfile -t COMPREPLY < <(compgen -W \"$(_%s)\" -- \"${cur}\")\n",
+                                ARG);
+                        if (cmd.subcmd != NULL) {
+                                eprintf("%s[WARNING]%s The command %s has subcommands and an argument. Crown expects to be either one or the other\n",
+                                        COLOR_YELLOW,
+                                        COLOR_RESET,
+                                        cmd.name);
+                        }
+                } else {
+                        fprintf(CROWN_OUTPUT, "    mapfile -t COMPREPLY < <(compgen -W \"");
+                        foreach (cmd.subcmd, j) {
+                                fprintf(CROWN_OUTPUT, "%s ", cmd.subcmd->data[j].name);
+                        }
+                        foreach (cmd.flags, j) {
+                                CrownOption _tmp = cmd.flags->data[j];
+                                if (_tmp.short_opt) fprintf(CROWN_OUTPUT, "%s ", _tmp.short_opt);
+                                if (_tmp.long_opt) fprintf(CROWN_OUTPUT, "%s ", _tmp.long_opt);
+                        }
+                        fprintf(CROWN_OUTPUT, "\" -- \"${cur}\")\n");
+                }
+
+                if (cmd.subcmd == NULL) indent -= 2;
+                crown_indent_completion(indent);
+                fprintf(CROWN_OUTPUT, "    return 0\n");
+                crown_indent_completion(indent);
+                fprintf(CROWN_OUTPUT, "    ;;\n");
+        }
+}
+
 AOCLIBS_PREFIX void crown_bashgen(const CrownEnv *env, size_t envc) {
         puts("#!/usr/bin/env bash");
 
@@ -246,7 +358,7 @@ AOCLIBS_PREFIX void crown_bashgen(const CrownEnv *env, size_t envc) {
                 if (args.completion)
                         crown_normalize_name(ARG, args.name, CROWN_BUFFER);
                 else
-                        return;
+                        continue;
                 fprintf(CROWN_OUTPUT, "_%s() {\n  %s\n}\n", ARG, args.completion);
         }
 
@@ -272,47 +384,15 @@ AOCLIBS_PREFIX void crown_bashgen(const CrownEnv *env, size_t envc) {
         fprintf(CROWN_OUTPUT, "    return 0\n");
         fprintf(CROWN_OUTPUT, "  fi\n");
 
+        // TODO: Assign environment variable to an argument.
+        // If assigned, the completion will update the value of the environment variable
+
         // Argument completion
         fprintf(CROWN_OUTPUT, "  case \"${prev}\" in\n");
         // Commands
-        for (size_t i = 0; i < Program->subcmd->len; i++) {
-                char ARG[CROWN_BUFFER];
-                CrownCommand cmds = Program->subcmd->data[i];
-                CrownArgument arg = Program->args->data[cmds.args];
-                if (arg.name)
-                        crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
-                else
-                        return;
-                fprintf(CROWN_OUTPUT, "  %s)\n", cmds.name);
-                fprintf(CROWN_OUTPUT,
-                        "    mapfile -t COMPREPLY < <(compgen -W \"$(_%s)\" -- \"${cur}\")\n",
-                        ARG);
-                fprintf(CROWN_OUTPUT, "    return 0\n    ;;\n");
-        }
+        crown_bashgen_subcommand(NULL, 0);
         // Flags
-        for (size_t i = 0; i < Program->flags->len; i++) {
-                CrownOption flags = Program->flags->data[i];
-                char ARG[CROWN_BUFFER];
-                CrownArgument arg = Program->args->data[flags.args];
-                if (arg.name)
-                        crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
-                else
-                        return;
-                const char *SHORT_FLAG = flags.short_opt;
-                const char *LONG_FLAG = flags.long_opt;
-                if (LONG_FLAG && SHORT_FLAG)
-                        fprintf(CROWN_OUTPUT, "  %s|%s)\n", SHORT_FLAG, LONG_FLAG);
-                else if (LONG_FLAG)
-                        fprintf(CROWN_OUTPUT, "  %s)\n", LONG_FLAG);
-                else if (SHORT_FLAG)
-                        fprintf(CROWN_OUTPUT, "  %s)\n", SHORT_FLAG);
-                else
-                        return;
-                fprintf(CROWN_OUTPUT,
-                        "    mapfile -t COMPREPLY < <(compgen -W \"$(_%s)\" -- \"${cur}\")\n",
-                        ARG);
-                fprintf(CROWN_OUTPUT, "    return 0\n    ;;\n");
-        }
+        crown_bashgen_options(NULL, 0);
         fprintf(CROWN_OUTPUT, "  esac\n");
 
         // Command completion
@@ -792,7 +872,7 @@ AOCLIBS_PREFIX int crown_getopt(CrownCommand *null cmds, char *argv[], int argc)
 
 #define crown_subcmd(opt, idx) (opt)->subcmd->data[(idx)]
 
-#define crown_parsecmd(opt) crown_getcmd((opt))
+#define crown_parsecmd(opt) crown_getcmd((opt), argv, argc)
 
 AOCLIBS_PREFIX int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
         const CrownCommand *opt = cmds && cmds->subcmd != NULL ? cmds->subcmd->data :
