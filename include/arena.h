@@ -99,21 +99,25 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
  * Dynamic Arena
 */
 
-#define aoc_dar_reserve(a, da, new_cap)                                                           \
-        do {                                                                                      \
-                if ((da)->len >= (da)->cap) {                                                     \
-                        size_t new_capacity = (da)->cap < AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY ? \
-                                                      AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY :     \
-                                                      new_cap;                                    \
-                        while ((new_cap) > new_capacity) {                                        \
-                                new_capacity *= 2;                                                \
-                        }                                                                         \
-                        (da)->data = aoc_arena_realloc((a),                                       \
-                                                       (da)->data,                                \
-                                                       (da)->cap * sizeof(*(da)->data),           \
-                                                       new_capacity * sizeof(*(da)->data));       \
-                        (da)->cap = new_capacity;                                                 \
-                }                                                                                 \
+#ifndef AOCLIBS_ARENA_DA_CAPACITY
+#define AOCLIBS_ARENA_DA_CAPACITY 256
+#endif
+
+#define aoc_dar_reserve(a, da, new_cap)                                                     \
+        do {                                                                                \
+                if ((da)->len >= (da)->cap) {                                               \
+                        size_t new_capacity = (da)->cap < AOCLIBS_ARENA_DA_CAPACITY ?       \
+                                                      AOCLIBS_ARENA_DA_CAPACITY :           \
+                                                      new_cap;                              \
+                        while ((new_cap) > new_capacity) {                                  \
+                                new_capacity *= 2;                                          \
+                        }                                                                   \
+                        (da)->data = aoc_arena_realloc((a),                                 \
+                                                       (da)->data,                          \
+                                                       (da)->cap * sizeof(*(da)->data),     \
+                                                       new_capacity * sizeof(*(da)->data)); \
+                        (da)->cap = new_capacity;                                           \
+                }                                                                           \
         } while (0)
 
 #define aoc_dar_insert(a, da, item)                    \
@@ -207,7 +211,7 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 #define dar_copy aoc_dar_copy
 #define dar_insert aoc_dar_insert
 #define dar_reserve aoc_dar_reserve
-#define arena_lrc_copy aoc_arena_lrc_copy
+#define arcl_copy aoc_arcl_copy
 
 #define dar_reserve aoc_dar_reserve
 #define dar_insert aoc_dar_insert
@@ -215,8 +219,8 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 #define dar_add aoc_dar_add
 #define dar_add_null aoc_dar_add_null
 
-#define arcl_cat aoc_arena_lrc_cat
-#define arc_cat aoc_arena_rc_cat
+#define arcl_cat aoc_arcl_cat
+#define arc_cat aoc_arc_cat
 
 #define arcl_append aoc_arcl_append
 #define arc_append aoc_arc_append
@@ -227,7 +231,7 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 #define dar_copy_fast aoc_dar_copy_fast
 #define dar_insert_fast aoc_dar_insert_fast
 
-#define arc_cat_fast aoc_arena_rc_cat_fast
+#define arc_cat_fast aoc_arc_cat_fast
 #define arc_append_fast aoc_arc_append_fast
 #endif
 
