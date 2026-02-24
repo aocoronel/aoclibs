@@ -69,6 +69,7 @@ struct CrownCommand {
 };
 
 typedef struct {
+        CrownOption *opt;
         const char *name;
         const char *value; // HOME, PATH, SHELL...
 } CrownEnv;
@@ -106,6 +107,9 @@ static CrownCommand *last_cmd = NULL;
                 Program = _Program;                                    \
                 Program->args->len = 1;                                \
         } while (0)
+
+// Once you no longer need to use Crown, you can deinitialize all memory it used.
+AOCLIBS_PREFIX void crown_deinit(void);
 
 // Add new argument
 // It has a key which is used to be referenced by flags and commands
@@ -158,34 +162,29 @@ static CrownCommand *last_cmd = NULL;
                 (opt)->len += 1;                                      \
         } while (0)
 
-/*
- * Prints indented message
- *
- * If the size of the terminal cannot be obtained, fallback to 80 columns
- */
+// Prints indented message of given "indent".
+//
+// If the size of the terminal cannot be obtained, fallback to 80 columns.
 AOCLIBS_PREFIX void crown_iprint(const char *msg, int indent);
 
-/*
- * Generates bash completions for commands, flags and arguments
- */
+// Generates bash completions for commands, flags and arguments.
+//
+// If user provides environment variables, they will be set as a global completion variable.
+// This way the user can write argument completion that uses those environment variables.
 AOCLIBS_PREFIX void crown_bashgen(const CrownEnv *null env, size_t envc);
 
-/*
- * Normalizes a strstrg strto a valid shell function name, by replacstrg
- * non-alphanumeric characters with underscores.
- *
- * May truncate to buff_size
- */
+// Normalizes a given "str" to a valid shell function name, by replacing it to non-alphanumeric
+// characters with underscores.
+//
+// May truncate to "buff_size".
 AOCLIBS_PREFIX void crown_normalize_name(char *buff, const char *str, size_t buff_size);
 
-/*
- * Prints help message
- */
+// Prints help message.
+//
+// If "cmd" is NULL, prints the main help message.
 AOCLIBS_PREFIX void crown_help(CrownCommand *null cmd);
 
-/*
- * Get next argument from argv
- */
+// Get next argument from argv.
 AOCLIBS_PREFIX char *crown_getarg(char *argv[], int argc);
 
 // Important errors when using getopt:
@@ -197,7 +196,7 @@ enum {
         // This can be used to parse commands and positional arguments.
         ArgNotOpt,
         // This is relevant only for developers, and notices when there was an error
-        // on defining and option.
+        // on defining and option or command.
         ArgNotDefined,
         // This should NEVER return. It only returns if optind is higher than argc.
         EndOfArgs,
@@ -205,18 +204,31 @@ enum {
         ArgNotFound,
 };
 
-/*
- * Flag parser. If "cmds" is NULL, fallsback to flags defined in Programs.
- * By providing a specific command, getopt will return the index, related to
- * the options defined in the provided command.
- */
+#define crown_parseopt(opt) crown_getopt((opt), argv, argc)
+// Flag parser.
+//
+// If "cmds" is NULL, fallsback to flags defined in Programs.
+//
+// By providing a specific command, getopt will return the index, related to the options defined in
+// the provided command. If "cmds" is NULL, parses the main commands.
+//
+// The returned value is the given index generated when creating a command, argument or option with
+// crown_new_cmd...
 AOCLIBS_PREFIX int crown_getopt(CrownCommand *null cmds, char *argv[], int argc);
 
-/*
- * Command parser. If "cmds" is NULL, fallsback to commands defined in Programs.
- * By providing a specific command, getcmd will return the index, related to
- * the subcommand defined in the provided command.
- */
+// Convenient way to access a subcmd
+#define crown_subcmd(opt, idx) (opt)->subcmd->data[(idx)]
+
+#define crown_parsecmd(opt) crown_getcmd((opt), argv, argc)
+// Command parser.
+//
+// If "cmds" is NULL, fallsback to commands defined in Programs.
+//
+// By providing a specific command, getcmd will return the index, related to the subcommand defined
+// in the provided command. If "cmds" is NULL, parses the main commands.
+//
+// The returned value is the given index generated when creating a command, argument or option with
+// crown_new_cmd...
 AOCLIBS_PREFIX int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc);
 
 #ifdef AOCLIBS_CROWN
@@ -225,21 +237,29 @@ AOCLIBS_PREFIX int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc)
 #include "cstr.h"
 #include <ctype.h>
 
+AOCLIBS_PREFIX void crown_deinit(void) {
+        aoc_arena_destroy(&Program_Arena);
+}
+
+// Helper function
 AOCLIBS_PREFIX void crown_indent_completion(int indent) {
         for (int i = 0; i < indent; i++) {
                 fputc(' ', CROWN_OUTPUT);
         }
 }
 
+// Helper function
 AOCLIBS_PREFIX void crown_bashgen_case_prev_open(void) {
         CROWN_PRINTF("  case \"${prev}\" in\n");
 }
 
+// Helper function
 AOCLIBS_PREFIX void crown_bashgen_case_prev_close(int indent) {
         crown_indent_completion(indent);
         CROWN_PRINTF("  esac\n");
 }
 
+// Helper function
 AOCLIBS_PREFIX void crown_bashgen_options(CrownOpts *cmds, int indent) {
         CrownOpts *curr_cmd = cmds == NULL ? Program->flags : cmds;
         ASSERT(curr_cmd != NULL);
@@ -264,9 +284,8 @@ AOCLIBS_PREFIX void crown_bashgen_options(CrownOpts *cmds, int indent) {
 
                 if (arg.name) {
                         crown_indent_completion(indent);
-                        CROWN_PRINTF(
-                                "    COMPREPLY=(\"$(compgen -W \"$(_%s)\" -- \"${cur}\")\")\n",
-                                ARG);
+                        CROWN_PRINTF("    COMPREPLY=(\"$(compgen -W \"$(_%s)\" -- \"${cur}\")\")\n",
+                                     ARG);
                 }
                 crown_indent_completion(indent);
                 CROWN_PRINTF("    return 0\n");
@@ -275,6 +294,7 @@ AOCLIBS_PREFIX void crown_bashgen_options(CrownOpts *cmds, int indent) {
         }
 }
 
+// Helper function
 AOCLIBS_PREFIX void crown_bashgen_subcommand(CrownCmds *cmds, int indent) {
         CrownCmds *curr_cmd = cmds == NULL ? Program->subcmd : cmds;
         ASSERT(curr_cmd != NULL);
@@ -307,11 +327,9 @@ AOCLIBS_PREFIX void crown_bashgen_subcommand(CrownCmds *cmds, int indent) {
                 }
 
                 if (arg.name) {
-
                         crown_indent_completion(indent);
-                        CROWN_PRINTF(
-                                "    COMPREPLY=(\"$(compgen -W \"$(_%s)\" -- \"${cur}\")\")\n",
-                                ARG);
+                        CROWN_PRINTF("    COMPREPLY=(\"$(compgen -W \"$(_%s)\" -- \"${cur}\")\")\n",
+                                     ARG);
                         if (cmd.subcmd != NULL) {
                                 eprintf("%s[WARNING]%s The command %s has subcommands and an argument. Crown expects to be either one or the other\n",
                                         COLOR_YELLOW,
@@ -339,8 +357,36 @@ AOCLIBS_PREFIX void crown_bashgen_subcommand(CrownCmds *cmds, int indent) {
         }
 }
 
+AOCLIBS_PREFIX void crown_bashgen_env_vars(const CrownEnv *env, size_t envc) {
+        if (env == NULL || envc == 0) return;
+        for (size_t j = 0; j < envc; j++) {
+                ASSERT(envc <= Program->args->len);
+                ASSERT(Program->args->data[env->opt->args].name != NULL);
+                if (!aoc_cstr_eq(Program->args->data[env->opt->args].name, env->name)) continue;
+                CROWN_PRINTF("  for ((i = 0; i < ${#COMP_WORDS[@]}; i++)); do\n");
+                if (env[j].opt->short_opt && env[j].opt->long_opt) {
+                        CROWN_PRINTF(
+                                "    if [[ \"${COMP_WORDS[i]}\" == \"%s\" ]] || [[ \"${COMP_WORDS[i]}\" == \"%s\" ]] && ((i + 1 < ${#COMP_WORDS[@]})); then\n",
+                                env[j].opt->short_opt,
+                                env[j].opt->long_opt);
+                } else if (env[j].opt->short_opt) {
+                        CROWN_PRINTF(
+                                "    if [[ \"${COMP_WORDS[i]}\" == \"%s\" ]] && ((i + 1 < ${#COMP_WORDS[@]})); then\n",
+                                env[j].opt->long_opt);
+                } else if (env[j].opt->long_opt) {
+                        CROWN_PRINTF(
+                                "    if [[ \"${COMP_WORDS[i]}\" == \"%s\" ]] && ((i + 1 < ${#COMP_WORDS[@]})); then\n",
+                                env[j].opt->short_opt);
+                }
+                CROWN_PRINTF("       %s=\"${COMP_WORDS[i + 1]}\"\n", env->name);
+                CROWN_PRINTF("       break\n");
+                CROWN_PRINTF("    fi\n");
+                CROWN_PRINTF("  done\n");
+        }
+}
+
 AOCLIBS_PREFIX void crown_bashgen(const CrownEnv *env, size_t envc) {
-        puts("#!/usr/bin/env bash");
+        CROWN_PRINTF("#!/usr/bin/env bash");
 
         // Sets all environment variables to the top
         for (size_t i = 0; i < envc; i++)
@@ -371,7 +417,7 @@ AOCLIBS_PREFIX void crown_bashgen(const CrownEnv *env, size_t envc) {
         CROWN_PRINTF("  if [[ \"${cur}\" == -* ]]; then\n");
         CROWN_PRINTF("    COMPREPLY=(\"$(compgen -W \"");
 
-        putchar(' ');
+        fputc(' ', CROWN_OUTPUT);
         for (size_t i = 0; i < Program->flags->len; i++) {
                 CrownOption flags = Program->flags->data[i];
                 if (flags.long_opt != NULL) CROWN_PRINTF(" %s", flags.long_opt);
@@ -382,8 +428,7 @@ AOCLIBS_PREFIX void crown_bashgen(const CrownEnv *env, size_t envc) {
         CROWN_PRINTF("    return 0\n");
         CROWN_PRINTF("  fi\n");
 
-        // TODO: Assign environment variable to an argument.
-        // If assigned, the completion will update the value of the environment variable
+        crown_bashgen_env_vars(env, envc);
 
         // Argument completion
         CROWN_PRINTF("  case \"${prev}\" in\n");
@@ -438,40 +483,36 @@ AOCLIBS_PREFIX void crown_normalize_name(char *buff, const char *str, size_t buf
 
 // crown_help
 
-/*
- * Helper to print headings
- */
-internal inline void crown_print_header(const char *msg) {
+// Helper function
+AOCLIBS_PREFIX void crown_print_header(const char *msg) {
         CROWN_PRINTF("%s%s%s", CROWN_HEADER_COLOR, msg, COLOR_RESET);
 }
 
-/*
- * Helper qsort to sort commands
- */
-internal inline int crown_help_qsort_cmd(const void *a, const void *b) {
+// Helper function
+AOCLIBS_PREFIX int crown_help_qsort_cmd(const void *a, const void *b) {
         const CrownCommand *CMD_A = (const CrownCommand *)a;
         const CrownCommand *CMD_B = (const CrownCommand *)b;
 
         return strcmp(CMD_A->name, CMD_B->name);
 }
 
-internal inline const char *qsort_get_opt(const CrownOption *flag) {
+// Helper function
+AOCLIBS_PREFIX const char *qsort_get_opt(const CrownOption *flag) {
         if (flag->short_opt) return flag->short_opt;
         if (flag->long_opt) return flag->long_opt;
         return "";
 }
 
-/*
- * Helper qsort to sort options
- */
-internal inline int crown_help_qsort_opt(const void *a, const void *b) {
+// Helper function
+AOCLIBS_PREFIX int crown_help_qsort_opt(const void *a, const void *b) {
         const CrownOption *FLAG_A = (const CrownOption *)a;
         const CrownOption *FLAG_B = (const CrownOption *)b;
 
         return strcmp(qsort_get_opt(FLAG_A), qsort_get_opt(FLAG_B));
 }
 
-internal inline bool crown_has_commands(CrownCommand *cmds) {
+// Helper function
+AOCLIBS_PREFIX bool crown_has_commands(CrownCommand *cmds) {
         CrownCmds *cmd = cmds && cmds->subcmd != NULL ? cmds->subcmd : Program->subcmd;
         if (cmd == NULL) return false;
         if (cmd->len == 0) return false;
@@ -485,7 +526,8 @@ internal inline bool crown_has_commands(CrownCommand *cmds) {
         return true;
 }
 
-internal inline bool crown_has_options(CrownCommand *cmds) {
+// Helper function
+AOCLIBS_PREFIX bool crown_has_options(CrownCommand *cmds) {
         CrownOpts *opt = cmds && cmds->flags != NULL ? cmds->flags : Program->flags;
         if (opt == NULL) return false;
         if (opt->len == 0) return false;
@@ -531,11 +573,11 @@ internal inline bool crown_has_options(CrownCommand *cmds) {
         } while (0)
 
 // Commands:
-//   cmd1 <ARG>
-//       Description
 //   cmd2 [ARG]
 //       Description
-internal inline void crown_help_commands(CrownCommand *cmds) {
+
+// Helper function
+AOCLIBS_PREFIX void crown_help_commands(CrownCommand *cmds) {
         crown_print_header("Commands:\n");
 
         const CrownCmds *COMMAND = cmds && cmds->subcmd != NULL ? cmds->subcmd : Program->subcmd;
@@ -582,7 +624,9 @@ internal inline void crown_help_commands(CrownCommand *cmds) {
 //   -l, --long [ARG]
 //   -h, --help
 //       Description
-internal inline void crown_help_options(CrownCommand *cmds) {
+
+// Helper function
+AOCLIBS_PREFIX void crown_help_options(CrownCommand *cmds) {
         crown_print_header("Options:\n");
 
         const CrownOpts *FLAG = cmds && cmds->flags != NULL ? cmds->flags : Program->flags;
@@ -651,8 +695,6 @@ AOCLIBS_PREFIX char *crown_getarg(char *argv[], int argc) {
         return argv[optind++];
 }
 
-#define crown_parseopt(opt) crown_getopt((opt), argv, argc)
-
 AOCLIBS_PREFIX int crown_getopt(CrownCommand *null cmds, char *argv[], int argc) {
         const char *arg = crown_getarg(argv, argc);
         optcur = (char *)arg;
@@ -691,10 +733,6 @@ AOCLIBS_PREFIX int crown_getopt(CrownCommand *null cmds, char *argv[], int argc)
         return ArgNotFound;
 }
 
-#define crown_subcmd(opt, idx) (opt)->subcmd->data[(idx)]
-
-#define crown_parsecmd(opt) crown_getcmd((opt), argv, argc)
-
 AOCLIBS_PREFIX int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
         const CrownCommand *opt = cmds && cmds->subcmd != NULL ? cmds->subcmd->data :
                                                                  Program->subcmd->data;
@@ -719,10 +757,6 @@ AOCLIBS_PREFIX int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc)
                 }
         }
         return ArgNotDefined;
-}
-
-AOCLIBS_PREFIX void crown_deinit(void) {
-        aoc_arena_destroy(&Program_Arena);
 }
 
 AOCLIBS_PREFIX void crown_iprint(const char *msg, int indent) {

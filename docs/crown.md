@@ -7,6 +7,7 @@ Crown has a very simple way to define arguments, environment variables, commands
 The current example is roughly enough to introduce all features Crown currently has.
 
 ```c
+#include "base.h"
 #define AOCLIBS_IMPLEMENTATION
 
 #define AOCLIBS_CROWN
@@ -27,6 +28,7 @@ int main(int argc, char *argv[]) {
                    .usage = "[OPTION] [COMMAND]");
 
         crown_new_arg(path, "PATH", "ls");
+        crown_new_arg(file_env, "FILE", NULL);
 
         // ========================================
         // New global opt
@@ -34,6 +36,7 @@ int main(int argc, char *argv[]) {
         crown_new_opt(help, Program, "-h", "--help", 0, NULL);
         // Another one
         crown_new_opt(strict, Program, "-s", "--strict", path_arg, "Use strict rules");
+        crown_new_opt(file, Program, "-f", "--file", file_env_arg, "File environment variable");
         // ========================================
 
         // ========================================
@@ -69,6 +72,10 @@ int main(int argc, char *argv[]) {
                       .args = path_arg);
         // ========================================
 
+        CrownEnv envs[] = {
+                { &Program->flags->data[file_opt], "FILE", "~/" },
+        };
+
         while (optind < argc) {
                 // open is just an index which will find the command "open"
                 // in the Program CrownProgram
@@ -95,7 +102,7 @@ int main(int argc, char *argv[]) {
                 }
         }
 
-        crown_bashgen(NULL, 0); // Bash completion
+        crown_bashgen(envs, ARRAY_LEN(envs)); // Bash completion
 
         crown_help(NULL);
 
