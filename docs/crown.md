@@ -1,6 +1,10 @@
 # Crown [WIP]
 
-Crown is a full-blown suite for creating CLIs. It includes an argument parser, Bash and Zsh autocompletion generators and help message generator.
+Crown is a full-blown suite for creating CLIs. The goal is to provide the user a way to easily move await the boilerplate while writing a CLI program, without added complexity.
+
+Crown has a very simple way to define arguments, environment variables, commands, subcommand and flags. It also includes a Bash completion generator, capable of producing Zsh's `bashcompinit` compatible completion scripts. Crown is capable of generating a help message for the program and for each command. And mostly importantly, a simple argument parsing that feels like `getopt`.
+
+The current example is roughly enough to introduce all features Crown currently has.
 
 ```c
 #define AOCLIBS_IMPLEMENTATION
@@ -29,7 +33,7 @@ int main(int argc, char *argv[]) {
         //        varname, parent, short, long, argument, description
         crown_new_opt(help, Program, "-h", "--help", 0, NULL);
         // Another one
-        crown_new_opt(strict, Program, "-s", "--strict", path_arg, "HAHHAHAHAHA");
+        crown_new_opt(strict, Program, "-s", "--strict", path_arg, "Use strict rules");
         // ========================================
 
         // ========================================
@@ -91,11 +95,13 @@ int main(int argc, char *argv[]) {
                 }
         }
 
-        // crown_zshgen(); // Zsh completion
-        // crown_bashgen(); // Bash completion
+        crown_bashgen(NULL, 0); // Bash completion
 
         crown_help(NULL);
+
+        // Command help
         crown_help(open);
+        crown_help(list);
 
         // Because, the construction of the arguments is done at runtime, a little free
         // is needed:
