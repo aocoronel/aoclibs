@@ -92,6 +92,8 @@ Arena Program_Arena = { 0 };
 
 static CrownCommand *last_cmd = NULL;
 
+#define CROWN_PRINTF(...) fprintf(CROWN_OUTPUT, __VA_ARGS__)
+
 // Important to initialize, before anything at the beginning of the main()
 // You may set .name, .usage and .desc here.
 #define crown_init(...)                                                \
@@ -182,11 +184,6 @@ AOCLIBS_PREFIX void crown_normalize_name(char *buff, const char *str, size_t buf
 AOCLIBS_PREFIX void crown_help(CrownCommand *null cmd);
 
 /*
- * Generates bash completions for commands, flags and arguments
- */
-AOCLIBS_PREFIX void crown_zshgen(const CrownEnv *null env, size_t envc);
-
-/*
  * Get next argument from argv
  */
 AOCLIBS_PREFIX char *crown_getarg(char *argv[], int argc);
@@ -235,12 +232,12 @@ AOCLIBS_PREFIX void crown_indent_completion(int indent) {
 }
 
 AOCLIBS_PREFIX void crown_bashgen_case_prev_open(void) {
-        fprintf(CROWN_OUTPUT, "  case \"${prev}\" in\n");
+        CROWN_PRINTF("  case \"${prev}\" in\n");
 }
 
 AOCLIBS_PREFIX void crown_bashgen_case_prev_close(int indent) {
         crown_indent_completion(indent);
-        fprintf(CROWN_OUTPUT, "  esac\n");
+        CROWN_PRINTF("  esac\n");
 }
 
 AOCLIBS_PREFIX void crown_bashgen_options(CrownOpts *cmds, int indent) {
@@ -259,22 +256,22 @@ AOCLIBS_PREFIX void crown_bashgen_options(CrownOpts *cmds, int indent) {
 
                 crown_indent_completion(indent);
                 if (LONG_FLAG && SHORT_FLAG)
-                        fprintf(CROWN_OUTPUT, "  %s|%s)\n", SHORT_FLAG, LONG_FLAG);
+                        CROWN_PRINTF("  %s|%s)\n", SHORT_FLAG, LONG_FLAG);
                 else if (LONG_FLAG)
-                        fprintf(CROWN_OUTPUT, "  %s)\n", LONG_FLAG);
+                        CROWN_PRINTF("  %s)\n", LONG_FLAG);
                 else if (SHORT_FLAG)
-                        fprintf(CROWN_OUTPUT, "  %s)\n", SHORT_FLAG);
+                        CROWN_PRINTF("  %s)\n", SHORT_FLAG);
 
                 if (arg.name) {
                         crown_indent_completion(indent);
-                        fprintf(CROWN_OUTPUT,
-                                "    mapfile -t COMPREPLY < <(compgen -W \"$(_%s)\" -- \"${cur}\")\n",
+                        CROWN_PRINTF(
+                                "    COMPREPLY=(\"$(compgen -W \"$(_%s)\" -- \"${cur}\")\")\n",
                                 ARG);
                 }
                 crown_indent_completion(indent);
-                fprintf(CROWN_OUTPUT, "    return 0\n");
+                CROWN_PRINTF("    return 0\n");
                 crown_indent_completion(indent);
-                fprintf(CROWN_OUTPUT, "    ;;\n");
+                CROWN_PRINTF("    ;;\n");
         }
 }
 
@@ -289,7 +286,7 @@ AOCLIBS_PREFIX void crown_bashgen_subcommand(CrownCmds *cmds, int indent) {
                 if (arg.name) crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
 
                 crown_indent_completion(indent);
-                fprintf(CROWN_OUTPUT, "  %s)\n", cmd.name);
+                CROWN_PRINTF("  %s)\n", cmd.name);
 
                 if (cmd.subcmd && cmd.subcmd->data) {
                         crown_indent_completion(indent + 2);
@@ -310,9 +307,10 @@ AOCLIBS_PREFIX void crown_bashgen_subcommand(CrownCmds *cmds, int indent) {
                 }
 
                 if (arg.name) {
+
                         crown_indent_completion(indent);
-                        fprintf(CROWN_OUTPUT,
-                                "    mapfile -t COMPREPLY < <(compgen -W \"$(_%s)\" -- \"${cur}\")\n",
+                        CROWN_PRINTF(
+                                "    COMPREPLY=(\"$(compgen -W \"$(_%s)\" -- \"${cur}\")\")\n",
                                 ARG);
                         if (cmd.subcmd != NULL) {
                                 eprintf("%s[WARNING]%s The command %s has subcommands and an argument. Crown expects to be either one or the other\n",
@@ -321,23 +319,23 @@ AOCLIBS_PREFIX void crown_bashgen_subcommand(CrownCmds *cmds, int indent) {
                                         cmd.name);
                         }
                 } else {
-                        fprintf(CROWN_OUTPUT, "    mapfile -t COMPREPLY < <(compgen -W \"");
+                        CROWN_PRINTF("    COMPREPLY=(\"$(compgen -W \"");
                         foreach (cmd.subcmd, j) {
-                                fprintf(CROWN_OUTPUT, "%s ", cmd.subcmd->data[j].name);
+                                CROWN_PRINTF("%s ", cmd.subcmd->data[j].name);
                         }
                         foreach (cmd.flags, j) {
                                 CrownOption _tmp = cmd.flags->data[j];
-                                if (_tmp.short_opt) fprintf(CROWN_OUTPUT, "%s ", _tmp.short_opt);
-                                if (_tmp.long_opt) fprintf(CROWN_OUTPUT, "%s ", _tmp.long_opt);
+                                if (_tmp.short_opt) CROWN_PRINTF("%s ", _tmp.short_opt);
+                                if (_tmp.long_opt) CROWN_PRINTF("%s ", _tmp.long_opt);
                         }
-                        fprintf(CROWN_OUTPUT, "\" -- \"${cur}\")\n");
+                        CROWN_PRINTF("\" -- \"${cur}\")\")\n");
                 }
 
                 if (cmd.subcmd == NULL) indent -= 2;
                 crown_indent_completion(indent);
-                fprintf(CROWN_OUTPUT, "    return 0\n");
+                CROWN_PRINTF("    return 0\n");
                 crown_indent_completion(indent);
-                fprintf(CROWN_OUTPUT, "    ;;\n");
+                CROWN_PRINTF("    ;;\n");
         }
 }
 
@@ -346,7 +344,7 @@ AOCLIBS_PREFIX void crown_bashgen(const CrownEnv *env, size_t envc) {
 
         // Sets all environment variables to the top
         for (size_t i = 0; i < envc; i++)
-                fprintf(CROWN_OUTPUT, "%s=%s\n", env[i].name, env[i].value);
+                CROWN_PRINTF("%s=%s\n", env[i].name, env[i].value);
 
         // Generates all the functions responsible for the completions
         //
@@ -359,56 +357,56 @@ AOCLIBS_PREFIX void crown_bashgen(const CrownEnv *env, size_t envc) {
                         crown_normalize_name(ARG, args.name, CROWN_BUFFER);
                 else
                         continue;
-                fprintf(CROWN_OUTPUT, "_%s() {\n  %s\n}\n", ARG, args.completion);
+                CROWN_PRINTF("_%s() {\n  %s\n}\n", ARG, args.completion);
         }
 
         // Main function
-        fprintf(CROWN_OUTPUT, "_%s() {\n", Program->name);
-        fprintf(CROWN_OUTPUT, "  local cur prev\n");
-        fprintf(CROWN_OUTPUT, "  cur=\"${COMP_WORDS[COMP_CWORD]}\"\n");
-        fprintf(CROWN_OUTPUT, "  prev=\"${COMP_WORDS[COMP_CWORD-1]}\"\n");
-        fprintf(CROWN_OUTPUT, "  COMPREPLY=()\n");
+        CROWN_PRINTF("_%s() {\n", Program->name);
+        CROWN_PRINTF("  local cur prev\n");
+        CROWN_PRINTF("  cur=\"${COMP_WORDS[COMP_CWORD]}\"\n");
+        CROWN_PRINTF("  prev=\"${COMP_WORDS[COMP_CWORD-1]}\"\n");
+        CROWN_PRINTF("  COMPREPLY=()\n");
 
         // Flag completion
-        fprintf(CROWN_OUTPUT, "  if [[ \"${cur}\" == -* ]]; then\n");
-        fprintf(CROWN_OUTPUT, "    mapfile -t COMPREPLY < <(compgen -W \"");
+        CROWN_PRINTF("  if [[ \"${cur}\" == -* ]]; then\n");
+        CROWN_PRINTF("    COMPREPLY=(\"$(compgen -W \"");
 
         putchar(' ');
         for (size_t i = 0; i < Program->flags->len; i++) {
                 CrownOption flags = Program->flags->data[i];
-                if (flags.long_opt != NULL) fprintf(CROWN_OUTPUT, " %s", flags.long_opt);
-                if (flags.short_opt != NULL) fprintf(CROWN_OUTPUT, " %s", flags.short_opt);
+                if (flags.long_opt != NULL) CROWN_PRINTF(" %s", flags.long_opt);
+                if (flags.short_opt != NULL) CROWN_PRINTF(" %s", flags.short_opt);
         }
 
-        fprintf(CROWN_OUTPUT, "\" -- \"${cur}\")\n");
-        fprintf(CROWN_OUTPUT, "    return 0\n");
-        fprintf(CROWN_OUTPUT, "  fi\n");
+        CROWN_PRINTF("\" -- \"${cur}\")\")\n");
+        CROWN_PRINTF("    return 0\n");
+        CROWN_PRINTF("  fi\n");
 
         // TODO: Assign environment variable to an argument.
         // If assigned, the completion will update the value of the environment variable
 
         // Argument completion
-        fprintf(CROWN_OUTPUT, "  case \"${prev}\" in\n");
+        CROWN_PRINTF("  case \"${prev}\" in\n");
         // Commands
         crown_bashgen_subcommand(NULL, 0);
         // Flags
         crown_bashgen_options(NULL, 0);
-        fprintf(CROWN_OUTPUT, "  esac\n");
+        CROWN_PRINTF("  esac\n");
 
         // Command completion
-        fprintf(CROWN_OUTPUT, "  mapfile -t COMPREPLY < <(compgen -W \"");
+        CROWN_PRINTF("  COMPREPLY=(\"$(compgen -W \"");
 
         for (size_t i = 0; i < Program->subcmd->len; i++) {
                 CrownCommand cmds = Program->subcmd->data[i];
-                fprintf(CROWN_OUTPUT, " %s", cmds.name);
+                CROWN_PRINTF(" %s", cmds.name);
         }
 
-        fprintf(CROWN_OUTPUT, "\" -- \"${cur}\")\n");
-        fprintf(CROWN_OUTPUT, "  return 0\n");
-        fprintf(CROWN_OUTPUT, "}\n");
+        CROWN_PRINTF("\" -- \"${cur}\")\")\n");
+        CROWN_PRINTF("  return 0\n");
+        CROWN_PRINTF("}\n");
 
         // Assign function to program
-        fprintf(CROWN_OUTPUT, "complete -F _%s %s\n", Program->name, Program->name);
+        CROWN_PRINTF("complete -F _%s %s\n", Program->name, Program->name);
 }
 
 AOCLIBS_PREFIX void crown_normalize_name(char *buff, const char *str, size_t buff_size) {
@@ -444,7 +442,7 @@ AOCLIBS_PREFIX void crown_normalize_name(char *buff, const char *str, size_t buf
  * Helper to print headings
  */
 internal inline void crown_print_header(const char *msg) {
-        fprintf(CROWN_OUTPUT, "%s%s%s", CROWN_HEADER_COLOR, msg, COLOR_RESET);
+        CROWN_PRINTF("%s%s%s", CROWN_HEADER_COLOR, msg, COLOR_RESET);
 }
 
 /*
@@ -502,42 +500,34 @@ internal inline bool crown_has_options(CrownCommand *cmds) {
 }
 
 // Used in crown_help_commands and crown_help
-#define crown_help_command(command)                                       \
-        do {                                                              \
-                CrownArgument arg = Program->args->data[(command)->args]; \
-                if (arg.name) {                                           \
-                        fprintf(CROWN_OUTPUT,                             \
-                                "  %s%s%s [%s]\n",                        \
-                                CROWN_COMMAND_COLOR,                      \
-                                (command)->name,                          \
-                                COLOR_RESET,                              \
-                                arg.name);                                \
-                } else {                                                  \
-                        fprintf(CROWN_OUTPUT,                             \
-                                "  %s%s%s\n",                             \
-                                CROWN_COMMAND_COLOR,                      \
-                                (command)->name,                          \
-                                COLOR_RESET);                             \
-                }                                                         \
+#define crown_help_command(command)                                                               \
+        do {                                                                                      \
+                CrownArgument arg = Program->args->data[(command)->args];                         \
+                if (arg.name) {                                                                   \
+                        CROWN_PRINTF("  %s%s%s [%s]\n",                                           \
+                                     CROWN_COMMAND_COLOR,                                         \
+                                     (command)->name,                                             \
+                                     COLOR_RESET,                                                 \
+                                     arg.name);                                                   \
+                } else {                                                                          \
+                        CROWN_PRINTF(                                                             \
+                                "  %s%s%s\n", CROWN_COMMAND_COLOR, (command)->name, COLOR_RESET); \
+                }                                                                                 \
         } while (0)
 
-#define crown_help_usage(command)                                         \
-        do {                                                              \
-                CrownArgument arg = Program->args->data[(command)->args]; \
-                if (arg.name) {                                           \
-                        fprintf(CROWN_OUTPUT,                             \
-                                " %s%s%s [%s]\n",                         \
-                                CROWN_COMMAND_COLOR,                      \
-                                (command)->name,                          \
-                                COLOR_RESET,                              \
-                                arg.name);                                \
-                } else {                                                  \
-                        fprintf(CROWN_OUTPUT,                             \
-                                " %s%s%s\n",                              \
-                                CROWN_COMMAND_COLOR,                      \
-                                (command)->name,                          \
-                                COLOR_RESET);                             \
-                }                                                         \
+#define crown_help_usage(command)                                                                \
+        do {                                                                                     \
+                CrownArgument arg = Program->args->data[(command)->args];                        \
+                if (arg.name) {                                                                  \
+                        CROWN_PRINTF(" %s%s%s [%s]\n",                                           \
+                                     CROWN_COMMAND_COLOR,                                        \
+                                     (command)->name,                                            \
+                                     COLOR_RESET,                                                \
+                                     arg.name);                                                  \
+                } else {                                                                         \
+                        CROWN_PRINTF(                                                            \
+                                " %s%s%s\n", CROWN_COMMAND_COLOR, (command)->name, COLOR_RESET); \
+                }                                                                                \
         } while (0)
 
 // Commands:
@@ -564,36 +554,27 @@ internal inline void crown_help_commands(CrownCommand *cmds) {
         fputc('\n', CROWN_OUTPUT);
 }
 
-#define crown_help_option(opt)                                          \
-        do {                                                            \
-                const char *SHORT_OPT = (opt)->short_opt;               \
-                const char *LONG_OPT = (opt)->long_opt;                 \
-                CrownArgument arg = Program->args->data[(opt)->args];   \
-                if (SHORT_OPT && LONG_OPT) {                            \
-                        fprintf(CROWN_OUTPUT,                           \
-                                "  %s%s%s, %s%s%s",                     \
-                                CROWN_COMMAND_COLOR,                    \
-                                SHORT_OPT,                              \
-                                COLOR_RESET,                            \
-                                CROWN_COMMAND_COLOR,                    \
-                                LONG_OPT,                               \
-                                COLOR_RESET);                           \
-                } else if (LONG_OPT) {                                  \
-                        fprintf(CROWN_OUTPUT,                           \
-                                "  %s%s%s",                             \
-                                CROWN_COMMAND_COLOR,                    \
-                                LONG_OPT,                               \
-                                COLOR_RESET);                           \
-                } else if (SHORT_OPT) {                                 \
-                        fprintf(CROWN_OUTPUT,                           \
-                                "  %s%s%s",                             \
-                                CROWN_COMMAND_COLOR,                    \
-                                SHORT_OPT,                              \
-                                COLOR_RESET);                           \
-                } else {                                                \
-                        continue;                                       \
-                }                                                       \
-                if (arg.name) fprintf(CROWN_OUTPUT, " [%s]", arg.name); \
+#define crown_help_option(opt)                                                                 \
+        do {                                                                                   \
+                const char *SHORT_OPT = (opt)->short_opt;                                      \
+                const char *LONG_OPT = (opt)->long_opt;                                        \
+                CrownArgument arg = Program->args->data[(opt)->args];                          \
+                if (SHORT_OPT && LONG_OPT) {                                                   \
+                        CROWN_PRINTF("  %s%s%s, %s%s%s",                                       \
+                                     CROWN_COMMAND_COLOR,                                      \
+                                     SHORT_OPT,                                                \
+                                     COLOR_RESET,                                              \
+                                     CROWN_COMMAND_COLOR,                                      \
+                                     LONG_OPT,                                                 \
+                                     COLOR_RESET);                                             \
+                } else if (LONG_OPT) {                                                         \
+                        CROWN_PRINTF("  %s%s%s", CROWN_COMMAND_COLOR, LONG_OPT, COLOR_RESET);  \
+                } else if (SHORT_OPT) {                                                        \
+                        CROWN_PRINTF("  %s%s%s", CROWN_COMMAND_COLOR, SHORT_OPT, COLOR_RESET); \
+                } else {                                                                       \
+                        continue;                                                              \
+                }                                                                              \
+                if (arg.name) CROWN_PRINTF(" [%s]", arg.name);                                 \
         } while (0)
 
 // Options:
@@ -636,7 +617,7 @@ AOCLIBS_PREFIX void crown_help(CrownCommand *null cmd) {
                       crown_help_qsort_opt);
 
                 // program name | program description
-                fprintf(CROWN_OUTPUT, "%s | %s\n\n", Program->name, Program->desc);
+                CROWN_PRINTF("%s | %s\n\n", Program->name, Program->desc);
 
                 // Usage: program usage
                 crown_print_header("Usage:");
@@ -653,7 +634,7 @@ AOCLIBS_PREFIX void crown_help(CrownCommand *null cmd) {
                 qsort(cmd->flags->data, cmd->flags->len, sizeof(CrownOption), crown_help_qsort_opt);
 
                 // command name | command description
-                fprintf(CROWN_OUTPUT, "%s\n\n", cmd->desc);
+                CROWN_PRINTF("%s\n\n", cmd->desc);
 
                 crown_print_header("Usage:");
                 crown_help_usage(cmd);
@@ -661,166 +642,6 @@ AOCLIBS_PREFIX void crown_help(CrownCommand *null cmd) {
         }
         if (crown_has_commands(print)) crown_help_commands(print);
         if (crown_has_options(print)) crown_help_options(print);
-}
-
-// crown_zshgen
-
-internal inline void crown_zshgen_print_arg_autocomplete(const CrownArgument *args) {
-        char ARG[CROWN_BUFFER] = { 0 };
-        if (args)
-                crown_normalize_name(ARG, args->name, CROWN_BUFFER);
-        else
-                return;
-        const char *COMPLETIONS = args->completion;
-        if (COMPLETIONS != NULL) {
-                fprintf(CROWN_OUTPUT, "_%s_get_%s() {\n", Program->name, ARG);
-                fprintf(CROWN_OUTPUT, "  local results\n");
-                fprintf(CROWN_OUTPUT, "  results=(${(f)\"$(%s 2>/dev/null)\"})\n", COMPLETIONS);
-                fprintf(CROWN_OUTPUT, "  compadd -Q -a results\n");
-                fprintf(CROWN_OUTPUT, "}\n\n");
-        }
-}
-
-internal void crown_zshgen_print_flag_arg(const CrownOption *flag) {
-        char ARG[CROWN_BUFFER];
-        const char *SHORT_FLAG = flag->short_opt;
-        const char *LONG_FLAG = flag->long_opt;
-        CrownArgument arg = Program->args->data[flag->args];
-        if (arg.name)
-                crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
-        else
-                return;
-        const char *DESC = flag->desc;
-        const char *COMP = arg.completion;
-
-        if (!COMP) return;
-
-        if (LONG_FLAG) {
-                fprintf(CROWN_OUTPUT, "    '%s", LONG_FLAG);
-                if (DESC) fprintf(CROWN_OUTPUT, "=[%s]", DESC);
-                if (COMP) {
-                        fprintf(CROWN_OUTPUT, ":%s:_%s_get_%s", ARG, Program->name, ARG);
-                } else {
-                        fprintf(CROWN_OUTPUT, ":%s", ARG);
-                }
-                fprintf(CROWN_OUTPUT, "' \\\n");
-        }
-        if (SHORT_FLAG) {
-                fprintf(CROWN_OUTPUT, "    '%s", SHORT_FLAG);
-                if (DESC) fprintf(CROWN_OUTPUT, "[%s]", DESC);
-                if (COMP) {
-                        fprintf(CROWN_OUTPUT, ":%s:_%s_get_%s", ARG, Program->name, ARG);
-                } else {
-                        fprintf(CROWN_OUTPUT, ":%s", ARG);
-                }
-                fprintf(CROWN_OUTPUT, "' \\\n");
-        }
-}
-
-internal inline void crown_zshgen_print_command_case(const CrownCommand *cmd) {
-        char ARG[CROWN_BUFFER];
-        CrownArgument arg = Program->args->data[cmd->args];
-        if (arg.name)
-                crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
-        else
-                return;
-        const char *COMP = arg.completion;
-        if (!COMP) return;
-
-        fprintf(CROWN_OUTPUT, "        %s)\n", cmd->name);
-        fprintf(CROWN_OUTPUT, "          _arguments \\\n");
-        fprintf(CROWN_OUTPUT, "            '*:%s:_%s_get_%s' \\\n", ARG, Program->name, ARG);
-        fprintf(CROWN_OUTPUT, "          ;;\n");
-}
-
-internal inline void crown_zshgen_print_flag_case(const CrownOption *flag) {
-        char ARG[CROWN_BUFFER];
-        const char *SHORT_FLAG = flag->short_opt;
-        const char *LONG_FLAG = flag->long_opt;
-        CrownArgument arg = Program->args->data[flag->args];
-        if (arg.name)
-                crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
-        else
-                return;
-        const char *COMPLETIONS = arg.completion;
-        if (!COMPLETIONS) return;
-
-        if (SHORT_FLAG != NULL && LONG_FLAG != NULL) {
-                fprintf(CROWN_OUTPUT, "        %s | %s)\n", SHORT_FLAG, LONG_FLAG);
-        } else if (SHORT_FLAG != NULL) {
-                fprintf(CROWN_OUTPUT, "        %s)\n", SHORT_FLAG);
-        } else if (LONG_FLAG != NULL) {
-                fprintf(CROWN_OUTPUT, "        %s)\n", LONG_FLAG);
-        }
-        fprintf(CROWN_OUTPUT, "          _arguments \\\n");
-        fprintf(CROWN_OUTPUT, "            '*:%s:_%s_get_%s' \\\n", ARG, Program->name, ARG);
-        fprintf(CROWN_OUTPUT, "          return\n");
-        fprintf(CROWN_OUTPUT, "          ;;\n");
-}
-
-// TODO: Subcommands and subcommand options
-AOCLIBS_PREFIX void crown_zshgen(const CrownEnv *env, size_t envc) {
-        // Header
-        fprintf(CROWN_OUTPUT, "#compdef %s\n\n", Program->name);
-
-        // Environment defaults
-        for (size_t i = 0; i < envc; i++) {
-                fprintf(CROWN_OUTPUT, "%s=%s\n", env[i].name, env[i].value);
-        }
-
-        // Main function
-        fprintf(CROWN_OUTPUT, "_%s() {\n", Program->name);
-        fprintf(CROWN_OUTPUT, "  local -a subcommands\n\n");
-
-        // Define Subcommands
-        fprintf(CROWN_OUTPUT, "  subcommands=(\n");
-        for (size_t i = 0; i < Program->subcmd->len; i++) {
-                CrownCommand cmds = Program->subcmd->data[i];
-                fprintf(CROWN_OUTPUT, "    \"%s:%s\"\n", cmds.name, cmds.desc);
-        }
-        fprintf(CROWN_OUTPUT, "  )\n\n");
-
-        // Define arguments
-        fprintf(CROWN_OUTPUT, "  _arguments -C \\\n");
-        fprintf(CROWN_OUTPUT, "    '1:command:->subcmds' \\\n");
-        for (size_t i = 0; i < Program->flags->len; i++) {
-                CrownOption flags = Program->flags->data[i];
-                crown_zshgen_print_flag_arg(&flags);
-        }
-        fprintf(CROWN_OUTPUT, "    '*::args:->command_args'\n\n");
-
-        // Autocompletion
-        fprintf(CROWN_OUTPUT, "  case $state in\n");
-        fprintf(CROWN_OUTPUT, "    subcmds)\n");
-        fprintf(CROWN_OUTPUT, "      _describe 'command' subcommands\n");
-        fprintf(CROWN_OUTPUT, "      return\n");
-        fprintf(CROWN_OUTPUT, "      ;;\n");
-        fprintf(CROWN_OUTPUT, "    command_args)\n");
-        fprintf(CROWN_OUTPUT, "      case $words[1] in\n");
-
-        // Autocomplete arguments from commands
-        for (size_t i = 0; i < Program->subcmd->len; i++) {
-                CrownCommand cmds = Program->subcmd->data[i];
-                crown_zshgen_print_command_case(&cmds);
-        }
-        // Autocomplete arguments from flags
-        for (size_t i = 0; i < Program->flags->len; i++) {
-                CrownOption flags = Program->flags->data[i];
-                crown_zshgen_print_flag_case(&flags);
-        }
-        fprintf(CROWN_OUTPUT, "      esac\n");
-        fprintf(CROWN_OUTPUT, "      ;;\n");
-        fprintf(CROWN_OUTPUT, "  esac\n");
-        fprintf(CROWN_OUTPUT, "}\n\n");
-
-        // Define helper functions to autocomplete arguments
-        for (size_t i = 0; i < Program->args->len; i++) {
-                CrownArgument args = Program->args->data[i];
-                crown_zshgen_print_arg_autocomplete(&args);
-        }
-
-        // Assign function to program
-        fprintf(CROWN_OUTPUT, "compdef _%s %s\n", Program->name, Program->name);
 }
 
 // CLI Argument Parser
@@ -911,7 +732,7 @@ AOCLIBS_PREFIX void crown_iprint(const char *msg, int indent) {
         }
         const int WIDTH = w.ws_col;
 
-        fprintf(CROWN_OUTPUT, "%-*s", indent, "");
+        CROWN_PRINTF("%-*s", indent, "");
         int line_pos = indent;
 
         const char *START = msg;
@@ -920,7 +741,7 @@ AOCLIBS_PREFIX void crown_iprint(const char *msg, int indent) {
         while (*END) {
                 if (*END == '\n') {
                         fputc('\n', CROWN_OUTPUT);
-                        fprintf(CROWN_OUTPUT, "%*s", indent, "");
+                        CROWN_PRINTF("%*s", indent, "");
                         line_pos = indent;
                         END++;
                         continue;
@@ -937,11 +758,11 @@ AOCLIBS_PREFIX void crown_iprint(const char *msg, int indent) {
                 int word_len = END - START;
 
                 if (line_pos + word_len > WIDTH && line_pos > indent) {
-                        fprintf(CROWN_OUTPUT, "\n%*s", indent, "");
+                        CROWN_PRINTF("\n%*s", indent, "");
                         line_pos = indent;
                 }
 
-                fprintf(CROWN_OUTPUT, "%.*s", word_len, START);
+                CROWN_PRINTF("%.*s", word_len, START);
                 line_pos += word_len;
 
                 if (*END && line_pos < WIDTH) {
