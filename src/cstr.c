@@ -14,7 +14,8 @@
 #define HIGHS (ONES * (UCHAR_MAX / 2 + 1))
 #define HASZERO(x) (((x) - ONES) & ~(x) & HIGHS)
 
-CSlice extract_between_whitespace(const char *s, size_t begin, size_t end) {
+CSlice aoc_extract_between(const char *s, size_t begin, size_t end, char delim) {
+
         const char *s_ptr = s + begin;
         size_t n_begin = begin;
         size_t n_end = end;

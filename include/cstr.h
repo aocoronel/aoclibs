@@ -26,7 +26,7 @@ typedef struct {
 //      printf("%.*s\n", slice.len, slice.data); // => "Hello,"
 //      slice = extract_between_whitespace(msg, slice.len, sizeof(msg));
 //      printf("%.*s\n", slice.len, slice.data); // => "World!"
-CSlice extract_between_whitespace(const char *ref s, size_t begin, size_t end);
+CSlice aoc_extract_between(const char *ref s, size_t begin, size_t end, char delim);
 
 #define aoc_cstr_to_slice(s, start, end)                      \
         (CSlice) {                                            \
