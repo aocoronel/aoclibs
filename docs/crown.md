@@ -163,11 +163,10 @@ int main(int argc, char *argv[]) {
                         // Same thing here, NULL is for a help overview from your program
                         // It features the program name, description and usage
                         when(help_opt_id) {
-                                printf("%d\n", opt_idx);
                                 crown_help(NULL);
                         }
                         else when(strict_opt_id) printf("Enabling strict flag...\n");
-                        else when(CrownMissingOptarg) printf("Argument not provided!\n");
+                        else when(CrownMissingOptarg) printf("Argument not provided for option \"%s\"\n", optcur);
                         // CrownNotOpt tells the current id is not a flag. You can either parse it
                         // as an argument, or try to parse a command.
                         else when(CrownNotOpt) {
@@ -178,7 +177,7 @@ int main(int argc, char *argv[]) {
                                         else when(list_cmd_id) printf("Running list command...\n");
                                         // This is only returned, if the command requires an argument
                                         else when(CrownMissingOptarg)
-                                                printf("Argument not provided!\n");
+                                                printf("Argument not provided for command \"%s\"\n", optcur);
                                         else printf("Couldn't match any command, "
                                                     "it's probably an argument!\n");
                                 }
