@@ -1,5 +1,7 @@
-#include "ini.h"
+#include "arena.h"
+#include "da.h"
 #include <stdio.h>
+#include "ini.h"
 
 int main(int argc, char **argv) {
         const char *file_path = "basic.ini";
@@ -9,8 +11,16 @@ int main(int argc, char **argv) {
         fclose(fp);
 
         Arena IniArena = { 0 };
-        IniSections sections = read_ini_file(&IniArena, file_path);
+        IniSections sections = ini_read(&IniArena, file_path);
 
+        CSlice test_section = aoc_cslice("Testing");
+        CSlice test_key = aoc_cslice("key");
+        CSlice test_value = aoc_cslice("value");
+
+        ini_insert_section(&IniArena, &sections, test_section);
+        ini_insert_key(&IniArena, &aoc_da_last(&sections).keys, test_key, test_value);
+
+        // Naively printing the data
         foreach (&sections, i) {
                 IniKeys keys = sections.data[i].keys;
                 printf("Section: %s\n", sections.data[i].name.data);
@@ -19,6 +29,8 @@ int main(int argc, char **argv) {
                         printf("    %s = %s\n", keys.data[j].key.data, keys.data[j].value.data);
                 }
         }
+
+        ini_write(sections, file_path);
 
         // Expected output:
         //
@@ -31,6 +43,8 @@ int main(int argc, char **argv) {
         //     dir = ~/
         //     recurse = true
         //     epic = true
+
+        aoc_arena_destroy(&IniArena);
 
         return 0;
 }
