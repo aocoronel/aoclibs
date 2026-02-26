@@ -39,7 +39,7 @@ typedef struct {
 typedef struct {
         const char *short_opt;
         const char *long_opt;
-        size_t args;
+        const int args;
         const char *desc;
 } CrownOption;
 
@@ -63,7 +63,7 @@ typedef struct {
 
 struct CrownCommand {
         const char *name;
-        size_t args;
+        const int args;
         const char *desc;
         CrownCmds *subcmd;
         CrownOpts *flags;
@@ -116,44 +116,55 @@ AOCLIBS_PREFIX void crown_deinit(void);
 
 // Add new argument
 // It has a key which is used to be referenced by flags and commands
-#define crown_new_arg(key, ...)                \
-        size_t key##_arg = Program->args->len; \
+#define crown_new_arg(key, ...)          \
+        size_t key = Program->args->len; \
         crown_append(CrownArgument, Program->args, (CrownArgument){ __VA_ARGS__ })
 
-#define crown_new_opt(key, opt, ...)          \
-        size_t key##_opt = (opt)->flags->len; \
-        crown_append(CrownOption, (opt)->flags, (CrownOption){ __VA_ARGS__ })
+#define crown_new_opt(key, opt, ...)                                                   \
+        size_t key##_id = (opt)->flags->len;                                           \
+        do {                                                                           \
+                crown_append(CrownOption, (opt)->flags, (CrownOption){ __VA_ARGS__ }); \
+        } while (0);                                                                   \
+        CrownOption *key = &(opt)->flags->data[key##_id];
 
 // crown_new_cmd(open, Program, ...)
 #define crown_new_cmd(key, opt, ...)                                                      \
-        size_t key##_cmd = (opt)->subcmd->len;                                            \
+        size_t key##_id = (opt)->subcmd->len;                                             \
         do {                                                                              \
                 crown_append(CrownCommand, (opt)->subcmd, (CrownCommand){ __VA_ARGS__ }); \
                 last_cmd = &(opt)->subcmd->data[(opt)->subcmd->len - 1];                  \
                 last_cmd->subcmd = aoc_arena_calloc(&Program_Arena, sizeof(CrownCmds));   \
                 last_cmd->flags = aoc_arena_calloc(&Program_Arena, sizeof(CrownOpts));    \
         } while (0);                                                                      \
-        CrownCommand *key = &(opt)->subcmd->data[key##_cmd];
+        CrownCommand *key = &(opt)->subcmd->data[key##_id];
+
+#define crown_help_flag(key)                   \
+        crown_new_subopt(key,                  \
+                         .short_opt = "-h",    \
+                         .long_opt = "--help", \
+                         .args = CrownNoArg,   \
+                         .desc = "Display this message and exits");
 
 // Syntactic sugar for crown_new_opt(last_cmd->flags, ...)
 #define crown_new_subopt(key, ...)                                                        \
-        size_t key##_opt = last_cmd->flags->len;                                          \
+        size_t key##_id = last_cmd->flags->len;                                           \
         do {                                                                              \
-                assert(last_cmd != NULL);                                                 \
+                ASSERT(last_cmd != NULL, "No command defined");                           \
                 crown_append(CrownOption, last_cmd->flags, (CrownOption){ __VA_ARGS__ }); \
-        } while (0)
+        } while (0);                                                                      \
+        CrownOption *key = &last_cmd->flags->data[key##_id];
 
 #define crown_new_subcmd(key, ...)                                                           \
-        size_t key##_cmd = last_cmd->subcmd->len;                                            \
+        size_t key##_id = last_cmd->subcmd->len;                                             \
         do {                                                                                 \
-                assert(last_cmd != NULL);                                                    \
+                ASSERT(last_cmd != NULL, "No command defined");                              \
                 crown_append(CrownCommand, last_cmd->subcmd, (CrownCommand){ __VA_ARGS__ }); \
-                last_cmd->subcmd->data[key##_cmd].subcmd =                                   \
+                last_cmd->subcmd->data[key##_id].subcmd =                                    \
                         aoc_arena_calloc(&Program_Arena, sizeof(CrownCmds));                 \
-                last_cmd->subcmd->data[key##_cmd].flags =                                    \
+                last_cmd->subcmd->data[key##_id].flags =                                     \
                         aoc_arena_calloc(&Program_Arena, sizeof(CrownOpts));                 \
         } while (0);                                                                         \
-        CrownCommand *key = &last_cmd->subcmd->data[key##_cmd];
+        CrownCommand *key = &last_cmd->subcmd->data[key##_id];
 
 // Internal macro
 #define crown_append(T, opt, ...)                                     \
@@ -193,18 +204,20 @@ AOCLIBS_PREFIX char *crown_getarg(char *argv[], int argc);
 // Important errors when using getopt:
 
 enum {
+        // Command or flag doesn't have an assigned argument
+        CrownNoArg = 0,
         // Returned when CrownOption.args is not NULL, and no argument has been found.
-        ArgMissingOptarg = -1,
+        CrownMissingOptarg = -1,
         // Returned when input is not recognized to be a flag.
         // This can be used to parse commands and positional arguments.
-        ArgNotOpt,
+        CrownNotOpt = -2,
         // This is relevant only for developers, and notices when there was an error
         // on defining and option or command.
-        ArgNotDefined,
+        CrownNotDefined = -3,
         // This should NEVER return. It only returns if optind is higher than argc.
-        EndOfArgs,
+        CrownEndOfArgs = -4,
         // User attempted to enter an option that doesn't exist.
-        ArgNotFound,
+        CrownNotFound = -5,
 };
 
 #define crown_parseopt(opt) crown_getopt((opt), argv, argc)
@@ -395,10 +408,15 @@ AOCLIBS_PREFIX void crown_bashgen_subcommand(CrownCmds *cmds, int indent, int le
 
 AOCLIBS_PREFIX void crown_bashgen_env_vars(const CrownEnv *env, size_t envc) {
         if (env == NULL || envc == 0) return;
+        ASSERT(envc <= Program->args->len);
         for (size_t j = 0; j < envc; j++) {
-                ASSERT(envc <= Program->args->len);
-                ASSERT(Program->args->data[env->opt->args].name != NULL);
-                if (!aoc_cstr_eq(Program->args->data[env->opt->args].name, env->name)) continue;
+                if (env[j].opt == NULL || env[j].opt->args == 0) continue;
+
+                const char *arg_name = Program->args->data[env->opt->args].name;
+
+                ASSERT(arg_name != NULL);
+                if (!aoc_cstr_eq(arg_name, env->name)) continue;
+
                 CROWN_PUTS("  for ((i = 0; i < ${#words[@]}; i++)); do\n");
                 if (env[j].opt->short_opt && env[j].opt->long_opt) {
                         CROWN_PRINTF(
@@ -880,14 +898,14 @@ AOCLIBS_PREFIX int crown_getopt(CrownCommand *null cmds, char *argv[], int argc)
         const char *arg = crown_getarg(argv, argc);
         optcur = (char *)arg;
 
-        if (!arg) return EndOfArgs;
-        if (arg[0] != '-') return ArgNotOpt;
+        if (!arg) return CrownEndOfArgs; // This should never happen...
+        if (arg[0] != '-') return CrownNotOpt;
 
         const CrownOption *opt = cmds && cmds->flags != NULL ? cmds->flags->data :
                                                                Program->flags->data;
         const size_t len = cmds && cmds->flags != NULL ? cmds->flags->len : Program->flags->len;
 
-        if (opt == NULL) return ArgNotDefined;
+        if (opt == NULL) return CrownNotDefined;
 
         for (size_t i = 0; i < len; i++) {
                 const char *long_opt = opt[i].long_opt;
@@ -898,7 +916,7 @@ AOCLIBS_PREFIX int crown_getopt(CrownCommand *null cmds, char *argv[], int argc)
                 if (long_opt != NULL && aoc_cstr_eq(arg, long_opt)) {
                         if (flag_arg != NULL) {
                                 optarg = crown_getarg(argv, argc);
-                                if (optarg == NULL || optarg[0] == '-') return ArgMissingOptarg;
+                                if (optarg == NULL || optarg[0] == '-') return CrownMissingOptarg;
                         }
                         return i; // Success
                 }
@@ -906,12 +924,12 @@ AOCLIBS_PREFIX int crown_getopt(CrownCommand *null cmds, char *argv[], int argc)
                 if (short_opt != NULL && aoc_cstr_eq(arg, short_opt)) {
                         if (flag_arg != NULL) {
                                 optarg = crown_getarg(argv, argc);
-                                if (optarg == NULL || optarg[0] == '-') return ArgMissingOptarg;
+                                if (optarg == NULL || optarg[0] == '-') return CrownMissingOptarg;
                         }
                         return i; // Success
                 }
         }
-        return ArgNotFound;
+        return CrownNotFound;
 }
 
 AOCLIBS_PREFIX int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
@@ -919,7 +937,7 @@ AOCLIBS_PREFIX int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc)
                                                                  Program->subcmd->data;
         const size_t len = cmds && cmds->subcmd != NULL ? cmds->subcmd->len : Program->subcmd->len;
 
-        if (opt == NULL) return ArgNotDefined;
+        if (opt == NULL) return CrownNotDefined;
 
         for (size_t i = 0; i < len; i++) {
                 const char *cmd = opt[i].name;
@@ -931,13 +949,12 @@ AOCLIBS_PREFIX int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc)
                 if (cmd != NULL && aoc_cstr_eq(optcur, cmd)) {
                         if (cmd_arg != NULL) {
                                 optarg = crown_getarg(argv, argc);
-                                if (cmd_subcmd != NULL) return i;
-                                if (optarg == NULL || optarg[0] == '-') return ArgMissingOptarg;
+                                if (optarg == NULL || optarg[0] == '-') return CrownMissingOptarg;
                         }
                         return i; // Success
                 }
         }
-        return ArgNotDefined;
+        return CrownNotDefined;
 }
 
 AOCLIBS_PREFIX void crown_iprint(const char *msg, int indent) {
