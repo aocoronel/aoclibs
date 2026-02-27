@@ -41,7 +41,6 @@
 #include "./libs/debug.h" // AOCLIBS_DEBUG
 #include "./libs/heap_trace.h" // HEAP_DEBUG
 #include "./libs/match.h" // AOCLIBS_MATCH
-#include "./libs/morph.h" // AOCLIBS_MORPH
 #include "./libs/spinner.h" // AOCLIBS_SPINNER
 #include "./libs/tunit.h" // TUNIT
 

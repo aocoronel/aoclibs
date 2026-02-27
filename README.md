@@ -30,7 +30,6 @@ gcc -o merge merge.c && ./merge
 
 - [crown.h](./docs/crown.md) :: Full-blown CLI suite
 - [match.h](./docs/match.md) :: Better `if`, worst `switch`
-- [morph.h](./docs/morph.md) :: Deterministic code generator
 - [tunit.h](./docs/tunit.md) :: Test Unit
 
 ## License
