@@ -83,7 +83,7 @@
                 (da)->data[(da)->len++] = (item);    \
         } while (0)
 
-#define aoc_da_copy(da, items_buff, items_size) aoc_da_add(da, items_buff, items_size, (da)->len)
+#define aoc_da_append(da, items_buff, items_size) aoc_da_add(da, items_buff, items_size, (da)->len)
 
 #define aoc_da_add(da, items_buff, items_size, offset)                                           \
         do {                                                                                     \
@@ -100,7 +100,7 @@
                 (da)->data[(da)->len++] = (item); \
         } while (0)
 
-#define aoc_da_copy_fast(da, items_buff, items_size) \
+#define aoc_da_append_fast(da, items_buff, items_size) \
         aoc_da_add_fast(da, items_buff, items_size, (da)->len)
 
 #define aoc_da_add_fast(da, items_buff, items_size, offset)                                      \
@@ -110,7 +110,7 @@
         } while (0)
 // =================================
 
-#define aoc_da_add_null(da) aoc_da_copy(da, "\0", 1)
+#define aoc_da_add_null(da) aoc_da_append(da, "\0", 1)
 
 #define aoc_da_clone(dest, src)                                                 \
         do {                                                                    \
@@ -176,7 +176,8 @@
                 (da)->data[(da)->len++] = (item); \
         }
 
-#define aoc_das_copy(da, items_buff, items_size) aoc_das_add(da, items_buff, items_size, (da)->len)
+#define aoc_das_append(da, items_buff, items_size) \
+        aoc_das_add(da, items_buff, items_size, (da)->len)
 
 #define aoc_das_add(da, items_buff, items_size, offset)                                            \
         ((da)->len + items_size < (da)->cap) {                                                     \
@@ -191,7 +192,7 @@
 
 #ifdef AOCLIBS_STRIP_PREFIX
 #define da_add aoc_da_add
-#define da_copy aoc_da_copy
+#define da_copy aoc_da_append
 #define da_insert aoc_da_insert
 #define da_add_null aoc_da_add_null
 #define da_clone aoc_da_clone
@@ -199,7 +200,7 @@
 #define da_reserve aoc_da_reserve
 
 #define da_add_fast aoc_da_add_fast
-#define da_copy_fast aoc_da_copy_fast
+#define da_copy_fast aoc_da_append_fast
 #define da_insert_fast aoc_da_insert_fast
 
 #define da_clear aoc_da_clear
@@ -212,7 +213,7 @@
 #define da_unordered_drop aoc_da_unordered_drop
 
 #define das_add aoc_das_add
-#define das_copy aoc_das_copy
+#define das_copy aoc_das_append
 #define das_add_null aoc_das_add_null
 #define das_insert aoc_das_insert
 

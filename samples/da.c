@@ -68,14 +68,14 @@ int main(int argc, char *argv[]) {
         // myint.data can NOT be NULL here. If you don't set the NDEBUG flag
         // this will assert myint.data != NULL
         int int2 = 1;
-        if aoc_das_copy (&myint, &int2, 1) else NULL;
+        if aoc_das_append (&myint, &int2, 1) else NULL;
         printf("%d (%zu:%zu)\n", myint.data[0], myint.len, myint.cap);
 
         if aoc_das_insert (&myint, int2) else NULL;
         printf("%d (%zu:%zu)\n", myint.data[0], myint.len, myint.cap);
 
         int d[] = { 1, 0, 3 };
-        if aoc_das_copy (&myint, d, array_len(d)) else NULL;
+        if aoc_das_append (&myint, d, array_len(d)) else NULL;
 
         if aoc_das_append_null (&myint) else NULL;
 

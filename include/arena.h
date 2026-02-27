@@ -126,7 +126,7 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
                 (da)->data[(da)->len++] = (item);      \
         } while (0)
 
-#define aoc_dar_copy(a, da, items_buff, items_size) \
+#define aoc_dar_append(a, da, items_buff, items_size) \
         aoc_dar_add(a, da, items_buff, items_size, (da)->len)
 
 #define aoc_dar_add(a, da, items_buff, items_size, offset)                                       \
@@ -136,10 +136,10 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
                 (da)->len += (items_size);                                                       \
         } while (0)
 
-#define aoc_dar_add_null(a, da) aoc_dar_copy(a, da, "\0", 1)
+#define aoc_dar_add_null(a, da) aoc_dar_append(a, da, "\0", 1)
 
-#define aoc_arcl_cat(a, rc, cstr) aoc_dar_copy(a, rc, cstr, STRLEN(cstr))
-#define aoc_arc_cat(a, rc, cstr, len) aoc_dar_copy(a, rc, cstr, len)
+#define aoc_arcl_cat(a, rc, cstr) aoc_dar_append(a, rc, cstr, STRLEN(cstr))
+#define aoc_arc_cat(a, rc, cstr, len) aoc_dar_append(a, rc, cstr, len)
 
 #define aoc_arcl_append(a, rc, items_buff) aoc_arc_append(a, rc, items_buff, STRLEN(items_buff))
 #define aoc_arc_append(a, rc, items_buff, items_size)                                             \
@@ -167,7 +167,7 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
                 (da)->data[(da)->len++] = (item); \
         } while (0)
 
-#define aoc_dar_copy_fast(a, da, items_buff, items_size) \
+#define aoc_dar_append_fast(a, da, items_buff, items_size) \
         aoc_dar_add_fast(a, da, items_buff, items_size, (da)->len)
 
 #define aoc_dar_add_fast(a, da, items_buff, items_size, offset)                                  \
@@ -176,8 +176,8 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
                 (da)->len += (items_size);                                                       \
         } while (0)
 
-#define aoc_arcl_cat_fast(a, rc, cstr) aoc_dar_copy_fast(a, rc, cstr, STRLEN(cstr))
-#define aoc_arc_cat_fast(a, rc, cstr, len) aoc_dar_copy_fast(a, rc, cstr, len)
+#define aoc_arcl_cat_fast(a, rc, cstr) aoc_dar_append_fast(a, rc, cstr, STRLEN(cstr))
+#define aoc_arc_cat_fast(a, rc, cstr, len) aoc_dar_append_fast(a, rc, cstr, len)
 
 #define aoc_arcl_append_fast(a, rc, items_buff) \
         aoc_arc_append(a, rc, items_buff, STRLEN(items_buff))
@@ -208,14 +208,14 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 #define arena_trim aoc_arena_trim
 
 #define dar_add_null aoc_dar_add_null
-#define dar_copy aoc_dar_copy
+#define dar_copy aoc_dar_append
 #define dar_insert aoc_dar_insert
 #define dar_reserve aoc_dar_reserve
 #define arcl_copy aoc_arcl_copy
 
 #define dar_reserve aoc_dar_reserve
 #define dar_insert aoc_dar_insert
-#define dar_copy aoc_dar_copy
+#define dar_copy aoc_dar_append
 #define dar_add aoc_dar_add
 #define dar_add_null aoc_dar_add_null
 
@@ -228,7 +228,7 @@ AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
 #define arc_fmt_append aoc_arc_fmt_append
 
 #define dar_add_fast aoc_dar_add_fast
-#define dar_copy_fast aoc_dar_copy_fast
+#define dar_copy_fast aoc_dar_append_fast
 #define dar_insert_fast aoc_dar_insert_fast
 
 #define arc_cat_fast aoc_arc_cat_fast
