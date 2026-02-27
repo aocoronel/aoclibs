@@ -130,13 +130,15 @@
 #define aoc_da_erase(da) memset((da)->data, 0, (da)->cap)
 
 // Removes an item from the dynamic array from an index
-#define aoc_da_drop(da, index)                                                              \
-        do {                                                                                \
-                _aoc_assert_da_is_not_null(da);                                             \
-                ASSERT((da)->len > (index);     \
-                memmove((da)->data[(index)], (da)->data[(index) + 1], (da)->len - (index)); \
-                (da)->len--; \
-                (da)->data[(da)->len] = 0;                                                  \
+#define aoc_da_drop(da, index)                              \
+        do {                                                \
+                _aoc_assert_da_is_not_null(da);             \
+                ASSERT((da)->len > (index));                \
+                size_t remaining = (da)->len - (index) - 1; \
+                memmove(&(da)->data[index],                 \
+                        &(da)->data[(index) + 1],           \
+                        remaining * sizeof(*(da)->data));   \
+                (da)->len--;                                \
         } while (0)
 
 // Faster da_drop
