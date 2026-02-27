@@ -82,7 +82,6 @@ typedef struct {
 #define aoc_rcs_append(rc, items_buff, items_size)            \
         ((rc)->len + items_size + 1 < (rc)->cap) {            \
                 _aoc_assert_da_is_not_null(rc);               \
-                _aoc_assert_da_data_is_not_null(rc);          \
                 (rc)->data[(rc)->len++] = ' ';                \
                 memcpy((rc)->data + (rc)->len,                \
                        (items_buff),                          \
@@ -145,11 +144,11 @@ typedef struct {
 #define rcs_append aoc_rcs_append
 #define rcls_append aoc_rcls_append
 
-#define rc_append aoc_rcs_append
-#define rcl_append aoc_rcls_append
+#define rc_append aoc_rc_append
+#define rcl_append aoc_rcl_append
 
-#define rc_cat aoc_rcs_cat
-#define rcl_cat aoc_rcls_cat
+#define rc_cat aoc_rc_cat
+#define rcl_cat aoc_rcl_cat
 
 #define rc_cat_fast aoc_rc_cat_fast
 #define rc_append_fast aoc_rc_append_fast
