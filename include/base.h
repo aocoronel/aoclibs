@@ -106,9 +106,6 @@ typedef void (*aoc_free_t)(void *);
 
 #define eprintf(fmt, ...) fprintf(stderr, fmt, __VA_ARGS__)
 
-#define println(fmt, ...) fprintf(stdout, fmt "\n", __VA_ARGS__)
-#define eprintln(fmt, ...) fprintf(stderr, fmt "\n", __VA_ARGS__)
-
 /*
  * === "Keywords" ===
 */
