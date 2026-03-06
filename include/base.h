@@ -104,7 +104,7 @@ typedef void (*aoc_free_t)(void *);
 // Expects a string literal
 #define STRLEN(s) ARRAY_LEN(("" s "")) - sizeof((s)[0])
 
-#define eprintf(fmt, ...) fprintf(stderr, fmt, __VA_ARGS__)
+#define eprintf(...) fprintf(stderr, __VA_ARGS__)
 
 /*
  * === "Keywords" ===
