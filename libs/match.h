@@ -51,8 +51,8 @@
              } _Match = { 0, func, val }; \
              _Match.iterator == 0;        \
              _Match.iterator++)
-#define when(val) if (_Match.fn(_Match.value, val) == true)
-#define unless(val) if (_Match.fn(_Match.value, val) == false)
+#define when(val) (_Match.fn(_Match.value, val) == true)
+#define unless(val) (_Match.fn(_Match.value, val) == false)
 
 #endif
 
