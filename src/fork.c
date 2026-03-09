@@ -46,7 +46,7 @@ rc aoc_read_fd(int fd) {
         }
 
         if (buff.data) {
-                aoc_da_last(&buff) = '\0';
+                if (buff.len > 0) aoc_da_last(&buff) = '\0';
         }
 
         return buff;
