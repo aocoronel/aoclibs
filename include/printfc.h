@@ -25,17 +25,17 @@
 #define aoc_printfc_debug(...) ((void)0)
 #define aoc_printfc_trace(...) ((void)0)
 #else // NDEBUG
-#define aoc_printfc_debug(fmt, ...) aoc_printfc(COLOR_CYAN, "DEBUG", fmt, __VA_ARGS__)
-#define aoc_printfc_trace(fmt, ...) aoc_printfc(COLOR_MAGENTA, "TRACE", fmt, __VA_ARGS__)
+#define aoc_printfc_debug(...) aoc_printfc(COLOR_CYAN, "DEBUG", __VA_ARGS__)
+#define aoc_printfc_trace(...) aoc_printfc(COLOR_MAGENTA, "TRACE", __VA_ARGS__)
 #endif // NDEBUG
 
-#define aoc_printfc(color, level, fmt, ...) \
-        fprintf(stderr, "%s[%s]%s " fmt, color, level, COLOR_RESET, __VA_ARGS__)
-#define aoc_printfc_fatal(fmt, ...) aoc_printfc(COLOR_RED, "FATAL", fmt, __VA_ARGS__)
-#define aoc_printfc_error(fmt, ...) aoc_printfc(COLOR_RED, "ERROR", fmt, __VA_ARGS__)
-#define aoc_printfc_warn(fmt, ...) aoc_printfc(COLOR_YELLOW, "WARNING", fmt, __VA_ARGS__)
-#define aoc_printfc_info(fmt, ...) aoc_printfc(COLOR_GREEN, "INFO", fmt, __VA_ARGS__)
-#define aoc_printfc_critical(fmt, ...) aoc_printfc(COLOR_RED, "CRITICAL", fmt, __VA_ARGS__)
+#define aoc_printfc(color, level, ...) \
+        (fprintf(stderr, "%s[%s]%s ", color, level, COLOR_RESET), fprintf(stderr, __VA_ARGS__))
+#define aoc_printfc_fatal(...) aoc_printfc(COLOR_RED, "FATAL", __VA_ARGS__)
+#define aoc_printfc_error(...) aoc_printfc(COLOR_RED, "ERROR", __VA_ARGS__)
+#define aoc_printfc_warn(...) aoc_printfc(COLOR_YELLOW, "WARNING", __VA_ARGS__)
+#define aoc_printfc_info(...) aoc_printfc(COLOR_GREEN, "INFO", __VA_ARGS__)
+#define aoc_printfc_critical(...) aoc_printfc(COLOR_RED, "CRITICAL", __VA_ARGS__)
 
 #ifdef AOCLIBS_STRIP_PREFIX
 #define printfc aoc_printfc
