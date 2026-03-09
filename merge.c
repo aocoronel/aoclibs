@@ -2,7 +2,9 @@
 #include "include/base.h"
 #include "include/cstr.h"
 #include "include/file.h"
+#include "include/fork.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -86,6 +88,13 @@ void read_source_files(const char *path) {
         return;
 }
 
+#define STRING                                 \
+        "#define AOCLIBS_IMPLEMENTATION\n"     \
+        "#include \"aoclibs.h\"\n"             \
+        "int main(int argc, char *argv[]) {\n" \
+        "        return 0;\n"                  \
+        "}\n"
+
 int main(void) {
         output = fopen(OUTPUT_FILE, "w");
 
@@ -97,6 +106,26 @@ int main(void) {
         if (read_file(TEMPLATE_FILE, false) == false) return 1;
 
         fclose(output);
+
+        FILE *fp = fopen("test.c", "w");
+        fwrite(STRING, sizeof(char), STRLEN(STRING), fp);
+        fclose(fp);
+
+        char *compile_args[] = { "gcc", "-o", "test", "test.c", NULL };
+        PipeResult result = aoc_run_cmd(compile_args, NULL);
+
+        if (result.status != 0) {
+                fprintf(stderr, "Failed to build aoclibs.h. Got error: %d", result.status);
+        }
+
+        char *run_args[] = { "./test", NULL };
+        result = aoc_run_cmd(run_args, NULL);
+
+        if (result.status != 0) {
+                fprintf(stderr, "Failed to run test. Got error %d", result.status);
+        }
+
+        printf("Created ./aoclibs.h\n");
 
         return 0;
 }
