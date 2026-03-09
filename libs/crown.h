@@ -911,7 +911,7 @@ AOCDEF int crown_getopt(CrownCommand *null cmds, char *argv[], int argc) {
                 const char *long_opt = opt[i].long_opt;
                 const char *short_opt = opt[i].short_opt;
                 const size_t flag_arg_idx = opt[i].args;
-                const char *flag_arg = Program->args->data[i].name;
+                const char *flag_arg = Program->args->data[flag_arg_idx].name;
 
                 if (long_opt != NULL && aoc_cstr_eq(arg, long_opt)) {
                         if (flag_arg != NULL) {
@@ -942,7 +942,7 @@ AOCDEF int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
         for (size_t i = 0; i < len; i++) {
                 const char *cmd = opt[i].name;
                 const size_t cmd_arg_idx = opt[i].args;
-                const char *cmd_arg = Program->args->data[i].name;
+                const char *cmd_arg = Program->args->data[cmd_arg_idx].name;
                 const CrownCommand *cmd_subcmd =
                         opt[i].subcmd && opt[i].subcmd->data != NULL ? opt[i].subcmd->data : NULL;
 
