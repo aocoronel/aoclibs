@@ -25,7 +25,7 @@ The documentation for each function is available in the header file. The documen
 // SIZE_MAX :: Pattern not found
 //
 // #NDEBUG disable assertions
-AOCLIBS_PREFIX size_t aoc_cstrstr_index(const char *xref s, const char *xref pattern);
+AOCDEF size_t aoc_cstrstr_index(const char *xref s, const char *xref pattern);
 ```
 
 ## Macros

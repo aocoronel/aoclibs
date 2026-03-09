@@ -55,45 +55,45 @@ typedef struct {
 // This memory is freed using "arena_free_region".
 //
 // NULL :: failed to allocate
-AOCLIBS_PREFIX Region *null aoc_arena_new_region(size_t capacity);
-AOCLIBS_PREFIX void aoc_arena_free_region(Region *ref r);
+AOCDEF Region *null aoc_arena_new_region(size_t capacity);
+AOCDEF void aoc_arena_free_region(Region *ref r);
 
 // Reserve space from the arena with given "size_bytes".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCLIBS_PREFIX void *aoc_arena_alloc(Arena *ref a, size_t size_bytes);
+AOCDEF void *aoc_arena_alloc(Arena *ref a, size_t size_bytes);
 
 // Reserve space from the arena, and zero initialize with given "size_bytes".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCLIBS_PREFIX void *aoc_arena_calloc(Arena *ref a, size_t size_bytes);
+AOCDEF void *aoc_arena_calloc(Arena *ref a, size_t size_bytes);
 
 // Reserve new space from the arena with given "newsz".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCLIBS_PREFIX void *aoc_arena_realloc(Arena *ref a, void *ref oldptr, size_t oldsz, size_t newsz);
+AOCDEF void *aoc_arena_realloc(Arena *ref a, void *ref oldptr, size_t oldsz, size_t newsz);
 
 // Reserve space from the arena, and copies "data" into it. The user must also provide its "size".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCLIBS_PREFIX void *aoc_arena_memdup(Arena *ref a, void *ref data, size_t size);
+AOCDEF void *aoc_arena_memdup(Arena *ref a, void *ref data, size_t size);
 
 // Reserve space from the arena, and copies formatted string with given "format".
 //
 // This serves as higher abstraction to arena_vsprintf.
 //
 // NULL :: failed to allocate << arena_new_region
-AOCLIBS_PREFIX char *aoc_arena_sprintf(Arena *ref a, const char *format, ...);
-AOCLIBS_PREFIX char *aoc_arena_vsprintf(Arena *ref a, const char *format, va_list args);
+AOCDEF char *aoc_arena_sprintf(Arena *ref a, const char *format, ...);
+AOCDEF char *aoc_arena_vsprintf(Arena *ref a, const char *format, va_list args);
 
 // Resets all contents, without freeing memory. Allows reuse.
-AOCLIBS_PREFIX void aoc_arena_reset(Arena *ref a);
+AOCDEF void aoc_arena_reset(Arena *ref a);
 
 // Frees the Arena memory. Doesn't allow reuse.
-AOCLIBS_PREFIX void aoc_arena_destroy(Arena *ref a);
+AOCDEF void aoc_arena_destroy(Arena *ref a);
 
 // Frees the Arena memory. Allows reuse.
-AOCLIBS_PREFIX void aoc_arena_trim(Arena *ref a);
+AOCDEF void aoc_arena_trim(Arena *ref a);
 
 /*
  * Dynamic Arena

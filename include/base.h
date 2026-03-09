@@ -5,10 +5,10 @@
 
 /*
  * Modify prefixes in all functions:
- * #define AOCLIBS_PREFIX static inline
+ * #define AOCDEF static inline
 */
-#ifndef AOCLIBS_PREFIX
-#define AOCLIBS_PREFIX
+#ifndef AOCDEF
+#define AOCDEF
 #endif
 
 /*

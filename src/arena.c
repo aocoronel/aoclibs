@@ -10,7 +10,7 @@
 
 #include <stdlib.h>
 
-AOCLIBS_PREFIX Region *aoc_arena_new_region(size_t capacity) {
+AOCDEF Region *aoc_arena_new_region(size_t capacity) {
         size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
         Region *r = (Region *)malloc(size_bytes);
         ASSERT(r, "Out of memory");
@@ -20,7 +20,7 @@ AOCLIBS_PREFIX Region *aoc_arena_new_region(size_t capacity) {
         return r;
 }
 
-AOCLIBS_PREFIX void aoc_arena_free_region(Region *r) {
+AOCDEF void aoc_arena_free_region(Region *r) {
         ASSERT_NONNULL(r != NULL);
         free(r);
 }
@@ -30,7 +30,7 @@ AOCLIBS_PREFIX void aoc_arena_free_region(Region *r) {
 #include <unistd.h>
 #include <sys/mman.h>
 
-AOCLIBS_PREFIX Region *aoc_arena_new_region(size_t capacity) {
+AOCDEF Region *aoc_arena_new_region(size_t capacity) {
         size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
         Region *r =
                 mmap(NULL, size_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
@@ -41,7 +41,7 @@ AOCLIBS_PREFIX Region *aoc_arena_new_region(size_t capacity) {
         return r;
 }
 
-AOCLIBS_PREFIX void aoc_arena_free_region(Region *r) {
+AOCDEF void aoc_arena_free_region(Region *r) {
         size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * r->cap;
         int ret = munmap(r, size_bytes);
         ASSERT(ret == 0);
@@ -54,7 +54,7 @@ AOCLIBS_PREFIX void aoc_arena_free_region(Region *r) {
 
 #define INV_HANDLE(x) (((x) == NULL) || ((x) == INVALID_HANDLE_VALUE))
 
-AOCLIBS_PREFIX Region *aoc_arena_new_region(size_t capacity) {
+AOCDEF Region *aoc_arena_new_region(size_t capacity) {
         SIZE_T size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
         Region *r =
                 VirtualAllocEx(GetCurrentProcess(), /* Allocate in current process address space */
@@ -71,7 +71,7 @@ AOCLIBS_PREFIX Region *aoc_arena_new_region(size_t capacity) {
         return r;
 }
 
-AOCLIBS_PREFIX void aoc_arena_free_region(Region *r) {
+AOCDEF void aoc_arena_free_region(Region *r) {
         if (INV_HANDLE(r)) return;
 
         BOOL free_result = VirtualFreeEx(
@@ -90,7 +90,7 @@ AOCLIBS_PREFIX void aoc_arena_free_region(Region *r) {
 
 #endif
 
-AOCLIBS_PREFIX void *aoc_arena_alloc(Arena *a, size_t size_bytes) {
+AOCDEF void *aoc_arena_alloc(Arena *a, size_t size_bytes) {
         ASSERT_NONNULL(a != NULL);
         size_t size = (size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t);
 
@@ -121,13 +121,13 @@ AOCLIBS_PREFIX void *aoc_arena_alloc(Arena *a, size_t size_bytes) {
         return result;
 }
 
-AOCLIBS_PREFIX void *aoc_arena_calloc(Arena *a, size_t size_bytes) {
+AOCDEF void *aoc_arena_calloc(Arena *a, size_t size_bytes) {
         void *ptr = aoc_arena_alloc(a, size_bytes);
         memset(ptr, 0, size_bytes);
         return ptr;
 }
 
-AOCLIBS_PREFIX void *aoc_arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t newsz) {
+AOCDEF void *aoc_arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t newsz) {
         ASSERT_NONNULL(a != NULL);
         if (newsz <= oldsz) return oldptr;
         void *newptr = aoc_arena_alloc(a, newsz);
@@ -138,13 +138,13 @@ AOCLIBS_PREFIX void *aoc_arena_realloc(Arena *a, void *oldptr, size_t oldsz, siz
         return newptr;
 }
 
-AOCLIBS_PREFIX void *aoc_arena_memdup(Arena *a, void *data, size_t size) {
+AOCDEF void *aoc_arena_memdup(Arena *a, void *data, size_t size) {
         ASSERT_NONNULL(a != NULL);
         ASSERT_NONNULL(data != NULL);
         return memcpy(aoc_arena_alloc(a, size), data, size);
 }
 
-AOCLIBS_PREFIX char *aoc_arena_vsprintf(Arena *a, const char *format, va_list args) {
+AOCDEF char *aoc_arena_vsprintf(Arena *a, const char *format, va_list args) {
         ASSERT_NONNULL(a != NULL);
         va_list args_copy;
         va_copy(args_copy, args);
@@ -158,7 +158,7 @@ AOCLIBS_PREFIX char *aoc_arena_vsprintf(Arena *a, const char *format, va_list ar
         return result;
 }
 
-AOCLIBS_PREFIX char *aoc_arena_sprintf(Arena *a, const char *format, ...) {
+AOCDEF char *aoc_arena_sprintf(Arena *a, const char *format, ...) {
         ASSERT_NONNULL(a != NULL);
         va_list args;
         va_start(args, format);
@@ -168,7 +168,7 @@ AOCLIBS_PREFIX char *aoc_arena_sprintf(Arena *a, const char *format, ...) {
         return result;
 }
 
-AOCLIBS_PREFIX void aoc_arena_reset(Arena *a) {
+AOCDEF void aoc_arena_reset(Arena *a) {
         ASSERT_NONNULL(a != NULL);
         for (Region *r = a->begin; r != NULL; r = r->next) {
                 r->len = 0;
@@ -177,7 +177,7 @@ AOCLIBS_PREFIX void aoc_arena_reset(Arena *a) {
         a->end = a->begin;
 }
 
-AOCLIBS_PREFIX void aoc_arena_destroy(Arena *a) {
+AOCDEF void aoc_arena_destroy(Arena *a) {
         ASSERT_NONNULL(a != NULL);
         Region *r = a->begin;
         while (r) {
@@ -189,7 +189,7 @@ AOCLIBS_PREFIX void aoc_arena_destroy(Arena *a) {
         a->end = NULL;
 }
 
-AOCLIBS_PREFIX void aoc_arena_trim(Arena *a) {
+AOCDEF void aoc_arena_trim(Arena *a) {
         ASSERT_NONNULL(a != NULL);
         Region *r = a->end->next;
         while (r) {
