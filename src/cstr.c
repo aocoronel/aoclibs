@@ -14,7 +14,7 @@
 #define HIGHS (ONES * (UCHAR_MAX / 2 + 1))
 #define HASZERO(x) (((x) - ONES) & ~(x) & HIGHS)
 
-CSlice aoc_extract_between(const char *s, size_t begin, size_t end, char delim) {
+Slice aoc_extract_between(const char *s, size_t begin, size_t end, char delim) {
 
         const char *s_ptr = s + begin;
         size_t n_begin = begin;
@@ -31,10 +31,10 @@ CSlice aoc_extract_between(const char *s, size_t begin, size_t end, char delim) 
                 n_end--;
         }
 
-        return (CSlice){ .data = s + n_begin, .len = n_end - n_begin };
+        return (Slice){ .data = s + n_begin, .len = n_end - n_begin };
 }
 
-void cslice_to_cstr(CSlice s, char *buff, const size_t size) {
+void slice_to_cstr(Slice s, char *buff, const size_t size) {
         int size_to_copy = s.len > size ? size : s.len;
         memcpy(buff, s.data, size_to_copy);
         buff[size_to_copy] = '\0';

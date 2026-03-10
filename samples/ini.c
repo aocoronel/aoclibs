@@ -13,9 +13,9 @@ int main(int argc, char **argv) {
         Arena IniArena = { 0 };
         IniSections sections = ini_read(&IniArena, file_path);
 
-        CSlice test_section = aoc_cslice("Testing");
-        CSlice test_key = aoc_cslice("key");
-        CSlice test_value = aoc_cslice("value");
+        Slice test_section = aoc_slice("Testing");
+        Slice test_key = aoc_slice("key");
+        Slice test_value = aoc_slice("value");
 
         ini_insert_section(&IniArena, &sections, test_section);
         ini_insert_key(&IniArena, &aoc_da_last(&sections).keys, test_key, test_value);
