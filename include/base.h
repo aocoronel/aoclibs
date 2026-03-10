@@ -58,6 +58,10 @@ typedef void (*aoc_free_t)(void *);
 #define FN_DEPRECATED(fn_to_use_instead) __attribute_deprecated_msg__(fn_to_use_instead)
 #define FN_WARN_UNUSED __attribute__((warn_unused_result))
 
+#define FN_WEAK_ALIAS(name, aliasname) _FN_WEAK_ALIAS(name, aliasname)
+#define _FN_WEAK_ALIAS(name, aliasname) \
+        extern __typeof(name) aliasname __attribute__((weak, alias(#name)));
+
 /*
  * === Debugging ===
 */
