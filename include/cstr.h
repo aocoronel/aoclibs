@@ -10,8 +10,8 @@
 #define VSLICE(r) ((r)->len), ((r)->data)
 
 typedef struct {
-        size_t len;
-        const char *data;
+    size_t len;
+    const char *data;
 } Slice;
 
 #ifndef CSTR_MALLOC
@@ -28,25 +28,25 @@ typedef struct {
 //      printf("%.*s\n", slice.len, slice.data); // => "World!"
 Slice aoc_extract_between(const char *ref s, size_t begin, size_t end, char delim);
 
-#define aoc_cstr_to_slice(s, start, end)                      \
-        (Slice) {                                             \
-                .data = (s) + (start), .len = (end) - (start) \
-        }
+#define aoc_cstr_to_slice(s, start, end)              \
+    (Slice) {                                         \
+        .data = (s) + (start), .len = (end) - (start) \
+    }
 
 // Slice myslice = slice("hello, world!");
-#define aoc_slice(s)                               \
-        (Slice) {                                  \
-                .data = "" s "", .len = STRLEN(s), \
-        }
+#define aoc_slice(s)                       \
+    (Slice) {                              \
+        .data = "" s "", .len = STRLEN(s), \
+    }
 
 AOCDEF char *null aoc_cstr_dup(const char *ref s, const size_t len);
 AOCDEF void aoc_cstr_to_lower(char *ref s);
 AOCDEF void aoc_cstrn_to_lower(char *ref s, const size_t len);
 
 #define aoc_slice_begins_with(cs, begin, begin_len) \
-        aoc_cstr_begins_with((cs)->data, (cs)->len, (begin), (begin_len))
+    aoc_cstr_begins_with((cs)->data, (cs)->len, (begin), (begin_len))
 #define aoc_slice_ends_with(cs, end, end_len) \
-        aoc_cstr_ends_with((cs)->data, (cs)->len, (end), (end_len))
+    aoc_cstr_ends_with((cs)->data, (cs)->len, (end), (end_len))
 
 AOCDEF bool aoc_cstr_begins_with(const char *xref s,
                                  const size_t s_len,
@@ -64,9 +64,9 @@ AOCDEF bool
 aoc_cstrn_eq(const char *xref s, const size_t s_len, const char *xref pattern, size_t pattern_len);
 
 #define aoc_slice_eq_case(cs1, cs2, offset) \
-        aoc_cstrn_eq_case((cs1)->data + (offset), (cs1)->len, (cs2)->data, (cs2)->len)
+    aoc_cstrn_eq_case((cs1)->data + (offset), (cs1)->len, (cs2)->data, (cs2)->len)
 #define aoc_cstr_eq_case(s, pattern) \
-        aoc_cstrn_eq_case((s), strlen((s)), (pattern), strlen((pattern)))
+    aoc_cstrn_eq_case((s), strlen((s)), (pattern), strlen((pattern)))
 // Compares "s" to "pattern" ignoring case.
 //
 // Allocates a temporary variable to lowercase all characters. If the allocation fails, sets errno

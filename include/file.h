@@ -10,11 +10,11 @@
 #define AOC_DIR_WALKER_BUFF 4096
 
 typedef enum FileType {
-        F_NULL, // Doesn't exist
-        F_REG, // Regular file
-        F_DIR, // Directory
-        F_LNK, // Symbolic Link
-        F_FAIL, // Failed to stat
+    F_NULL, // Doesn't exist
+    F_REG, // Regular file
+    F_DIR, // Directory
+    F_LNK, // Symbolic Link
+    F_FAIL, // Failed to stat
 } FileType;
 
 typedef void (*dw_fn)(const char *path);

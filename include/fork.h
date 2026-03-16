@@ -6,14 +6,14 @@
 #include <sys/types.h>
 
 typedef struct {
-        rc data;
-        int status;
+    rc data;
+    int status;
 } PipeResult;
 
 typedef struct {
-        pid_t pid;
-        int stdin_fd;
-        int stdout_fd;
+    pid_t pid;
+    int stdin_fd;
+    int stdout_fd;
 } ForkCmd;
 
 ForkCmd aoc_fork_cmd(char **ref argv);

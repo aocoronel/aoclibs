@@ -60,22 +60,21 @@ typedef void (*aoc_free_t)(void *);
 
 #define FN_WEAK_ALIAS(name, aliasname) _FN_WEAK_ALIAS(name, aliasname)
 #define _FN_WEAK_ALIAS(name, aliasname) \
-        extern __typeof(name) aliasname __attribute__((weak, alias(#name)));
+    extern __typeof(name) aliasname __attribute__((weak, alias(#name)));
 
 /*
  * === Debugging ===
 */
 
-#define AOCLIBS_ABORT(msg, ...)                                        \
-        (fprintf(stderr, "%s: %s:%u: ", __func__, __FILE__, __LINE__), \
-         fprintf(stderr, msg " " __VA_ARGS__),                         \
-         fputc('\n', stderr),                                          \
-         abort())
+#define AOCLIBS_ABORT(msg, ...)                                    \
+    (fprintf(stderr, "%s: %s:%u: ", __func__, __FILE__, __LINE__), \
+     fprintf(stderr, msg " " __VA_ARGS__),                         \
+     fputc('\n', stderr),                                          \
+     abort())
 
 // Used to panic, when an unreachable code is ran
 #define UNREACHABLE AOCLIBS_ABORT("Panicked: ", "unreachable code")
 
-// Prints message, including metadata and aborts the program
 #define PANIC(...) AOCLIBS_ABORT("Panicked: ", __VA_ARGS__)
 
 // Marks not implemented code
@@ -86,7 +85,7 @@ typedef void (*aoc_free_t)(void *);
 #define ASSERT(...)
 #else
 #define ASSERT(expr, ...) \
-        ((expr) ? (void)0 : AOCLIBS_ABORT("Assertion failed: " #expr, __VA_ARGS__))
+    ((expr) ? (void)0 : AOCLIBS_ABORT("Assertion failed: " #expr, __VA_ARGS__))
 #endif
 
 // Convenience assert messages
@@ -96,12 +95,12 @@ typedef void (*aoc_free_t)(void *);
  * Convenient macros
 */
 
-#define swap(Type, x, z)    \
-        do {                \
-                Type t = x; \
-                x = z;      \
-                z = t;      \
-        } while (0)
+#define swap(Type, x, z) \
+    do {                 \
+        Type t = x;      \
+        x = z;           \
+        z = t;           \
+    } while (0)
 
 // This is only applicable to stack allocated
 #define ARRAY_LEN(a) sizeof((a)) / sizeof((a[0]))

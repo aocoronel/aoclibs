@@ -19,9 +19,9 @@
 // allocated strings. If you decide to use this like an Dynamic Array, make sure to just use it
 // with a heap RC.
 typedef struct {
-        size_t cap;
-        size_t len;
-        char *data;
+    size_t cap;
+    size_t len;
+    char *data;
 } rc;
 
 #ifndef AOCLIBS_RC_MALLOC
@@ -37,98 +37,96 @@ typedef struct {
 // RC from already allocated char * in the stack/heap
 // char *buff = malloc(100);
 // rc myrc = rc_bnew(buff, 0, 100);
-#define aoc_rc_bnew(buff, length, capacity)                        \
-        (rc) {                                                     \
-                .data = (buff), .len = (length), .cap = (capacity) \
-        }
+#define aoc_rc_bnew(buff, length, capacity)                \
+    (rc) {                                                 \
+        .data = (buff), .len = (length), .cap = (capacity) \
+    }
 
 // char buff[100];
 // rc myrc = rcs_bnew(buff, 0);
 //
 // char buff[100] = "Hello, world!";
 // rc myrc = rcs_bnew(buff, STRLEN("Hello, world"));
-#define aoc_rcs_bnew(buff, length)                                   \
-        (rc) {                                                       \
-                .data = (buff), .len = length, .cap = sizeof((buff)) \
-        }
+#define aoc_rcs_bnew(buff, length)                           \
+    (rc) {                                                   \
+        .data = (buff), .len = length, .cap = sizeof((buff)) \
+    }
 
 // Allocates a new stack/heap RC.
 // rc myrc = rc_new(100);
-#define aoc_rc_new(capacity)                                                       \
-        (rc) {                                                                     \
-                .data = AOCLIBS_RC_MALLOC((capacity)), .len = 0, .cap = (capacity) \
-        }
+#define aoc_rc_new(capacity)                                               \
+    (rc) {                                                                 \
+        .data = AOCLIBS_RC_MALLOC((capacity)), .len = 0, .cap = (capacity) \
+    }
 
 // rc myrc = rcs_new(100);
-#define aoc_rcs_new(capacity)                                           \
-        (rc) {                                                          \
-                .data = alloca((capacity)), .len = 0, .cap = (capacity) \
-        }
+#define aoc_rcs_new(capacity)                                   \
+    (rc) {                                                      \
+        .data = alloca((capacity)), .len = 0, .cap = (capacity) \
+    }
 
-#define aoc_rc_appendf(rc, fmt, ...)                                                      \
-        do {                                                                              \
-                int needed = aoc_cstr_fmt_size(fmt, __VA_ARGS__);                         \
-                aoc_da_reserve((rc), (rc)->len + needed);                                 \
-                int written = aoc_cstr_fmt_write(                                         \
-                        (rc)->data + (rc)->len, (rc)->cap - (rc)->len, fmt, __VA_ARGS__); \
-                (rc)->len += written;                                                     \
-        } while (0)
+#define aoc_rc_appendf(rc, fmt, ...)                                              \
+    do {                                                                          \
+        int needed = aoc_cstr_fmt_size(fmt, __VA_ARGS__);                         \
+        aoc_da_reserve((rc), (rc)->len + needed);                                 \
+        int written = aoc_cstr_fmt_write(                                         \
+                (rc)->data + (rc)->len, (rc)->cap - (rc)->len, fmt, __VA_ARGS__); \
+        (rc)->len += written;                                                     \
+    } while (0)
 
 // Stack concat and appending
 #define aoc_rcls_cat(rc, items_buff) aoc_das_append(rc, items_buff, STRLEN(items_buff))
 #define aoc_rcs_cat(rc, items_buff, items_size) aoc_das_append(rc, items_buff, items_size)
 
 #define aoc_rcls_append(rc, items_buff) aoc_rcs_append(rc, items_buff, STRLEN(items_buff))
-#define aoc_rcs_append(rc, items_buff, items_size)            \
-        ((rc)->len + items_size + 1 < (rc)->cap) {            \
-                _aoc_assert_da_is_not_null(rc);               \
-                (rc)->data[(rc)->len++] = ' ';                \
-                memcpy((rc)->data + (rc)->len,                \
-                       (items_buff),                          \
-                       (items_size) * (sizeof(*(rc)->data))); \
-                (rc)->len += (items_size);                    \
-        }
+#define aoc_rcs_append(rc, items_buff, items_size)                                          \
+    ((rc)->len + items_size + 1 < (rc)->cap) {                                              \
+        _aoc_assert_da_is_not_null(rc);                                                     \
+        (rc)->data[(rc)->len++] = ' ';                                                      \
+        memcpy((rc)->data + (rc)->len, (items_buff), (items_size) * (sizeof(*(rc)->data))); \
+        (rc)->len += (items_size);                                                          \
+    }
 
 // Heap concat and appending
 #define aoc_rcl_cat(rc, items_buff) aoc_da_add(rc, items_buff, STRLEN(items_buff), (rc)->len)
 #define aoc_rc_cat(rc, items_buff, items_len) aoc_da_add(rc, items_buff, items_len, (rc)->len)
 
 #define aoc_rcl_append(rc, items_buff) aoc_rc_append(rc, items_buff, STRLEN((items_buff)))
-#define aoc_rc_append(rc, items_buff, items_size)                                                 \
-        do {                                                                                      \
-                aoc_da_reserve((rc), 1 + (rc)->len + (items_size));                               \
-                (rc)->data[(rc)->len++] = ' ';                                                    \
-                memcpy((rc)->data + (rc)->len, (items_buff), (items_size) * sizeof(*(rc)->data)); \
-                (rc)->len += (items_size);                                                        \
-        } while (0)
+#define aoc_rc_append(rc, items_buff, items_size)                                         \
+    do {                                                                                  \
+        aoc_da_reserve((rc), 1 + (rc)->len + (items_size));                               \
+        (rc)->data[(rc)->len++] = ' ';                                                    \
+        memcpy((rc)->data + (rc)->len, (items_buff), (items_size) * sizeof(*(rc)->data)); \
+        (rc)->len += (items_size);                                                        \
+    } while (0)
 
 #define aoc_rc_to_lower(r) aoc_cstr_to_lower((r)->data)
 #define aoc_rcn_to_lower(r) aoc_cstrn_to_lower((r)->data, (r)->len)
 
 #define aoc_rc_eq(r, pattern) aoc_cstr_eq((r)->data, (pattern))
 #define aoc_rcn_eq(r, pattern, pattern_len) \
-        aoc_cstrn_eq((r)->data, (r)->len, (pattern), (pattern_len))
+    aoc_cstrn_eq((r)->data, (r)->len, (pattern), (pattern_len))
 
 #define aoc_rc_eq_case(r, pattern) aoc_cstr_eq_case((r)->data, (pattern))
 #define aoc_rcn_eq_case(r, pattern, pattern_len) \
-        aoc_cstrn_eq_case((r)->data, (r)->len, (pattern), (pattern_len))
+    aoc_cstrn_eq_case((r)->data, (r)->len, (pattern), (pattern_len))
 
 #define aoc_rc_begins_with(r, begin_len, begin) \
-        aoc_cstr_begins_with((r).data, (r).len, (begin), (begin_len))
+    aoc_cstr_begins_with((r).data, (r).len, (begin), (begin_len))
 #define aoc_rc_ends_with(r, end_len, end) aoc_cstr_ends_with((r).data, (r).len, (end), (end_len))
 
 // =================================
 // These macros skips the reserve step, for faster operations with less checks.
 // Use at own risk.
 #define aoc_rc_cat_fast(rc, items_buff, items_len) \
-        aoc_da_add_fast(rc, items_buff, items_len, (rc)->len)
+    aoc_da_add_fast(rc, items_buff, items_len, (rc)->len)
 
-#define aoc_rc_append_fast(rc, items_buff, items_size)                                            \
-        do {                                                                                      \
-                (rc)->data[(rc)->len++] = ' ';                                                    \
-                memcpy((rc)->data + (rc)->len, (items_buff), (items_size) * sizeof(*(rc)->data)); \
-                (rc)->len += (items_size);                                                        \
-        } while (0)
+#define aoc_rc_append_fast(rc, items_buff, items_size)                                    \
+    do {                                                                                  \
+        (rc)->data[(rc)->len++] = ' ';                                                    \
+        memcpy((rc)->data + (rc)->len, (items_buff), (items_size) * sizeof(*(rc)->data)); \
+        (rc)->len += (items_size);                                                        \
+    } while (0)
 // =================================
 
 #ifdef AOCLIBS_STRIP_PREFIX

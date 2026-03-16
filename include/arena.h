@@ -36,14 +36,14 @@
 typedef struct Region Region;
 
 struct Region {
-        Region *next;
-        size_t len;
-        size_t cap;
-        uintptr_t data[];
+    Region *next;
+    size_t len;
+    size_t cap;
+    uintptr_t data[];
 };
 
 typedef struct {
-        Region *begin, *end;
+    Region *begin, *end;
 } Arena;
 
 #ifndef AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY
@@ -103,38 +103,37 @@ AOCDEF void aoc_arena_trim(Arena *ref a);
 #define AOCLIBS_ARENA_DA_CAPACITY 256
 #endif
 
-#define aoc_dar_reserve(a, da, new_cap)                                                     \
-        do {                                                                                \
-                if ((da)->len >= (da)->cap) {                                               \
-                        size_t new_capacity = (da)->cap < AOCLIBS_ARENA_DA_CAPACITY ?       \
-                                                      AOCLIBS_ARENA_DA_CAPACITY :           \
-                                                      new_cap;                              \
-                        while ((new_cap) > new_capacity) {                                  \
-                                new_capacity *= 2;                                          \
-                        }                                                                   \
-                        (da)->data = aoc_arena_realloc((a),                                 \
-                                                       (da)->data,                          \
-                                                       (da)->cap * sizeof(*(da)->data),     \
-                                                       new_capacity * sizeof(*(da)->data)); \
-                        (da)->cap = new_capacity;                                           \
-                }                                                                           \
-        } while (0)
+#define aoc_dar_reserve(a, da, new_cap)                                                          \
+    do {                                                                                         \
+        if ((da)->len >= (da)->cap) {                                                            \
+            size_t new_capacity =                                                                \
+                    (da)->cap < AOCLIBS_ARENA_DA_CAPACITY ? AOCLIBS_ARENA_DA_CAPACITY : new_cap; \
+            while ((new_cap) > new_capacity) {                                                   \
+                new_capacity *= 2;                                                               \
+            }                                                                                    \
+            (da)->data = aoc_arena_realloc((a),                                                  \
+                                           (da)->data,                                           \
+                                           (da)->cap * sizeof(*(da)->data),                      \
+                                           new_capacity * sizeof(*(da)->data));                  \
+            (da)->cap = new_capacity;                                                            \
+        }                                                                                        \
+    } while (0)
 
-#define aoc_dar_insert(a, da, item)                    \
-        do {                                           \
-                aoc_dar_reserve(a, da, (da)->len + 1); \
-                (da)->data[(da)->len++] = (item);      \
-        } while (0)
+#define aoc_dar_insert(a, da, item)            \
+    do {                                       \
+        aoc_dar_reserve(a, da, (da)->len + 1); \
+        (da)->data[(da)->len++] = (item);      \
+    } while (0)
 
 #define aoc_dar_append(a, da, items_buff, items_size) \
-        aoc_dar_add(a, da, items_buff, items_size, (da)->len)
+    aoc_dar_add(a, da, items_buff, items_size, (da)->len)
 
-#define aoc_dar_add(a, da, items_buff, items_size, offset)                                       \
-        do {                                                                                     \
-                aoc_dar_reserve(a, da, (da)->len + (items_size));                                \
-                memcpy((da)->data + (offset), (items_buff), (items_size) * sizeof(*(da)->data)); \
-                (da)->len += (items_size);                                                       \
-        } while (0)
+#define aoc_dar_add(a, da, items_buff, items_size, offset)                               \
+    do {                                                                                 \
+        aoc_dar_reserve(a, da, (da)->len + (items_size));                                \
+        memcpy((da)->data + (offset), (items_buff), (items_size) * sizeof(*(da)->data)); \
+        (da)->len += (items_size);                                                       \
+    } while (0)
 
 #define aoc_dar_add_null(a, da) aoc_dar_append(a, da, "\0", 1)
 
@@ -142,51 +141,51 @@ AOCDEF void aoc_arena_trim(Arena *ref a);
 #define aoc_arc_cat(a, rc, cstr, len) aoc_dar_append(a, rc, cstr, len)
 
 #define aoc_arcl_append(a, rc, items_buff) aoc_arc_append(a, rc, items_buff, STRLEN(items_buff))
-#define aoc_arc_append(a, rc, items_buff, items_size)                                             \
-        do {                                                                                      \
-                aoc_dar_reserve(a, (rc), 1 + (rc)->len + (items_size));                           \
-                (rc)->data[(rc)->len++] = ' ';                                                    \
-                memcpy((rc)->data + (rc)->len, (items_buff), (items_size) * sizeof(*(rc)->data)); \
-                (rc)->len += (items_size);                                                        \
-        } while (0)
+#define aoc_arc_append(a, rc, items_buff, items_size)                                     \
+    do {                                                                                  \
+        aoc_dar_reserve(a, (rc), 1 + (rc)->len + (items_size));                           \
+        (rc)->data[(rc)->len++] = ' ';                                                    \
+        memcpy((rc)->data + (rc)->len, (items_buff), (items_size) * sizeof(*(rc)->data)); \
+        (rc)->len += (items_size);                                                        \
+    } while (0)
 
-#define aoc_arc_fmt_append(a, rc, fmt, ...)                                               \
-        do {                                                                              \
-                int needed = aoc_cstr_fmt_size(fmt, __VA_ARGS__);                         \
-                aoc_dar_reserve(a, rc, (rc)->len + needed);                               \
-                int written = aoc_cstr_fmt_write(                                         \
-                        (rc)->data + (rc)->len, (rc)->cap - (rc)->len, fmt, __VA_ARGS__); \
-                (rc)->len += written;                                                     \
-        } while (0)
+#define aoc_arc_fmt_append(a, rc, fmt, ...)                                       \
+    do {                                                                          \
+        int needed = aoc_cstr_fmt_size(fmt, __VA_ARGS__);                         \
+        aoc_dar_reserve(a, rc, (rc)->len + needed);                               \
+        int written = aoc_cstr_fmt_write(                                         \
+                (rc)->data + (rc)->len, (rc)->cap - (rc)->len, fmt, __VA_ARGS__); \
+        (rc)->len += written;                                                     \
+    } while (0)
 
 // =================================
 // These macros skips the reserve step, for faster operations with less checks.
 // Use at own risk.
-#define aoc_dar_insert_fast(a, da, item)          \
-        do {                                      \
-                (da)->data[(da)->len++] = (item); \
-        } while (0)
+#define aoc_dar_insert_fast(a, da, item)  \
+    do {                                  \
+        (da)->data[(da)->len++] = (item); \
+    } while (0)
 
 #define aoc_dar_append_fast(a, da, items_buff, items_size) \
-        aoc_dar_add_fast(a, da, items_buff, items_size, (da)->len)
+    aoc_dar_add_fast(a, da, items_buff, items_size, (da)->len)
 
-#define aoc_dar_add_fast(a, da, items_buff, items_size, offset)                                  \
-        do {                                                                                     \
-                memcpy((da)->data + (offset), (items_buff), (items_size) * sizeof(*(da)->data)); \
-                (da)->len += (items_size);                                                       \
-        } while (0)
+#define aoc_dar_add_fast(a, da, items_buff, items_size, offset)                          \
+    do {                                                                                 \
+        memcpy((da)->data + (offset), (items_buff), (items_size) * sizeof(*(da)->data)); \
+        (da)->len += (items_size);                                                       \
+    } while (0)
 
 #define aoc_arcl_cat_fast(a, rc, cstr) aoc_dar_append_fast(a, rc, cstr, STRLEN(cstr))
 #define aoc_arc_cat_fast(a, rc, cstr, len) aoc_dar_append_fast(a, rc, cstr, len)
 
 #define aoc_arcl_append_fast(a, rc, items_buff) \
-        aoc_arc_append(a, rc, items_buff, STRLEN(items_buff))
-#define aoc_arc_append_fast(a, rc, items_buff, items_size)                                        \
-        do {                                                                                      \
-                (rc)->data[(rc)->len++] = ' ';                                                    \
-                memcpy((rc)->data + (rc)->len, (items_buff), (items_size) * sizeof(*(rc)->data)); \
-                (rc)->len += (items_size);                                                        \
-        } while (0)
+    aoc_arc_append(a, rc, items_buff, STRLEN(items_buff))
+#define aoc_arc_append_fast(a, rc, items_buff, items_size)                                \
+    do {                                                                                  \
+        (rc)->data[(rc)->len++] = ' ';                                                    \
+        memcpy((rc)->data + (rc)->len, (items_buff), (items_size) * sizeof(*(rc)->data)); \
+        (rc)->len += (items_size);                                                        \
+    } while (0)
 // =================================
 
 #ifdef AOCLIBS_IMPLEMENTATION

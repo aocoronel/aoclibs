@@ -30,7 +30,7 @@
 #endif // NDEBUG
 
 #define aoc_printfc(color, level, ...) \
-        (fprintf(stderr, "%s[%s]%s ", color, level, COLOR_RESET), fprintf(stderr, __VA_ARGS__))
+    (fprintf(stderr, "%s[%s]%s ", color, level, COLOR_RESET), fprintf(stderr, __VA_ARGS__))
 #define aoc_printfc_fatal(...) aoc_printfc(COLOR_RED, "FATAL", __VA_ARGS__)
 #define aoc_printfc_error(...) aoc_printfc(COLOR_RED, "ERROR", __VA_ARGS__)
 #define aoc_printfc_warn(...) aoc_printfc(COLOR_YELLOW, "WARNING", __VA_ARGS__)
