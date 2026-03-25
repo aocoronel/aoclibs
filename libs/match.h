@@ -43,17 +43,16 @@
 //              }
 //      }
 // }
-#define match(T, val, func)           \
-    for (struct {                     \
-             char iterator;           \
-             bool (*fn)(T, T);        \
-             T value;                 \
-         } _Match = { 0, func, val }; \
-         _Match.iterator == 0;        \
+#define match(val, func)                                   \
+    for (struct {                                          \
+             char iterator;                                \
+             bool (*fn)(__typeof__(val), __typeof__(val)); \
+             __typeof__(val) value;                        \
+         } _Match = { 0, func, val };                      \
+         _Match.iterator == 0;                             \
          _Match.iterator++)
 #define when(val) (_Match.fn(_Match.value, val) == true)
 #define unless(val) (_Match.fn(_Match.value, val) == false)
-
 #endif
 
 #endif
