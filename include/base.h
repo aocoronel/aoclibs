@@ -95,11 +95,11 @@ typedef void (*aoc_free_t)(void *);
  * Convenient macros
 */
 
-#define swap(Type, x, z) \
-    do {                 \
-        Type t = x;      \
-        x = z;           \
-        z = t;           \
+#define swap(x, z)           \
+    do {                     \
+        __typeof__(x) t = x; \
+        x = z;               \
+        z = t;               \
     } while (0)
 
 // This is only applicable to stack allocated
