@@ -17,7 +17,7 @@ const char *file_to_open = NULL;
 
 void read_source_files(const char *path);
 
-bool read_file(const char *ref file, bool ignore_include) {
+bool read_file(const char *file, bool ignore_include) {
     FILE *fp = fopen(file, "r");
     if (!fp) {
         fprintf(stderr, "File not found: %s\n", file);
@@ -90,6 +90,8 @@ void read_source_files(const char *path) {
 
 #define STRING                             \
     "#define AOCLIBS_IMPLEMENTATION\n"     \
+    "#include <string.h>\n"                \
+    "#include <stdlib.h>\n"                \
     "#include \"aoclibs.h\"\n"             \
     "int main(int argc, char *argv[]) {\n" \
     "        return 0;\n"                  \
