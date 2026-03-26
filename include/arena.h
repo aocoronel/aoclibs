@@ -36,64 +36,68 @@
 typedef struct Region Region;
 
 struct Region {
-    Region *next;
+    Region *null next;
     size_t len;
     size_t cap;
     uintptr_t data[];
 };
 
 typedef struct {
-    Region *begin, *end;
+    Region *null begin, *null end;
 } Arena;
 
 #ifndef AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY
 #define AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY (8 * 1024)
 #endif // AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY
 
+#pragma clang assume_nonnull begin
+
 // Allocates a new region in the heap with given "capacity".
 //
 // This memory is freed using "arena_free_region".
 //
 // NULL :: failed to allocate
-AOCDEF Region *null aoc_arena_new_region(size_t capacity);
-AOCDEF void aoc_arena_free_region(Region *ref r);
+fn Region *null aoc_arena_new_region(size_t capacity);
+fn void aoc_arena_free_region(Region *r);
 
 // Reserve space from the arena with given "size_bytes".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCDEF void *aoc_arena_alloc(Arena *ref a, size_t size_bytes);
+fn void *null aoc_arena_alloc(Arena *a, size_t size_bytes);
 
 // Reserve space from the arena, and zero initialize with given "size_bytes".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCDEF void *aoc_arena_calloc(Arena *ref a, size_t size_bytes);
+fn void *null aoc_arena_calloc(Arena *a, size_t size_bytes);
 
 // Reserve new space from the arena with given "newsz".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCDEF void *aoc_arena_realloc(Arena *ref a, void *ref oldptr, size_t oldsz, size_t newsz);
+fn void *null aoc_arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t newsz);
 
 // Reserve space from the arena, and copies "data" into it. The user must also provide its "size".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCDEF void *aoc_arena_memdup(Arena *ref a, void *ref data, size_t size);
+fn void *null aoc_arena_memdup(Arena *a, void *data, size_t size);
 
 // Reserve space from the arena, and copies formatted string with given "format".
 //
 // This serves as higher abstraction to arena_vsprintf.
 //
 // NULL :: failed to allocate << arena_new_region
-AOCDEF char *aoc_arena_sprintf(Arena *ref a, const char *format, ...);
-AOCDEF char *aoc_arena_vsprintf(Arena *ref a, const char *format, va_list args);
+fn char *null aoc_arena_sprintf(Arena *a, const char *format, ...);
+fn char *null aoc_arena_vsprintf(Arena *a, const char *format, va_list args);
 
 // Resets all contents, without freeing memory. Allows reuse.
-AOCDEF void aoc_arena_reset(Arena *ref a);
+fn void aoc_arena_reset(Arena *a);
 
 // Frees the Arena memory. Doesn't allow reuse.
-AOCDEF void aoc_arena_destroy(Arena *ref a);
+fn void aoc_arena_destroy(Arena *a);
 
 // Frees the Arena memory. Allows reuse.
-AOCDEF void aoc_arena_trim(Arena *ref a);
+fn void aoc_arena_trim(Arena *a);
+
+#pragma clang assume_nonnull end
 
 /*
  * Dynamic Arena

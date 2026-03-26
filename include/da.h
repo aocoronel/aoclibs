@@ -3,6 +3,14 @@
 
 #include "base.h"
 
+#ifndef	_STDLIB_H
+#error This library depends on stdlib.h. Please include stdlib.h.
+#endif
+
+#ifndef	_STRING_H
+#error This library depends on string.h. Please include string.h.
+#endif
+
 // This is implementation has few modifications and additions, and is inspired by
 // the dynamic array available here: https://github.com/tsoding/nob.h
 
@@ -23,14 +31,6 @@
 // } DynamicArray;
 
 #define AOCLIBS_DA_INITIAL_CAPACITY 256 // size in bytes allocated in the heap
-
-#define AOCLIBS_DA_REALLOC realloc
-#define AOCLIBS_DA_FREE free
-
-// The following macros use the allocators defined above.
-//
-// Macros starting with "_" accept an extra argument: realloc
-// Except for some like the very following ones, which are internal
 
 // Convenient assertions to prevent access out of bounds
 #define _aoc_assert_da_index_is_valid(da, index)                          \
@@ -63,14 +63,14 @@
             while ((new_cap) > (da)->cap) {                                               \
                 (da)->cap *= 2;                                                           \
             }                                                                             \
-            (da)->data = AOCLIBS_DA_REALLOC((da)->data, (da)->cap * sizeof(*(da)->data)); \
+            (da)->data = realloc((da)->data, (da)->cap * sizeof(*(da)->data)); \
         }                                                                                 \
     } while (0)
 
 #define aoc_da_free(da)                            \
     do {                                           \
         ASSERT(da != NULL, "double free attempt"); \
-        AOCLIBS_DA_FREE((da)->data);               \
+        free((da)->data);               \
         (da)->data = NULL;                         \
         (da)->len = 0;                             \
         (da)->cap = 0;                             \
@@ -147,7 +147,7 @@
     } while (0)
 
 // Swaps indexes "i1" and "i2"
-#define aoc_da_swap(Type, da, i1, i2) swap(Type, (da)->data[i1], (da)->data[i2])
+#define aoc_da_swap(da, i1, i2) swap((da)->data[i1], (da)->data[i2])
 
 // Sorts using qsort and user-provided function "fn".
 #define aoc_da_sort(da, fn) qsort((da)->data, (da)->len, sizeof((da)->data[0]), fn)

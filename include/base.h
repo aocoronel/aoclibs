@@ -1,70 +1,67 @@
 #ifndef AOCLIBS_BASE_H_
 #define AOCLIBS_BASE_H_
 
+// This is the foundation for all libraries
+
 #include <stddef.h>
 
-/*
- * Modify prefixes in all functions:
- * #define AOCDEF static inline
-*/
-#ifndef AOCDEF
-#define AOCDEF
+// Modify prefixes in all functions:
+// #define fn static inline
+#ifndef fn
+#define fn
 #endif
 
-/*
- * === Aliases ===
-*/
+// === Aliases ===
 
-/*
- * The concept of _Nonnull and _Nullable is fascinating and is interesting when combined with
- * assertions, or even with the Clang compiler, thus enforcing if a pointer can or cannot be NULL.
- *
- * This is specially useful, perhaps when a function is never supposed to return NULL or take NULL.
-*/
+// The concept of _Nonnull and _Nullable is fascinating and is interesting when combined with
+// assertions, or even with the Clang compiler, thus enforcing if a pointer can or cannot be NULL.
+//
+// This is specially useful, perhaps when a function is never supposed to return NULL or take NULL.
 
-/*
- * ref (reference) :: aliased to _Nonnull.
- * null :: aliased to _Nullable
-*/
+// Assumes all pointers at not nullable.
+// null :: aliased to _Nullable
 
 #ifndef __clang__
-#define ref
-#define xref restrict
 #define null
-#define xnull restrict
 #else
-#define ref _Nonnull
-#define xref _Nonnull restrict
 #define null _Nullable
-#define xnull _Nullable restrict
 #endif
+
+// === Allocations ===
+
+// All allocations are assumed to be made by malloc(), realloc() and freed by free()
+// Because you can compile the entire library to just a single header file, you can use
+// the "heap_trace.h" trick to change it.
+
+// === Attributes ===
+
+#define LIKELY(x) __builtin_expect(!!(x), 1)
+#define UNLIKELY(x) __builtin_expect(!!(x), 0)
+
+#define ATTR_HEAP_ALLOCATES __attribute__((malloc))
+
+#define ATTR_COLD __attribute__((cold))
+#define ATTR_HOT __attribute__((hot))
+
+#define ATTR_NORETURN __attribute__((noreturn))
+
+#define ATTR_PACKED __attribute__((__packed__))
+
+#define ATTR_CONST __attribute__((const))
+#define ATTR_PURE __attribute__((pure))
+
+#define ATTR_DEPRECATED(fn_to_use_instead) __attribute_deprecated_msg__(fn_to_use_instead)
+#define ATTR_WARN_UNUSED __attribute__((warn_unused_result))
+
+#define ATTR_WEAK_ALIAS(name, aliasname) _ATTR_WEAK_ALIAS(name, aliasname)
+#define _ATTR_WEAK_ALIAS(name, aliasname) \
+    extern __typeof__(name) aliasname __attribute__((weak, alias(#name)));
 
 // To be used in function declarations. "static" is a very broad keyword in C,
 // internal express this idea better.
-#define internal static
+#define internal __attribute__((visibility("hidden")));
 
-/*
- * === Convenient types ===
-*/
-
-typedef void *(*aoc_malloc_t)(size_t);
-typedef void *(*aoc_realloc_t)(void *, size_t);
-typedef void (*aoc_free_t)(void *);
-
-/*
- * === Attributes ===
-*/
-
-#define FN_DEPRECATED(fn_to_use_instead) __attribute_deprecated_msg__(fn_to_use_instead)
-#define FN_WARN_UNUSED __attribute__((warn_unused_result))
-
-#define FN_WEAK_ALIAS(name, aliasname) _FN_WEAK_ALIAS(name, aliasname)
-#define _FN_WEAK_ALIAS(name, aliasname) \
-    extern __typeof(name) aliasname __attribute__((weak, alias(#name)));
-
-/*
- * === Debugging ===
-*/
+// === Debugging ===
 
 #define AOCLIBS_ABORT(msg, ...)                                    \
     (fprintf(stderr, "%s: %s:%u: ", __func__, __FILE__, __LINE__), \
@@ -91,9 +88,7 @@ typedef void (*aoc_free_t)(void *);
 // Convenience assert messages
 #define ASSERT_NONNULL(exp) ASSERT((exp), "passing NULL pointer to Nonnull parameter")
 
-/*
- * Convenient macros
-*/
+// Convenient macros
 
 #define swap(x, z)           \
     do {                     \
@@ -109,9 +104,7 @@ typedef void (*aoc_free_t)(void *);
 
 #define eprintf(...) fprintf(stderr, __VA_ARGS__)
 
-/*
- * === "Keywords" ===
-*/
+// === "Keywords" ===
 
 // struct example {
 //    size_t len;

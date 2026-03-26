@@ -10,7 +10,7 @@
 
 #define AOCLIBS_IO_PUT_BUFF 64
 
-bool bputc(char *ref dst, size_t *ref len, size_t size, char src) {
+bool bputc(char *dst, size_t *len, size_t size, char src) {
     ASSERT_NONNULL(dst != NULL);
     ASSERT_NONNULL(len != NULL);
 
@@ -19,7 +19,7 @@ bool bputc(char *ref dst, size_t *ref len, size_t size, char src) {
     return true;
 }
 
-bool bputs(char *ref dst, size_t *ref dst_len, size_t dst_size, char *ref src, size_t src_len) {
+bool bputs(char *dst, size_t *dst_len, size_t dst_size, char *src, size_t src_len) {
     ASSERT_NONNULL(dst != NULL);
     ASSERT_NONNULL(dst_len != NULL);
     ASSERT_NONNULL(src != NULL);
@@ -31,7 +31,7 @@ bool bputs(char *ref dst, size_t *ref dst_len, size_t dst_size, char *ref src, s
     return true;
 }
 
-bool bputn(char *ref dst, size_t *ref len, size_t size, size_t count, char c) {
+bool bputn(char *dst, size_t *len, size_t size, size_t count, char c) {
     ASSERT_NONNULL(dst != NULL);
     ASSERT_NONNULL(len != NULL);
 
@@ -40,14 +40,14 @@ bool bputn(char *ref dst, size_t *ref len, size_t size, size_t count, char c) {
     return bputs(dst, len, size, space, count);
 }
 
-bool bputw(char *ref dst, size_t *ref len, size_t size, size_t count) {
+bool bputw(char *dst, size_t *len, size_t size, size_t count) {
     ASSERT_NONNULL(dst != NULL);
     ASSERT_NONNULL(len != NULL);
 
     return bputn(dst, len, size, ' ', count);
 }
 
-bool bputf(char *ref dst, size_t *ref len, size_t size, int decimals, double f) {
+bool bputf(char *dst, size_t *len, size_t size, int decimals, double f) {
     ASSERT_NONNULL(dst != NULL);
     ASSERT_NONNULL(len != NULL);
 
@@ -104,7 +104,7 @@ bool bputf(char *ref dst, size_t *ref len, size_t size, int decimals, double f) 
     return bputs(dst, len, size, ptr, total_len);
 }
 
-bool bputui(FILE *ref fp, char *ref dst, size_t *ref len, size_t size, unsigned long long n) {
+bool bputui(FILE *fp, char *dst, size_t *len, size_t size, unsigned long long n) {
     ASSERT_NONNULL(dst != NULL);
     ASSERT_NONNULL(len != NULL);
     ASSERT_NONNULL(fp != NULL);
@@ -135,7 +135,7 @@ bool bputui(FILE *ref fp, char *ref dst, size_t *ref len, size_t size, unsigned 
     return bputs(dst, len, size, str, _len);
 }
 
-bool bputsi(FILE *ref fp, char *ref dst, size_t *ref len, size_t size, signed long long n) {
+bool bputsi(FILE *fp, char *dst, size_t *len, size_t size, signed long long n) {
     ASSERT_NONNULL(dst != NULL);
     ASSERT_NONNULL(len != NULL);
     ASSERT_NONNULL(fp != NULL);
@@ -173,19 +173,19 @@ bool bputsi(FILE *ref fp, char *ref dst, size_t *ref len, size_t size, signed lo
     return bputs(dst, len, size, str, _len);
 }
 
-size_t fputn(FILE *ref fp, size_t count, char c) {
+size_t fputn(FILE *fp, size_t count, char c) {
     ASSERT_NONNULL(fp != NULL);
     char space[AOCLIBS_IO_PUT_BUFF];
     memset(space, c, count);
     return fwrite(space, sizeof(char), count, fp);
 }
 
-size_t fputw(FILE *ref fp, size_t count) {
+size_t fputw(FILE *fp, size_t count) {
     ASSERT_NONNULL(fp != NULL);
     return fputn(fp, count, ' ');
 }
 
-void fputf(FILE *ref fp, double f, int decimals) {
+void fputf(FILE *fp, double f, int decimals) {
     ASSERT_NONNULL(fp != NULL);
 
     if (f == 0.0f) {
@@ -240,7 +240,7 @@ void fputf(FILE *ref fp, double f, int decimals) {
     fwrite(ptr, sizeof(char), total_len, fp);
 }
 
-void fputui(FILE *ref fp, unsigned long long n) {
+void fputui(FILE *fp, unsigned long long n) {
     ASSERT_NONNULL(fp != NULL);
 
     if (n == 0) {
@@ -270,7 +270,7 @@ void fputui(FILE *ref fp, unsigned long long n) {
     fwrite(str, sizeof(char), len, fp);
 }
 
-void fputsi(FILE *ref fp, signed long long n) {
+void fputsi(FILE *fp, signed long long n) {
     ASSERT_NONNULL(fp != NULL);
 
     if (n == 0) {

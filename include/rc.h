@@ -21,7 +21,7 @@
 typedef struct {
     size_t cap;
     size_t len;
-    char *data;
+    char *null data;
 } rc;
 
 #ifndef AOCLIBS_RC_MALLOC

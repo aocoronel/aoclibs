@@ -39,26 +39,26 @@ void slice_to_cstr(Slice s, char *buff, const size_t size) {
     buff[size_to_copy] = '\0';
 }
 
-AOCDEF char *aoc_cstr_dup(const char *s, const size_t len) {
+fn char *aoc_cstr_dup(const char *s, const size_t len) {
     ASSERT_NONNULL(s != NULL);
-    char *d = CSTR_MALLOC(len);
+    char *d = malloc(len);
     if (!d) return NULL;
     return memcpy(d, s, len);
 }
 
-AOCDEF void aoc_cstr_to_lower(char *s) {
+fn void aoc_cstr_to_lower(char *s) {
     ASSERT_NONNULL(s != NULL);
     for (; *s; s++)
         *s = tolower(*s);
 }
 
-AOCDEF void aoc_cstrn_to_lower(char *s, const size_t len) {
+fn void aoc_cstrn_to_lower(char *s, const size_t len) {
     ASSERT_NONNULL(s != NULL);
     for (size_t i = 0; i < len; i++)
         s[i] = tolower(s[i]);
 }
 
-AOCDEF bool
+fn bool
 aoc_cstr_ends_with(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
     ASSERT_NONNULL(s);
     ASSERT_NONNULL(pattern);
@@ -66,19 +66,19 @@ aoc_cstr_ends_with(const char *s, const size_t s_len, const char *pattern, size_
     return memcmp(s + s_len - pattern_len, pattern, pattern_len) == 0;
 }
 
-AOCDEF bool
+fn bool
 aoc_cstr_begins_with(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
     return aoc_cstrn_eq(s, s_len, pattern, pattern_len);
 }
 
-AOCDEF bool
+fn bool
 aoc_cstrn_eq(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
     if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
     if (s_len < pattern_len) return false;
     return memcmp(s, pattern, pattern_len) == 0;
 }
 
-AOCDEF bool
+fn bool
 aoc_cstrn_eq_case(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
     if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
 
@@ -106,7 +106,7 @@ aoc_cstrn_eq_case(const char *s, const size_t s_len, const char *pattern, size_t
     return equal;
 }
 
-AOCDEF bool aoc_cstr_has(const char *s, size_t s_len, const char *pattern, size_t pattern_len) {
+fn bool aoc_cstr_has(const char *s, size_t s_len, const char *pattern, size_t pattern_len) {
     if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
 
     const char *s_ptr = s;
@@ -124,7 +124,7 @@ AOCDEF bool aoc_cstr_has(const char *s, size_t s_len, const char *pattern, size_
     return false;
 }
 
-AOCDEF size_t aoc_cstr_has_at(const char *s, size_t s_len, const char *pattern, size_t pattern_len) {
+fn size_t aoc_cstr_has_at(const char *s, size_t s_len, const char *pattern, size_t pattern_len) {
     if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
 
     const char *s_ptr = s;
@@ -156,18 +156,18 @@ size_t aoc_index_of(const char *s, char delim, size_t size) {
     return ptr - s;
 }
 
-AOCDEF size_t aoc_cstrcpy_size(size_t dest_size, const size_t dest_offset, const size_t src_len) {
+fn size_t aoc_cstrcpy_size(size_t dest_size, const size_t dest_offset, const size_t src_len) {
     size_t needed_size = src_len + 1;
     return needed_size > dest_size - dest_offset ? needed_size : dest_size;
 }
 
 #ifdef AOCLIBS_CSTRCPY_AS_MEMCPY
-AOCDEF size_t aoc_cstrcpy(char *dest, const char *src, size_t dest_cap) {
+fn size_t aoc_cstrcpy(char *dest, const char *src, size_t dest_cap) {
     const char *ptr = memcpy(dest, src, dest_cap);
     return ptr - dest;
 }
 #else
-AOCDEF size_t aoc_cstrcpy(char *dest, const char *src, size_t dest_cap) {
+fn size_t aoc_cstrcpy(char *dest, const char *src, size_t dest_cap) {
     ASSERT_NONNULL(dest != NULL);
     ASSERT_NONNULL(src != NULL);
 
@@ -198,18 +198,18 @@ defer:
 }
 #endif
 
-AOCDEF
+fn
 size_t aoc_cstrappend(char *dest, const char *src, size_t dest_len, size_t dest_cap) {
     size_t len = aoc_cstrcpy(dest + dest_len + 1, src, dest_cap);
     dest[dest_len] = ' ';
     return len;
 }
 
-AOCDEF size_t aoc_cstrcat(char *dest, const char *src, size_t dest_len, size_t dest_cap) {
+fn size_t aoc_cstrcat(char *dest, const char *src, size_t dest_len, size_t dest_cap) {
     return aoc_cstrcpy(dest + dest_len, src, dest_cap);
 }
 
-AOCDEF int aoc_cstr_fmt_size(const char *fmt, ...) {
+fn int aoc_cstr_fmt_size(const char *fmt, ...) {
     ASSERT_NONNULL(fmt != NULL);
 
     va_list args;
@@ -220,7 +220,7 @@ AOCDEF int aoc_cstr_fmt_size(const char *fmt, ...) {
     return needed_len;
 }
 
-AOCDEF int aoc_cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...) {
+fn int aoc_cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...) {
     ASSERT_NONNULL(s != NULL);
     ASSERT_NONNULL(fmt != NULL);
 
@@ -234,7 +234,7 @@ AOCDEF int aoc_cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...)
     return allocated_len;
 }
 
-AOCDEF double aoc_cstr_to_double(const char *s, const double _default) {
+fn double aoc_cstr_to_double(const char *s, const double _default) {
     ASSERT_NONNULL(s != NULL);
     char *endptr;
     double val = strtod(s, &endptr);
@@ -244,14 +244,14 @@ AOCDEF double aoc_cstr_to_double(const char *s, const double _default) {
     return val;
 }
 
-AOCDEF bool aoc_cstr_to_bool(const char *s, const bool _default) {
+fn bool aoc_cstr_to_bool(const char *s, const bool _default) {
     ASSERT_NONNULL(s != NULL);
     if (aoc_cstr_eq_case(s, "true") || aoc_cstr_eq(s, "1")) return true;
     if (aoc_cstr_eq_case(s, "false") || aoc_cstr_eq(s, "0")) return false;
     return _default;
 }
 
-AOCDEF float aoc_cstr_to_float(const char *s, const float _default) {
+fn float aoc_cstr_to_float(const char *s, const float _default) {
     ASSERT_NONNULL(s != NULL);
     char *endptr;
     float val = strtof(s, &endptr);
@@ -261,7 +261,7 @@ AOCDEF float aoc_cstr_to_float(const char *s, const float _default) {
     return val;
 }
 
-AOCDEF long aoc_cstr_to_long(const char *s, const long _default) {
+fn long aoc_cstr_to_long(const char *s, const long _default) {
     ASSERT_NONNULL(s != NULL);
     char *endptr;
     long val = strtol(s, &endptr, 10);

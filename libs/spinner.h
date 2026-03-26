@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 
+#pragma clang assume_nonnull begin
 /*
  * Returns a dot spinner symbol.
  *
@@ -19,7 +20,7 @@ const char *aoc_get_spinner(void);
 #define AOC_SPINNER_NUM_SYMBOLS (sizeof(SYMBOLS) / sizeof(SYMBOLS[0]))
 
 #ifdef SPINNER_IMPLEMENTATION
-const char *aoc_get_spinner(void) {
+fn const char *aoc_get_spinner(void) {
     static const char *SYMBOLS[] = { "⠁", "⠈", "⠐", "⠠", "⢀", "⡀", "⠄", "⠂" };
     static int_fast8_t counter = 0;
     const char *RESULT = SYMBOLS[counter];
@@ -27,6 +28,7 @@ const char *aoc_get_spinner(void) {
     return RESULT;
 }
 #endif
+#pragma clang assume_nonnull end
 
 #endif
 

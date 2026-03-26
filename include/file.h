@@ -17,6 +17,8 @@ typedef enum FileType {
     F_FAIL, // Failed to stat
 } FileType;
 
+#pragma clang assume_nonnull begin
+
 typedef void (*dw_fn)(const char *path);
 
 // Walks into a directory and read it's content
@@ -31,7 +33,7 @@ typedef void (*dw_fn)(const char *path);
 // in it.
 //
 // Sets errno << opendir
-int aoc_dir_walk(const char *ref path,
+fn int aoc_dir_walk(const char *path,
                  bool recurse,
                  dw_fn isdir,
                  dw_fn isreg,
@@ -42,15 +44,16 @@ int aoc_dir_walk(const char *ref path,
 // Stat the file and return its type
 //
 // F_FAIL :: failed to stat. Sets errno << lstat
-FileType aoc_get_filetype(const char *ref path);
+fn FileType aoc_get_filetype(const char *path);
 
 // Reads file, splitting the read buffer by the delimiter.
 // Returns how many bytes has been read.
 //
 // Allocates to lineptr. The user owns the allocation.
-size_t read_by_delim(char **xref lineptr, size_t *xref n, int delim, FILE *xref stream);
+fn size_t read_by_delim(char **restrict lineptr, size_t *restrict n, int delim, FILE *restrict stream);
 
-rc read_entire_file(const char *filepath);
+fn rc read_entire_file(const char *filepath);
+#pragma clang assume_nonnull end
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "file.c"

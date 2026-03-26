@@ -5,18 +5,20 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-bool bputc(char *ref dst, size_t *ref len, size_t size, char src);
-bool bputs(char *ref dst, size_t *ref dst_len, size_t dst_size, char *ref src, size_t src_len);
-bool bputn(char *ref dst, size_t *ref len, size_t size, size_t count, char c);
-bool bputw(char *ref dst, size_t *ref len, size_t size, size_t count);
-bool bputf(char *ref dst, size_t *ref len, size_t size, int decimals, double f);
-bool bputui(FILE *ref fp, char *ref dst, size_t *ref len, size_t size, unsigned long long n);
-bool bputsi(FILE *ref fp, char *ref dst, size_t *ref len, size_t size, signed long long n);
-size_t fputn(FILE *ref fp, size_t count, char c);
-size_t fputw(FILE *ref fp, size_t count);
-void fputf(FILE *ref fp, double f, int decimals);
-void fputui(FILE *ref fp, unsigned long long n);
-void fputsi(FILE *ref fp, signed long long n);
+#pragma clang assume_nonnull begin
+fn bool bputc(char *dst, size_t *len, size_t size, char src);
+fn bool bputs(char *dst, size_t *dst_len, size_t dst_size, char *src, size_t src_len);
+fn bool bputn(char *dst, size_t *len, size_t size, size_t count, char c);
+fn bool bputw(char *dst, size_t *len, size_t size, size_t count);
+fn bool bputf(char *dst, size_t *len, size_t size, int decimals, double f);
+fn bool bputui(FILE *fp, char *dst, size_t *len, size_t size, unsigned long long n);
+fn bool bputsi(FILE *fp, char *dst, size_t *len, size_t size, signed long long n);
+fn size_t fputn(FILE *fp, size_t count, char c);
+fn size_t fputw(FILE *fp, size_t count);
+fn void fputf(FILE *fp, double f, int decimals);
+fn void fputui(FILE *fp, unsigned long long n);
+fn void fputsi(FILE *fp, signed long long n);
+#pragma clang assume_nonnull end
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "io.c"

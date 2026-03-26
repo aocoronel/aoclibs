@@ -10,7 +10,7 @@
 
 #include <stdlib.h>
 
-AOCDEF Region *aoc_arena_new_region(size_t capacity) {
+fn Region *aoc_arena_new_region(size_t capacity) {
     size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
     Region *r = (Region *)malloc(size_bytes);
     ASSERT(r, "Out of memory");
@@ -20,7 +20,7 @@ AOCDEF Region *aoc_arena_new_region(size_t capacity) {
     return r;
 }
 
-AOCDEF void aoc_arena_free_region(Region *r) {
+fn void aoc_arena_free_region(Region *r) {
     ASSERT_NONNULL(r != NULL);
     free(r);
 }
@@ -30,7 +30,7 @@ AOCDEF void aoc_arena_free_region(Region *r) {
 #include <unistd.h>
 #include <sys/mman.h>
 
-AOCDEF Region *aoc_arena_new_region(size_t capacity) {
+fn Region *aoc_arena_new_region(size_t capacity) {
     size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
     Region *r = mmap(NULL, size_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
     ASSERT(r != MAP_FAILED, "Failed to allocate virtual memory");
@@ -40,7 +40,7 @@ AOCDEF Region *aoc_arena_new_region(size_t capacity) {
     return r;
 }
 
-AOCDEF void aoc_arena_free_region(Region *r) {
+fn void aoc_arena_free_region(Region *r) {
     size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * r->cap;
     int ret = munmap(r, size_bytes);
     ASSERT(ret == 0);
@@ -53,7 +53,7 @@ AOCDEF void aoc_arena_free_region(Region *r) {
 
 #define INV_HANDLE(x) (((x) == NULL) || ((x) == INVALID_HANDLE_VALUE))
 
-AOCDEF Region *aoc_arena_new_region(size_t capacity) {
+fn Region *aoc_arena_new_region(size_t capacity) {
     SIZE_T size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
     Region *r = VirtualAllocEx(GetCurrentProcess(), /* Allocate in current process address space */
                                NULL, /* Unknown position */
@@ -69,7 +69,7 @@ AOCDEF Region *aoc_arena_new_region(size_t capacity) {
     return r;
 }
 
-AOCDEF void aoc_arena_free_region(Region *r) {
+fn void aoc_arena_free_region(Region *r) {
     if (INV_HANDLE(r)) return;
 
     BOOL free_result =
@@ -88,7 +88,7 @@ AOCDEF void aoc_arena_free_region(Region *r) {
 
 #endif
 
-AOCDEF void *aoc_arena_alloc(Arena *a, size_t size_bytes) {
+fn void *aoc_arena_alloc(Arena *a, size_t size_bytes) {
     ASSERT_NONNULL(a != NULL);
     size_t size = (size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t);
 
@@ -119,13 +119,13 @@ AOCDEF void *aoc_arena_alloc(Arena *a, size_t size_bytes) {
     return result;
 }
 
-AOCDEF void *aoc_arena_calloc(Arena *a, size_t size_bytes) {
+fn void *aoc_arena_calloc(Arena *a, size_t size_bytes) {
     void *ptr = aoc_arena_alloc(a, size_bytes);
     memset(ptr, 0, size_bytes);
     return ptr;
 }
 
-AOCDEF void *aoc_arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t newsz) {
+fn void *aoc_arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t newsz) {
     ASSERT_NONNULL(a != NULL);
     if (newsz <= oldsz) return oldptr;
     void *newptr = aoc_arena_alloc(a, newsz);
@@ -136,13 +136,13 @@ AOCDEF void *aoc_arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t news
     return newptr;
 }
 
-AOCDEF void *aoc_arena_memdup(Arena *a, void *data, size_t size) {
+fn void *aoc_arena_memdup(Arena *a, void *data, size_t size) {
     ASSERT_NONNULL(a != NULL);
     ASSERT_NONNULL(data != NULL);
     return memcpy(aoc_arena_alloc(a, size), data, size);
 }
 
-AOCDEF char *aoc_arena_vsprintf(Arena *a, const char *format, va_list args) {
+fn char *aoc_arena_vsprintf(Arena *a, const char *format, va_list args) {
     ASSERT_NONNULL(a != NULL);
     va_list args_copy;
     va_copy(args_copy, args);
@@ -156,7 +156,7 @@ AOCDEF char *aoc_arena_vsprintf(Arena *a, const char *format, va_list args) {
     return result;
 }
 
-AOCDEF char *aoc_arena_sprintf(Arena *a, const char *format, ...) {
+fn char *aoc_arena_sprintf(Arena *a, const char *format, ...) {
     ASSERT_NONNULL(a != NULL);
     va_list args;
     va_start(args, format);
@@ -166,7 +166,7 @@ AOCDEF char *aoc_arena_sprintf(Arena *a, const char *format, ...) {
     return result;
 }
 
-AOCDEF void aoc_arena_reset(Arena *a) {
+fn void aoc_arena_reset(Arena *a) {
     ASSERT_NONNULL(a != NULL);
     for (Region *r = a->begin; r != NULL; r = r->next) {
         r->len = 0;
@@ -175,7 +175,7 @@ AOCDEF void aoc_arena_reset(Arena *a) {
     a->end = a->begin;
 }
 
-AOCDEF void aoc_arena_destroy(Arena *a) {
+fn void aoc_arena_destroy(Arena *a) {
     ASSERT_NONNULL(a != NULL);
     Region *r = a->begin;
     while (r) {
@@ -187,7 +187,7 @@ AOCDEF void aoc_arena_destroy(Arena *a) {
     a->end = NULL;
 }
 
-AOCDEF void aoc_arena_trim(Arena *a) {
+fn void aoc_arena_trim(Arena *a) {
     ASSERT_NONNULL(a != NULL);
     Region *r = a->end->next;
     while (r) {

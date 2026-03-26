@@ -11,7 +11,8 @@
 #include <string.h>
 #include <sys/stat.h>
 
-size_t read_by_delim(char **xref lineptr, size_t *xref n, int delim, FILE *xref stream) {
+size_t
+read_by_delim(char **restrict lineptr, size_t *restrict n, int delim, FILE *restrict stream) {
     if (!lineptr || !n || !stream) {
         errno = EINVAL;
         return (size_t)-1;
@@ -51,7 +52,7 @@ size_t read_by_delim(char **xref lineptr, size_t *xref n, int delim, FILE *xref 
     return pos;
 }
 
-int aoc_dir_walk(const char *ref path,
+int aoc_dir_walk(const char *path,
                  bool recurse,
                  dw_fn isdir,
                  dw_fn isreg,
@@ -102,7 +103,7 @@ int aoc_dir_walk(const char *ref path,
     return 0;
 }
 
-FileType aoc_get_filetype(const char *ref path) {
+FileType aoc_get_filetype(const char *path) {
     ASSERT_NONNULL(path != NULL);
 
     struct stat st;
