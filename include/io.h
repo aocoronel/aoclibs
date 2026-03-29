@@ -11,7 +11,7 @@ fn bool bputn(char *dst, size_t *len, size_t size, size_t count, char c);
 fn bool bputw(char *dst, size_t *len, size_t size, size_t count);
 fn bool bputf(char *dst, size_t *len, size_t size, int decimals, double f);
 fn bool bputui(char *dst, size_t *len, size_t size, unsigned long long n);
-bool bputsi(char *dst, size_t *len, size_t size, signed long long n);
+fn bool bputsi(char *dst, size_t *len, size_t size, signed long long n);
 fn size_t fputn(FILE *fp, size_t count, char c);
 fn size_t fputw(FILE *fp, size_t count);
 fn void fputf(FILE *fp, double f, int decimals);
