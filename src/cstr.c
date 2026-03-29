@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-Slice extract_between(const char *s, size_t begin, size_t end, char delim) {
+Slice extract_between_whitespaces(const char *s, size_t begin, size_t end) {
     const char *s_ptr = s + begin;
     size_t n_begin = begin;
     size_t n_end = end;

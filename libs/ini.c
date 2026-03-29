@@ -74,9 +74,9 @@ IniSections ini_read_fd(Arena *arena, FILE *fd) {
         } else if ((equal = index_of(buffer, '=', new_line)) != SIZE_MAX) {
             IniKeys *current_keys = &da_last(&sections).keys;
 
-            Slice key_slice = extract_between(buffer, 0, equal - 1, ' ');
+            Slice key_slice = extract_between_whitespaces(buffer, 0, equal - 1);
 
-            Slice value_slice = extract_between(buffer + equal + 1, 0, new_line - equal - 2, ' ');
+            Slice value_slice = extract_between_whitespaces(buffer + equal + 1, 0, new_line - equal - 2);
 
             ini_insert_key(arena, current_keys, key_slice, value_slice);
         }
