@@ -31,13 +31,11 @@ typedef struct {
     IniSection *null data;
 } IniSections;
 
-#pragma clang assume_nonnull begin
 fn void ini_insert_key(Arena *a, IniKeys *keys, const Slice key, const Slice value);
 fn void ini_insert_section(Arena *a, IniSections *section, const Slice name);
 fn IniSections ini_read_fd(Arena *arena, FILE *fd);
 fn IniSections ini_read(Arena *arena, const char *file_path);
 fn int ini_write_fd(IniSections sections, FILE *fd);
 fn int ini_write(IniSections sections, const char *file_path);
-#pragma clang assume_nonnull end
 
 #endif

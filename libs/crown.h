@@ -132,8 +132,8 @@ fn void crown_deinit(void);
     do {                                                                          \
         crown_append(CrownCommand, (opt)->subcmd, (CrownCommand){ __VA_ARGS__ }); \
         last_cmd = &(opt)->subcmd->data[(opt)->subcmd->len - 1];                  \
-        last_cmd->subcmd = aoc_arena_calloc(&Program_Arena, sizeof(CrownCmds));   \
-        last_cmd->flags = aoc_arena_calloc(&Program_Arena, sizeof(CrownOpts));    \
+        last_cmd->subcmd = arena_calloc(&Program_Arena, sizeof(CrownCmds));       \
+        last_cmd->flags = arena_calloc(&Program_Arena, sizeof(CrownOpts));        \
     } while (0);                                                                  \
     CrownCommand *key = &(opt)->subcmd->data[key##_id];
 
@@ -153,26 +153,24 @@ fn void crown_deinit(void);
     } while (0);                                                                  \
     CrownOption *key = &last_cmd->flags->data[key##_id];
 
-#define crown_new_subcmd(key, ...)                                                   \
-    size_t key##_id = last_cmd->subcmd->len;                                         \
-    do {                                                                             \
-        ASSERT(last_cmd != NULL, "No command defined");                              \
-        crown_append(CrownCommand, last_cmd->subcmd, (CrownCommand){ __VA_ARGS__ }); \
-        last_cmd->subcmd->data[key##_id].subcmd =                                    \
-                aoc_arena_calloc(&Program_Arena, sizeof(CrownCmds));                 \
-        last_cmd->subcmd->data[key##_id].flags =                                     \
-                aoc_arena_calloc(&Program_Arena, sizeof(CrownOpts));                 \
-    } while (0);                                                                     \
+#define crown_new_subcmd(key, ...)                                                                 \
+    size_t key##_id = last_cmd->subcmd->len;                                                       \
+    do {                                                                                           \
+        ASSERT(last_cmd != NULL, "No command defined");                                            \
+        crown_append(CrownCommand, last_cmd->subcmd, (CrownCommand){ __VA_ARGS__ });               \
+        last_cmd->subcmd->data[key##_id].subcmd = arena_calloc(&Program_Arena, sizeof(CrownCmds)); \
+        last_cmd->subcmd->data[key##_id].flags = arena_calloc(&Program_Arena, sizeof(CrownOpts));  \
+    } while (0);                                                                                   \
     CrownCommand *key = &last_cmd->subcmd->data[key##_id];
 
 // Internal macro
-#define crown_append(T, opt, ...)                             \
-    do {                                                      \
-        T _tmp = __VA_ARGS__;                                 \
-        void *ptr = &_tmp;                                    \
-        aoc_dar_reserve(&Program_Arena, opt, (opt)->len + 1); \
-        memcpy(&(opt)->data[(opt)->len], ptr, sizeof(T));     \
-        (opt)->len += 1;                                      \
+#define crown_append(T, opt, ...)                         \
+    do {                                                  \
+        T _tmp = __VA_ARGS__;                             \
+        void *ptr = &_tmp;                                \
+        dar_reserve(&Program_Arena, opt, (opt)->len + 1); \
+        memcpy(&(opt)->data[(opt)->len], ptr, sizeof(T)); \
+        (opt)->len += 1;                                  \
     } while (0)
 
 // Prints indented message of given "indent".
@@ -253,7 +251,7 @@ fn int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc);
 #include <ctype.h>
 
 fn void crown_deinit(void) {
-    aoc_arena_destroy(&Program_Arena);
+    arena_destroy(&Program_Arena);
 }
 
 // Helper function
@@ -410,7 +408,7 @@ fn void crown_bashgen_env_vars(const CrownEnv *env, size_t envc) {
         const char *arg_name = Program->args->data[env->opt->args].name;
 
         ASSERT(arg_name != NULL);
-        if (!aoc_cstr_eq(arg_name, env->name)) continue;
+        if (!cstr_eq(arg_name, env->name)) continue;
 
         CROWN_PUTS("  for ((i = 0; i < ${#words[@]}; i++)); do\n");
         if (env[j].opt->short_opt && env[j].opt->long_opt) {
@@ -558,7 +556,7 @@ fn void crown_completion(const CrownEnv *env, size_t envc, int shell) {
         CROWN_PRINTF("_%s() {\n", args.name);
 
         for (int j = 0; j < arg_comp_len;) {
-            int newline = aoc_index_of(arg_comp + j, '\n', arg_comp_len - j);
+            int newline = index_of(arg_comp + j, '\n', arg_comp_len - j);
 
             if (newline < 0) {
                 // no more newlines, print the rest
@@ -888,7 +886,7 @@ fn int crown_getopt(CrownCommand *null cmds, char *argv[], int argc) {
         const size_t flag_arg_idx = opt[i].args;
         const char *flag_arg = Program->args->data[flag_arg_idx].name;
 
-        if (long_opt != NULL && aoc_cstr_eq(arg, long_opt)) {
+        if (long_opt != NULL && cstr_eq(arg, long_opt)) {
             if (flag_arg != NULL) {
                 optarg = crown_getarg(argv, argc);
                 if (optarg == NULL || optarg[0] == '-') return CrownMissingOptarg;
@@ -896,7 +894,7 @@ fn int crown_getopt(CrownCommand *null cmds, char *argv[], int argc) {
             return i; // Success
         }
 
-        if (short_opt != NULL && aoc_cstr_eq(arg, short_opt)) {
+        if (short_opt != NULL && cstr_eq(arg, short_opt)) {
             if (flag_arg != NULL) {
                 optarg = crown_getarg(argv, argc);
                 if (optarg == NULL || optarg[0] == '-') return CrownMissingOptarg;
@@ -921,7 +919,7 @@ fn int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
         const CrownCommand *cmd_subcmd =
                 opt[i].subcmd && opt[i].subcmd->data != NULL ? opt[i].subcmd->data : NULL;
 
-        if (cmd != NULL && aoc_cstr_eq(optcur, cmd)) {
+        if (cmd != NULL && cstr_eq(optcur, cmd)) {
             if (cmd_arg != NULL) {
                 optarg = crown_getarg(argv, argc);
                 if (optarg == NULL || optarg[0] == '-') return CrownMissingOptarg;

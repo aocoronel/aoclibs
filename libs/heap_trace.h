@@ -9,25 +9,14 @@
 // Enable Heap Tracer :: cc -DHEAP_TRACE
 
 /*
- * aoc_count_leaks :: Returns how many leaks found
+ * count_leaks :: Returns how many leaks found
 */
 
 /*
  * Prints allocation and free count.
  * If there was a leak, print the source of the leak
 */
-static inline void aoc_heap_trace_summary(FILE *fd);
-
-// clang-format off
-
-#ifdef AOCLIBS_STRIP_PREFIX
-        #define heap_trace_summary aoc_heap_trace_summary
-        #define count_leaks __trace_alloc_count - __trace_free_count
-#else
-        #define aoc_count_leaks __trace_alloc_count - __trace_free_count
-#endif
-
-// clang-format on
+static inline void heap_trace_summary(FILE *fd);
 
 typedef struct __heap_trace_entry {
     void *ptr;
@@ -143,7 +132,7 @@ static inline void __trace_free(void *ptr, const char *func, const char *file, i
     __trace_std_free(ptr);
 }
 
-static inline void aoc_heap_trace_summary(FILE *fd) {
+static inline void heap_trace_summary(FILE *fd) {
     __heap_trace_entry *curr = __entry_head;
     int leaks_found = 0;
     fprintf(fd, "===== Memory Summary Report =====\n");
