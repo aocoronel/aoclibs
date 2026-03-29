@@ -1,6 +1,7 @@
 #pragma once
 
 #include "file.h"
+#include "base.h"
 #include "da.h"
 #include "rc.h"
 #include <dirent.h>
@@ -136,13 +137,13 @@ FileType get_filetype(const char *path) {
 }
 
 bool read_entire_file(rc *lines, const char *filepath) {
-    FILE *fp = fopen(filepath, "r");
+    ASSERT_NONNULL(lines);
 
+    FILE *fp = fopen(filepath, "r");
     if (!fp) return false;
 
     struct stat st;
-    bool reserve = false;
-    if (stat(filepath, &st) != -1) return false;
+    if (stat(filepath, &st) == -1) return false;
 
     da_reserve(lines, (size_t)st.st_size);
     size_t n = fread(lines->data, sizeof(char), st.st_size, fp);
@@ -151,5 +152,5 @@ bool read_entire_file(rc *lines, const char *filepath) {
     da_add_null(lines);
 
     fclose(fp);
-    return lines;
+    return true;
 }
