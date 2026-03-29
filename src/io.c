@@ -104,10 +104,9 @@ bool bputf(char *dst, size_t *len, size_t size, int decimals, double f) {
     return bputs(dst, len, size, ptr, total_len);
 }
 
-bool bputui(FILE *fp, char *dst, size_t *len, size_t size, unsigned long long n) {
+bool bputui(char *dst, size_t *len, size_t size, unsigned long long n) {
     ASSERT_NONNULL(dst != NULL);
     ASSERT_NONNULL(len != NULL);
-    ASSERT_NONNULL(fp != NULL);
 
     if (n == 0) {
         return bputc(dst, len, size, '0');
@@ -135,10 +134,9 @@ bool bputui(FILE *fp, char *dst, size_t *len, size_t size, unsigned long long n)
     return bputs(dst, len, size, str, _len);
 }
 
-bool bputsi(FILE *fp, char *dst, size_t *len, size_t size, signed long long n) {
+bool bputsi(char *dst, size_t *len, size_t size, signed long long n) {
     ASSERT_NONNULL(dst != NULL);
     ASSERT_NONNULL(len != NULL);
-    ASSERT_NONNULL(fp != NULL);
 
     if (n == 0) {
         return bputc(dst, len, size, '0');
@@ -168,7 +166,7 @@ bool bputsi(FILE *fp, char *dst, size_t *len, size_t size, signed long long n) {
         n /= 10;
     }
 
-    if (negative) fputc('-', fp);
+    if (negative) bputc(dst, len, size, '-');
 
     return bputs(dst, len, size, str, _len);
 }
