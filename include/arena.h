@@ -136,10 +136,10 @@ fn void arena_trim(Arena *a);
 
 #define dar_add_null(a, da) dar_append(a, da, "\0", 1)
 
-#define arcl_cat(a, rc, cstr) dar_append(a, rc, cstr, STRLEN(cstr))
+#define arc_lcat(a, rc, cstr) dar_append(a, rc, cstr, STRLEN(cstr))
 #define arc_cat(a, rc, cstr, len) dar_append(a, rc, cstr, len)
 
-#define arcl_append(a, rc, items_buff) arc_append(a, rc, items_buff, STRLEN(items_buff))
+#define arc_lappend(a, rc, items_buff) arc_append(a, rc, items_buff, STRLEN(items_buff))
 #define arc_append(a, rc, items_buff, items_size)                                         \
     do {                                                                                  \
         dar_reserve(a, (rc), 1 + (rc)->len + (items_size));                               \
@@ -174,10 +174,10 @@ fn void arena_trim(Arena *a);
         (da)->len += (items_size);                                                       \
     } while (0)
 
-#define arcl_cat_fast(a, rc, cstr) dar_append_fast(a, rc, cstr, STRLEN(cstr))
+#define arc_lcat_fast(a, rc, cstr) dar_append_fast(a, rc, cstr, STRLEN(cstr))
 #define arc_cat_fast(a, rc, cstr, len) dar_append_fast(a, rc, cstr, len)
 
-#define arcl_append_fast(a, rc, items_buff) arc_append(a, rc, items_buff, STRLEN(items_buff))
+#define arc_lappend_fast(a, rc, items_buff) arc_append(a, rc, items_buff, STRLEN(items_buff))
 #define arc_append_fast(a, rc, items_buff, items_size)                                    \
     do {                                                                                  \
         (rc)->data[(rc)->len++] = ' ';                                                    \
