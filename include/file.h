@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define AOC_DIR_WALKER_BUFF 4096
+#define DIR_WALKER_BUFF 4096
 
 typedef enum FileType {
     F_NULL, // Doesn't exist
@@ -17,43 +17,43 @@ typedef enum FileType {
     F_FAIL, // Failed to stat
 } FileType;
 
-#pragma clang assume_nonnull begin
-
 typedef void (*dw_fn)(const char *path);
 
 // Walks into a directory and read it's content
 //
-// aoc_dir_walk can run four user provided functions based on each filetype:
+// dir_walk can run four user provided functions based on each filetype:
 // reg, directory, lnk and null.
 //
 // If the user prefers to ignore a certain filetype, the function values can be
 // passed as NULL.
 //
-// When recurse is set to true, when a directory is found, aoc_dir_walk will recurse
+// When recurse is set to true, when a directory is found, dir_walk will recurse
 // in it.
 //
 // Sets errno << opendir
-fn int aoc_dir_walk(const char *path,
-                 bool recurse,
-                 dw_fn isdir,
-                 dw_fn isreg,
-                 dw_fn islnk,
-                 dw_fn isnull,
-                 dw_fn isempty);
+fn int dir_walk(const char *path,
+                bool recurse,
+                dw_fn isdir,
+                dw_fn isreg,
+                dw_fn islnk,
+                dw_fn isnull,
+                dw_fn isempty);
 
 // Stat the file and return its type
 //
 // F_FAIL :: failed to stat. Sets errno << lstat
-fn FileType aoc_get_filetype(const char *path);
+fn FileType get_filetype(const char *path);
 
 // Reads file, splitting the read buffer by the delimiter.
 // Returns how many bytes has been read.
 //
 // Allocates to lineptr. The user owns the allocation.
-fn size_t read_by_delim(char **restrict lineptr, size_t *restrict n, int delim, FILE *restrict stream);
+fn size_t read_by_delim(char **restrict lineptr,
+                        size_t *restrict n,
+                        int delim,
+                        FILE *restrict stream);
 
 fn rc read_entire_file(const char *filepath);
-#pragma clang assume_nonnull end
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "file.c"

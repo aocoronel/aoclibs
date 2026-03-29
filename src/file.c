@@ -52,13 +52,13 @@ read_by_delim(char **restrict lineptr, size_t *restrict n, int delim, FILE *rest
     return pos;
 }
 
-int aoc_dir_walk(const char *path,
-                 bool recurse,
-                 dw_fn isdir,
-                 dw_fn isreg,
-                 dw_fn islnk,
-                 dw_fn isnull,
-                 dw_fn isempty) {
+int dir_walk(const char *path,
+             bool recurse,
+             dw_fn isdir,
+             dw_fn isreg,
+             dw_fn islnk,
+             dw_fn isnull,
+             dw_fn isempty) {
     ASSERT_NONNULL(path != NULL);
 
     DIR *dir = opendir(path);
@@ -67,21 +67,21 @@ int aoc_dir_walk(const char *path,
     int8_t empty = 0;
 
     struct dirent *entry;
-    char fullpath[AOC_DIR_WALKER_BUFF];
+    char fullpath[DIR_WALKER_BUFF];
 
     while ((entry = readdir(dir)) != NULL) {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
 
         snprintf(fullpath, sizeof(fullpath), "%s/%s", path, entry->d_name);
 
-        FileType file_t = aoc_get_filetype(fullpath);
+        FileType file_t = get_filetype(fullpath);
 
         switch (file_t) {
         case F_REG:
             if (isreg != NULL) isreg(fullpath);
             break;
         case F_DIR:
-            if (recurse) aoc_dir_walk(fullpath, recurse, isdir, isreg, islnk, isnull, isempty);
+            if (recurse) dir_walk(fullpath, recurse, isdir, isreg, islnk, isnull, isempty);
             if (isdir != NULL) isdir(fullpath);
             break;
         case F_LNK:
@@ -103,7 +103,7 @@ int aoc_dir_walk(const char *path,
     return 0;
 }
 
-FileType aoc_get_filetype(const char *path) {
+FileType get_filetype(const char *path) {
     ASSERT_NONNULL(path != NULL);
 
     struct stat st;
@@ -129,32 +129,32 @@ rc read_entire_file(const char *filepath) {
     rc lines = { 0 };
 
     if (reserve == true) {
-        aoc_da_reserve(&lines, st.st_size);
+        da_reserve(&lines, st.st_size);
         int c = 0;
         while (lines.len < lines.cap) {
             c = getc(fp);
             if (c == EOF) break;
-            aoc_da_insert_fast(&lines, c);
+            da_insert_fast(&lines, c);
         }
     } else {
-        aoc_da_reserve(&lines, 256);
+        da_reserve(&lines, 256);
         for (;;) {
             int c = getc(fp);
 
             if (c == EOF) {
                 if (lines.len == 0) {
                     fclose(fp);
-                    aoc_da_free(&lines);
+                    da_free(&lines);
                     return (rc){};
                 }
                 break;
             }
 
-            aoc_da_insert(&lines, c);
+            da_insert(&lines, c);
         }
     }
 
-    aoc_da_add_null(&lines);
+    da_add_null(&lines);
 
     fclose(fp);
     return lines;

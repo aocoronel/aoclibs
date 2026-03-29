@@ -11,21 +11,12 @@
 #define fn
 #endif
 
-// === Aliases ===
+// === Pointers ===
 
-// The concept of _Nonnull and _Nullable is fascinating and is interesting when combined with
-// assertions, or even with the Clang compiler, thus enforcing if a pointer can or cannot be NULL.
-//
-// This is specially useful, perhaps when a function is never supposed to return NULL or take NULL.
+// Assumes all pointers at not nullable. Most, but not all, will be asserted.
 
-// Assumes all pointers at not nullable.
-// null :: aliased to _Nullable
-
-#ifndef __clang__
+// "null" tells the pointer can be NULL
 #define null
-#else
-#define null _Nullable
-#endif
 
 // === Allocations ===
 
@@ -38,7 +29,7 @@
 #define LIKELY(x) __builtin_expect(!!(x), 1)
 #define UNLIKELY(x) __builtin_expect(!!(x), 0)
 
-#define ATTR_HEAP_ALLOCATES __attribute__((malloc))
+#define ATTR_ALLOCS(x) __attribute__((malloc, alloc_size(x)))
 
 #define ATTR_COLD __attribute__((cold))
 #define ATTR_HOT __attribute__((hot))
@@ -89,6 +80,9 @@
 #define ASSERT_NONNULL(exp) ASSERT((exp), "passing NULL pointer to Nonnull parameter")
 
 // Convenient macros
+
+#define CAT(a, b) CAT_IMPL(a, b)
+#define CAT_IMPL(a, b) a##b
 
 #define swap(x, z)           \
     do {                     \

@@ -16,22 +16,13 @@ typedef struct {
     int stdout_fd;
 } ForkCmd;
 
-#pragma clang assume_nonnull begin
-fn ForkCmd aoc_fork_cmd(char **argv);
-fn PipeResult aoc_run_cmd(char **argv, const char *null input);
-fn rc aoc_read_fd(int fd);
-fn int aoc_wait_for(pid_t pid);
-#pragma clang assume_nonnull end
+fn ForkCmd fork_cmd(char **argv);
+fn PipeResult run_cmd(char **argv, const char *null input);
+fn rc read_fd(int fd);
+fn int wait_for(pid_t pid);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "fork.c"
 #endif // AOCLIBS_IMPLEMENTATION
-
-#ifdef AOCLIBS_STRIP_PREFIX
-#define fork_cmd aoc_fork_cmd
-#define run_cmd aoc_run_cmd
-#define read_fd aoc_read_fd
-#define wait_for aoc_wait_for
-#endif
 
 #endif

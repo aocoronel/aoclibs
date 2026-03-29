@@ -9,12 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ALIGN (sizeof(size_t))
-#define ONES ((size_t)-1 / UCHAR_MAX)
-#define HIGHS (ONES * (UCHAR_MAX / 2 + 1))
-#define HASZERO(x) (((x) - ONES) & ~(x) & HIGHS)
-
-Slice aoc_extract_between(const char *s, size_t begin, size_t end, char delim) {
+Slice extract_between(const char *s, size_t begin, size_t end, char delim) {
     const char *s_ptr = s + begin;
     size_t n_begin = begin;
     size_t n_end = end;
@@ -39,27 +34,26 @@ void slice_to_cstr(Slice s, char *buff, const size_t size) {
     buff[size_to_copy] = '\0';
 }
 
-fn char *aoc_cstr_dup(const char *s, const size_t len) {
+fn char *cstr_dup(const char *s, const size_t len) {
     ASSERT_NONNULL(s != NULL);
     char *d = malloc(len);
     if (!d) return NULL;
     return memcpy(d, s, len);
 }
 
-fn void aoc_cstr_to_lower(char *s) {
+fn void cstr_to_lower(char *s) {
     ASSERT_NONNULL(s != NULL);
     for (; *s; s++)
         *s = tolower(*s);
 }
 
-fn void aoc_cstrn_to_lower(char *s, const size_t len) {
+fn void cstrn_to_lower(char *s, const size_t len) {
     ASSERT_NONNULL(s != NULL);
     for (size_t i = 0; i < len; i++)
         s[i] = tolower(s[i]);
 }
 
-fn bool
-aoc_cstr_ends_with(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
+fn bool cstr_ends_with(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
     ASSERT_NONNULL(s);
     ASSERT_NONNULL(pattern);
     if (s_len < pattern_len) return false;
@@ -67,36 +61,34 @@ aoc_cstr_ends_with(const char *s, const size_t s_len, const char *pattern, size_
 }
 
 fn bool
-aoc_cstr_begins_with(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
-    return aoc_cstrn_eq(s, s_len, pattern, pattern_len);
+cstr_begins_with(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
+    return cstrn_eq(s, s_len, pattern, pattern_len);
 }
 
-fn bool
-aoc_cstrn_eq(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
+fn bool cstrn_eq(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
     if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
     if (s_len < pattern_len) return false;
     return memcmp(s, pattern, pattern_len) == 0;
 }
 
-fn bool
-aoc_cstrn_eq_case(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
+fn bool cstrn_eq_case(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
     if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
 
-    char *s_tmp = aoc_cstr_dup(s, s_len);
+    char *s_tmp = cstr_dup(s, s_len);
     if (s_tmp == NULL) {
         errno = ENOMEM;
         return false;
     }
 
-    aoc_cstrn_to_lower(s_tmp, s_len);
+    cstrn_to_lower(s_tmp, s_len);
 
-    char *pattern_tmp = aoc_cstr_dup(pattern, pattern_len);
+    char *pattern_tmp = cstr_dup(pattern, pattern_len);
     if (pattern_tmp == NULL) {
         errno = ENOMEM;
         return false;
     }
 
-    aoc_cstrn_to_lower(pattern_tmp, pattern_len);
+    cstrn_to_lower(pattern_tmp, pattern_len);
 
     bool equal = memcmp(s_tmp, pattern_tmp, pattern_len) == 0;
 
@@ -106,7 +98,7 @@ aoc_cstrn_eq_case(const char *s, const size_t s_len, const char *pattern, size_t
     return equal;
 }
 
-fn bool aoc_cstr_has(const char *s, size_t s_len, const char *pattern, size_t pattern_len) {
+fn bool cstr_has(const char *s, size_t s_len, const char *pattern, size_t pattern_len) {
     if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
 
     const char *s_ptr = s;
@@ -124,7 +116,7 @@ fn bool aoc_cstr_has(const char *s, size_t s_len, const char *pattern, size_t pa
     return false;
 }
 
-fn size_t aoc_cstr_has_at(const char *s, size_t s_len, const char *pattern, size_t pattern_len) {
+fn size_t cstr_has_at(const char *s, size_t s_len, const char *pattern, size_t pattern_len) {
     if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
 
     const char *s_ptr = s;
@@ -147,7 +139,7 @@ fn size_t aoc_cstr_has_at(const char *s, size_t s_len, const char *pattern, size
     return SIZE_MAX;
 }
 
-size_t aoc_index_of(const char *s, char delim, size_t size) {
+size_t index_of(const char *s, char delim, size_t size) {
     ASSERT_NONNULL(s != NULL);
 
     const char *ptr = memchr(s, delim, size);
@@ -156,60 +148,7 @@ size_t aoc_index_of(const char *s, char delim, size_t size) {
     return ptr - s;
 }
 
-fn size_t aoc_cstrcpy_size(size_t dest_size, const size_t dest_offset, const size_t src_len) {
-    size_t needed_size = src_len + 1;
-    return needed_size > dest_size - dest_offset ? needed_size : dest_size;
-}
-
-#ifdef AOCLIBS_CSTRCPY_AS_MEMCPY
-fn size_t aoc_cstrcpy(char *dest, const char *src, size_t dest_cap) {
-    const char *ptr = memcpy(dest, src, dest_cap);
-    return ptr - dest;
-}
-#else
-fn size_t aoc_cstrcpy(char *dest, const char *src, size_t dest_cap) {
-    ASSERT_NONNULL(dest != NULL);
-    ASSERT_NONNULL(src != NULL);
-
-    size_t *word_dest;
-    const size_t *word_src;
-    size_t len = 0;
-
-    if (((size_t)src & ALIGN) == ((size_t)dest & ALIGN)) {
-        for (; ((size_t)src & ALIGN) && dest_cap && (*dest = *src);
-             dest_cap--, src++, dest++, len++)
-            ;
-        if (!dest_cap || !*src) goto defer;
-        word_dest = (void *)dest;
-        word_src = (const void *)src;
-        for (; dest_cap >= sizeof(size_t) && !HASZERO(*word_src);
-             dest_cap -= sizeof(size_t), word_src++, word_dest++) {
-            *word_dest = *word_src;
-            len += sizeof(size_t);
-        }
-        dest = (void *)word_dest;
-        src = (const void *)word_src;
-    }
-    for (; dest_cap && (*dest = *src); dest_cap--, src++, dest++, len++)
-        ;
-defer:
-    dest[len] = '\0';
-    return len;
-}
-#endif
-
-fn
-size_t aoc_cstrappend(char *dest, const char *src, size_t dest_len, size_t dest_cap) {
-    size_t len = aoc_cstrcpy(dest + dest_len + 1, src, dest_cap);
-    dest[dest_len] = ' ';
-    return len;
-}
-
-fn size_t aoc_cstrcat(char *dest, const char *src, size_t dest_len, size_t dest_cap) {
-    return aoc_cstrcpy(dest + dest_len, src, dest_cap);
-}
-
-fn int aoc_cstr_fmt_size(const char *fmt, ...) {
+fn int cstr_fmt_size(const char *fmt, ...) {
     ASSERT_NONNULL(fmt != NULL);
 
     va_list args;
@@ -220,7 +159,7 @@ fn int aoc_cstr_fmt_size(const char *fmt, ...) {
     return needed_len;
 }
 
-fn int aoc_cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...) {
+fn int cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...) {
     ASSERT_NONNULL(s != NULL);
     ASSERT_NONNULL(fmt != NULL);
 
@@ -234,7 +173,7 @@ fn int aoc_cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...) {
     return allocated_len;
 }
 
-fn double aoc_cstr_to_double(const char *s, const double _default) {
+fn double cstr_to_double(const char *s, const double _default) {
     ASSERT_NONNULL(s != NULL);
     char *endptr;
     double val = strtod(s, &endptr);
@@ -244,14 +183,14 @@ fn double aoc_cstr_to_double(const char *s, const double _default) {
     return val;
 }
 
-fn bool aoc_cstr_to_bool(const char *s, const bool _default) {
+fn bool cstr_to_bool(const char *s, const bool _default) {
     ASSERT_NONNULL(s != NULL);
-    if (aoc_cstr_eq_case(s, "true") || aoc_cstr_eq(s, "1")) return true;
-    if (aoc_cstr_eq_case(s, "false") || aoc_cstr_eq(s, "0")) return false;
+    if (cstr_eq_case(s, "true") || cstr_eq(s, "1")) return true;
+    if (cstr_eq_case(s, "false") || cstr_eq(s, "0")) return false;
     return _default;
 }
 
-fn float aoc_cstr_to_float(const char *s, const float _default) {
+fn float cstr_to_float(const char *s, const float _default) {
     ASSERT_NONNULL(s != NULL);
     char *endptr;
     float val = strtof(s, &endptr);
@@ -261,7 +200,7 @@ fn float aoc_cstr_to_float(const char *s, const float _default) {
     return val;
 }
 
-fn long aoc_cstr_to_long(const char *s, const long _default) {
+fn long cstr_to_long(const char *s, const long _default) {
     ASSERT_NONNULL(s != NULL);
     char *endptr;
     long val = strtol(s, &endptr, 10);

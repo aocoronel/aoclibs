@@ -33,7 +33,7 @@ bool read_file(const char *file, bool ignore_include) {
     while ((nread = read_by_delim(&buffer, &size, '\n', fp)) != SIZE_MAX) {
         line_count++;
 
-#define MERGE_MATCH(s) aoc_cstr_has_at(buffer, size, s, STRLEN(s))
+#define MERGE_MATCH(s) cstr_has_at(buffer, size, s, STRLEN(s))
 
         size_t idx = 0;
         if ((idx = MERGE_MATCH("#include")) != SIZE_MAX) {
@@ -55,7 +55,7 @@ bool read_file(const char *file, bool ignore_include) {
 
             int close = 0;
             if (buffer[idx] == '"') {
-                close = aoc_cstr_has_at(buffer + idx + 1, size - idx - 1, "\"", 1);
+                close = cstr_has_at(buffer + idx + 1, size - idx - 1, "\"", 1);
             }
             idx += 1;
 
@@ -68,7 +68,7 @@ bool read_file(const char *file, bool ignore_include) {
         } else if (memcmp(file, TEMPLATE_FILE, TEMPLATE_FILE_LEN) == 0 &&
                    (idx = MERGE_MATCH("#ifdef AOCLIBS_IMPLEMENTATION")) != SIZE_MAX) {
             fprintf(output, "%s", buffer);
-            aoc_dir_walk("src", true, NULL, read_source_files, NULL, NULL, NULL);
+            dir_walk("src", true, NULL, read_source_files, NULL, NULL, NULL);
             continue;
         }
 print:
@@ -83,7 +83,7 @@ print:
 }
 
 void read_source_files(const char *path) {
-    if (!aoc_cstr_ends_with(path, strlen(path), ".c", 2)) return;
+    if (!cstr_ends_with(path, strlen(path), ".c", 2)) return;
     if (!read_file(path, true)) return;
     return;
 }
@@ -114,14 +114,14 @@ int main(void) {
     fclose(fp);
 
     char *compile_args[] = { "gcc", "-o", "test", "test.c", "-lm", NULL };
-    PipeResult result = aoc_run_cmd(compile_args, NULL);
+    PipeResult result = run_cmd(compile_args, NULL);
 
     if (result.status != 0) {
         fprintf(stderr, "Failed to build aoclibs.h. Got error: %d\n", result.status);
     }
 
     char *run_args[] = { "./test", NULL };
-    result = aoc_run_cmd(run_args, NULL);
+    result = run_cmd(run_args, NULL);
 
     if (result.status != 0) {
         fprintf(stderr, "Failed to run test. Got error %d\n", result.status);

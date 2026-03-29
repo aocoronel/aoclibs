@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-ForkCmd aoc_fork_cmd(char **argv) {
+ForkCmd fork_cmd(char **argv) {
     int stdin_pipe[2], stdout_pipe[2];
     pipe(stdin_pipe);
     pipe(stdout_pipe);
@@ -35,31 +35,31 @@ ForkCmd aoc_fork_cmd(char **argv) {
     return (ForkCmd){ pid, stdin_pipe[1], stdout_pipe[0] };
 }
 
-rc aoc_read_fd(int fd) {
+rc read_fd(int fd) {
     rc buff = { 0 };
-    aoc_da_init(&buff, 512);
+    da_init(&buff, 512);
 
     char chunk[1024];
     ssize_t n;
     while ((n = read(fd, chunk, sizeof(chunk))) > 0) {
-        aoc_rc_cat(&buff, chunk, n);
+        rc_cat(&buff, chunk, n);
     }
 
     if (buff.data) {
-        if (buff.len > 0) aoc_da_last(&buff) = '\0';
+        if (buff.len > 0) da_last(&buff) = '\0';
     }
 
     return buff;
 }
 
-int aoc_wait_for(pid_t pid) {
+int wait_for(pid_t pid) {
     int status;
     waitpid(pid, &status, 0);
     return WEXITSTATUS(status);
 }
 
-PipeResult aoc_run_cmd(char **argv, const char *input) {
-    ForkCmd fe = aoc_fork_cmd(argv);
+PipeResult run_cmd(char **argv, const char *input) {
+    ForkCmd fe = fork_cmd(argv);
     if (fe.pid == -1) return (PipeResult){};
 
     if (input) {
@@ -68,9 +68,9 @@ PipeResult aoc_run_cmd(char **argv, const char *input) {
     }
 
     size_t len;
-    rc output = aoc_read_fd(fe.stdout_fd);
+    rc output = read_fd(fe.stdout_fd);
     close(fe.stdout_fd);
 
-    int status = aoc_wait_for(fe.pid);
+    int status = wait_for(fe.pid);
     return (PipeResult){ output, status };
 }
