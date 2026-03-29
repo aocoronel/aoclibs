@@ -105,7 +105,7 @@ fn void arena_trim(Arena *a);
 
 #define dar_reserve(a, da, new_cap)                                                              \
     do {                                                                                         \
-        if ((da)->len >= (da)->cap) {                                                            \
+        if (UNLIKELY((da)->len >= (da)->cap)) {                                                  \
             size_t new_capacity =                                                                \
                     (da)->cap < AOCLIBS_ARENA_DA_CAPACITY ? AOCLIBS_ARENA_DA_CAPACITY : new_cap; \
             while ((new_cap) > new_capacity) {                                                   \
