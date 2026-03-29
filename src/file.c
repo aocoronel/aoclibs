@@ -135,42 +135,20 @@ FileType get_filetype(const char *path) {
     return F_NULL;
 }
 
-rc read_entire_file(const char *filepath) {
+bool read_entire_file(rc *lines, const char *filepath) {
     FILE *fp = fopen(filepath, "r");
+
+    if (!fp) return false;
 
     struct stat st;
     bool reserve = false;
-    if (stat(filepath, &st) != -1) reserve = true;
+    if (stat(filepath, &st) != -1) return false;
 
-    rc lines = { 0 };
+    da_reserve(lines, (size_t)st.st_size);
+    size_t n = fread(lines->data, sizeof(char), st.st_size, fp);
+    lines->len = n;
 
-    if (reserve == true) {
-        da_reserve(&lines, st.st_size);
-        int c = 0;
-        while (lines.len < lines.cap) {
-            c = getc(fp);
-            if (c == EOF) break;
-            da_insert_fast(&lines, c);
-        }
-    } else {
-        da_reserve(&lines, 256);
-        for (;;) {
-            int c = getc(fp);
-
-            if (c == EOF) {
-                if (lines.len == 0) {
-                    fclose(fp);
-                    da_free(&lines);
-                    return (rc){};
-                }
-                break;
-            }
-
-            da_insert(&lines, c);
-        }
-    }
-
-    da_add_null(&lines);
+    da_add_null(lines);
 
     fclose(fp);
     return lines;

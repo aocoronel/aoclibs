@@ -68,7 +68,7 @@ fn size_t read_by_delim(char **restrict lineptr,
                         int delim,
                         FILE *restrict stream);
 
-fn rc read_entire_file(const char *filepath);
+bool read_entire_file(rc *lines, const char *filepath);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "file.c"
