@@ -52,13 +52,7 @@ read_by_delim(char **restrict lineptr, size_t *restrict n, int delim, FILE *rest
     return pos;
 }
 
-int dir_walk(const char *path,
-             bool recurse,
-             dw_fn isdir,
-             dw_fn isreg,
-             dw_fn islnk,
-             dw_fn isnull,
-             dw_fn isempty) {
+int dir_walker(const char *path, DirWalker *dw) {
     ASSERT_NONNULL(path != NULL);
 
     DIR *dir = opendir(path);
@@ -66,29 +60,36 @@ int dir_walk(const char *path,
 
     int8_t empty = 0;
 
+    struct stat st;
     struct dirent *entry;
     char fullpath[DIR_WALKER_BUFF];
 
     while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
+        if (cstr_eq(entry->d_name, ".") || cstr_eq(entry->d_name, "..")) continue;
 
-        snprintf(fullpath, sizeof(fullpath), "%s/%s", path, entry->d_name);
+        cstr_fmt_write(fullpath, DIR_WALKER_BUFF, "%s/%s", path, entry->d_name);
 
-        FileType file_t = get_filetype(fullpath);
+        FileMetadata metadata = { 0 };
 
-        switch (file_t) {
+        if (dw->metadata) {
+            metadata = get_file_data(&st, fullpath);
+        } else {
+            FileType file_t = get_filetype(fullpath);
+            metadata.type = file_t;
+        }
+
+        switch (metadata.type) {
         case F_REG:
-            if (isreg != NULL) isreg(fullpath);
+            if (dw->isreg != NULL) dw->isreg(&metadata);
             break;
         case F_DIR:
-            if (recurse) dir_walk(fullpath, recurse, isdir, isreg, islnk, isnull, isempty);
-            if (isdir != NULL) isdir(fullpath);
+            if (dw->isdir != NULL) dw->isdir(&metadata, dw);
             break;
         case F_LNK:
-            if (islnk != NULL) islnk(fullpath);
+            if (dw->islnk != NULL) dw->islnk(&metadata);
             break;
         case F_NULL:
-            if (isnull != NULL) isnull(fullpath);
+            if (dw->isnull != NULL) dw->isnull(&metadata);
             break;
         default:
             break;
@@ -97,10 +98,25 @@ int dir_walk(const char *path,
         empty++;
     }
 
-    if (empty == 0 && isempty != NULL) isempty(path);
+    if (empty == 0 && dw->isempty != NULL) dw->isempty(path);
 
     closedir(dir);
     return 0;
+}
+
+FileMetadata get_file_data(struct stat *st, const char *path) {
+    ASSERT_NONNULL(path != NULL);
+
+    if (lstat(path, st) == -1) return (FileMetadata){ .type = F_FAIL, .stat = NULL };
+
+    if (S_ISREG(st->st_mode))
+        return (FileMetadata){ .type = F_REG, .stat = st };
+    else if (S_ISDIR(st->st_mode))
+        return (FileMetadata){ .type = F_DIR, .stat = st };
+    else if (S_ISLNK(st->st_mode))
+        return (FileMetadata){ .type = F_LNK, .stat = st };
+
+    return (FileMetadata){ .type = F_FAIL, .stat = st };
 }
 
 FileType get_filetype(const char *path) {

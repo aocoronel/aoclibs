@@ -17,8 +17,27 @@ typedef enum FileType {
     F_FAIL, // Failed to stat
 } FileType;
 
-typedef void (*dw_fn)(const char *path);
+typedef struct {
+    FileType type;
+    const char *name;
+    struct stat *stat;
+} FileMetadata;
 
+typedef void (*dw_fn)(const FileMetadata *);
+
+typedef struct DirWalker DirWalker;
+
+struct DirWalker {
+    bool metadata;
+    void (*isdir)(const FileMetadata *, DirWalker *);
+    dw_fn islnk;
+    dw_fn isnull;
+    dw_fn isreg;
+    void (*isempty)(const char *path);
+};
+
+// dir_walk("test.md", .metadata = false);
+#define dir_walk(path, ...) dir_walker(path, &(DirWalker){ __VA_ARGS__ })
 // Walks into a directory and read it's content
 //
 // dir_walk can run four user provided functions based on each filetype:
@@ -31,18 +50,14 @@ typedef void (*dw_fn)(const char *path);
 // in it.
 //
 // Sets errno << opendir
-fn int dir_walk(const char *path,
-                bool recurse,
-                dw_fn isdir,
-                dw_fn isreg,
-                dw_fn islnk,
-                dw_fn isnull,
-                dw_fn isempty);
+int dir_walker(const char *path, DirWalker *dw);
 
 // Stat the file and return its type
 //
 // F_FAIL :: failed to stat. Sets errno << lstat
 fn FileType get_filetype(const char *path);
+
+FileMetadata get_file_data(struct stat *st, const char *path);
 
 // Reads file, splitting the read buffer by the delimiter.
 // Returns how many bytes has been read.
