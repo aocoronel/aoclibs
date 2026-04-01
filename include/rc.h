@@ -2,9 +2,6 @@
 #define AOCLIBS_RC_H_
 
 #include "base.h"
-#include "cstr.h"
-#include "da.h"
-#include <alloca.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -12,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "da.h"
 
 // Row Char
 // This is Dynamic Array compatible. This implementation is suppose to give you a 'String' type
@@ -81,11 +79,5 @@ typedef struct {
         (rc)->len += (items_size);                                                        \
     } while (0)
 // =================================
-
-fn Slices split(rc *f, char delim);
-
-#ifdef AOCLIBS_IMPLEMENTATION
-#include "rc.c"
-#endif
 
 #endif // AOCLIBS_RC_H_

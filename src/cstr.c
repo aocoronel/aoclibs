@@ -9,31 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-Slice extract_between_whitespaces(const char *s, size_t begin, size_t end) {
-    const char *s_ptr = s + begin;
-    size_t n_begin = begin;
-    size_t n_end = end;
-
-    while (s_ptr < s + end && *s_ptr == ' ') {
-        s_ptr++;
-        n_begin++;
-    }
-
-    s_ptr = s + end - 1;
-    while (s_ptr >= s + n_begin && *s_ptr == ' ') {
-        s_ptr--;
-        n_end--;
-    }
-
-    return (Slice){ .data = s + n_begin, .len = n_end - n_begin };
-}
-
-void slice_to_cstr(Slice s, char *buff, const size_t size) {
-    int size_to_copy = s.len > size ? size : s.len;
-    memcpy(buff, s.data, size_to_copy);
-    buff[size_to_copy] = '\0';
-}
-
 fn char *cstr_dup(const char *s, const size_t len) {
     ASSERT_NONNULL(s != NULL);
     char *d = malloc(len);

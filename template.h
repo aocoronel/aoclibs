@@ -24,9 +24,13 @@
 #include "./include/printfc.h"
 
 // Dynamic Arrays
+#include <stdlib.h>
+#include <string.h>
+
 #include "./include/da.h"
 #include "./include/rc.h"
 
+#include "./include/slices.h"
 #include "./include/cstr.h"
 #include "./include/arena.h"
 #include "./include/file.h"

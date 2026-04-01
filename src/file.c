@@ -79,6 +79,8 @@ int dir_walker(const char *path, DirWalker *dw) {
             metadata.type = file_t;
         }
 
+        metadata.name = fullpath;
+
         switch (metadata.type) {
         case F_REG:
             if (dw->isreg != NULL) dw->isreg(&metadata);
