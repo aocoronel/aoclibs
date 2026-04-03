@@ -52,6 +52,8 @@ fn Slices split(rc *f, char delim);
 //      printf("%.*s\n", slice.len, slice.data); // => "World!"
 fn Slice extract_between(const char *s, size_t begin, size_t end, char delim);
 
+bool while_token(Slice *cursor, int *remaining_len, Slice *out);
+
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "slices.c"
 #endif
