@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pp.h"
+#include "da.h"
 
 void *palloc(PPool *pool, size_t size) {
     void *tmp = malloc(size);
@@ -53,6 +54,7 @@ void pfree(PPool *pool) {
             f.ptr = NULL;
         }
     }
+    da_reset(pool);
 }
 
 // Discard the pool. User must free memory manually
