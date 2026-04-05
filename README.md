@@ -21,8 +21,13 @@ gcc -o merge merge.c && ./merge
 - `cstr.h` :: Safer string functions
 - `da.h` :: Heap/stack-based dynamic arrays *
 - `file.h` :: File operations
-- `printfc` :: `printf` with colors
+- `fork.h` :: Fork high-level wrappers
+- `map.h` :: Key-value pairs
+- `io.h` :: Input/output simple functions
+- `pp.h` :: Pointer Pool
+- `printfc.h` :: `printf` with colors
 - `rc.h` :: String type powered by `da.h`
+- `slices.h` :: String slices
 
 \* Based on [Tsoding](https://github.com/tsoding) code.
 
@@ -31,6 +36,10 @@ gcc -o merge merge.c && ./merge
 - [crown.h](./docs/crown.md) :: Full-blown CLI suite
 - [match.h](./docs/match.md) :: Better `if`, worst `switch`
 - [tunit.h](./docs/tunit.md) :: Test Unit
+- `heap_trace.h` :: Simple drop-in replacement for malloc/calloc/realloc to catch leaks
+- `ini.h` :: INI parser
+- `match.h` :: Better if, worse switch
+- `spinner.h` :: Simple spinner without allocations
 
 ## License
 
