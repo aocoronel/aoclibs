@@ -1,0 +1,66 @@
+#ifndef AOCLIBS_MAP_H_
+#define AOCLIBS_MAP_H_
+
+#include "base.h"
+#include "slices.h"
+#include "arena.h"
+#include <stdio.h>
+
+// Map
+//
+// This is a hash table alternative that doesn't rely on hashing and doesn't require initializing.
+//
+// It takes a string like "main" and maps each character as a distinct key-value paired table, even
+// if not value is ever set.
+//
+// If we have a map that has been inserted these keys: "dracula", "dragon", "dungeon", "dread",
+// "dreadful", the Map would look like this:
+//
+// d -> d
+//    r -> dr
+//       a -> dra
+//          c -> drac
+//             u -> dracu
+//                l -> dracul
+//                   a -> dracula
+//          g -> drag
+//             o -> drago
+//                n -> dragon
+//       e -> dre
+//          a -> drea
+//             d -> dread
+//          e -> dree
+//             d -> dreed
+//                f -> dreedf
+//                   u -> dreedfu
+//                      l -> dreedful
+//   u -> du
+//      n -> dun
+//         g -> dung
+//            e -> dunge
+//               o -> dungeo
+//                  n -> dungeon
+//
+// Lookup is done using binary search
+
+typedef struct Map {
+    // Dynamic Array
+    size_t cap;
+    size_t len;
+    struct Map *data;
+
+    char key;
+    void *value;
+} Map;
+
+fn void map_insert(Arena *arena, Map *m, Slice *s, void *key);
+fn void map_dump(Map *m);
+fn Map *null map_find(Map *m, Slice *s);
+fn bool map_set(Map *m, Slice *s, void *value);
+fn bool map_delete(Map *m, Slice *s);
+
+#ifdef AOCLIBS_IMPLEMENTATION
+#include "map.c"
+#endif
+
+#endif
