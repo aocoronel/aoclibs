@@ -59,6 +59,12 @@ fn Map *null map_find(Map *m, Slice *s);
 fn bool map_set(Map *m, Slice *s, void *value);
 fn bool map_delete(Map *m, Slice *s);
 
+// Internal
+fn int _map_bs(Map *m, unsigned char k);
+fn void _map_insert(Arena *arena, Map *m, Slice *s, void *key, size_t cursor);
+fn void _map_dump(Map *m, int indent, rc *buff, int depth);
+fn Map *null _map_find(Map *m, Slice *s, size_t cursor);
+
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "map.c"
 #endif

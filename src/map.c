@@ -8,7 +8,7 @@
 #include "arena.h"
 #include <stdio.h>
 
-internal inline int _map_bs(Map *m, unsigned char k) {
+int _map_bs(Map *m, unsigned char k) {
     int left = 0, right = m->len;
 
     while (left < right) {
@@ -23,7 +23,7 @@ internal inline int _map_bs(Map *m, unsigned char k) {
     return left;
 }
 
-internal inline void _map_insert(Arena *arena, Map *m, Slice *s, void *key, size_t cursor) {
+void _map_insert(Arena *arena, Map *m, Slice *s, void *key, size_t cursor) {
     if (cursor == s->len) {
         m->value = key;
         return;
@@ -62,7 +62,7 @@ void map_insert(Arena *arena, Map *m, Slice *s, void *key) {
     _map_insert(arena, m, s, key, 0);
 }
 
-internal inline void _map_dump(Map *m, int indent, rc *buff, int depth) {
+void _map_dump(Map *m, int indent, rc *buff, int depth) {
     da_reserve(buff, depth + 1);
     foreach (m, i) {
         buff->data[depth] = m->data[i].key;
@@ -81,7 +81,7 @@ void map_dump(Map *m) {
     da_free(&buff);
 }
 
-internal inline Map *null _map_find(Map *m, Slice *s, size_t cursor) {
+Map *null _map_find(Map *m, Slice *s, size_t cursor) {
     if (cursor == s->len) return m;
     unsigned char k = (unsigned char)s->data[cursor];
 
@@ -112,4 +112,3 @@ bool map_delete(Map *m, Slice *s) {
     c->value = NULL;
     return true;
 }
-
