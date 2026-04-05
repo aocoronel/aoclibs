@@ -2,14 +2,8 @@
 #define AOCLIBS_DA_H_
 
 #include "base.h"
-
-#ifndef _STDLIB_H
-#error This library depends on stdlib.h. Please include stdlib.h.
-#endif
-
-#ifndef _STRING_H
-#error This library depends on string.h. Please include string.h.
-#endif
+#include <string.h>
+#include <stdlib.h>
 
 // This is implementation has few modifications and additions, and is inspired by
 // the dynamic array available here: https://github.com/tsoding/nob.h
