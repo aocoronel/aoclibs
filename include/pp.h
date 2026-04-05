@@ -2,7 +2,6 @@
 #define AOCLIBS_PP_H_
 
 #include "base.h"
-#include "da.h"
 
 // Pointer Pool
 //
@@ -15,35 +14,22 @@
 //
 // This is particularly useful, because there is no need for tracking the allocated memory anymore.
 // And the memory is freed at the request moment of the program.
-
-#define POOL_NONE (1 << 0) // Pointers can be nullable, and freed by the user
-#define POOL_NONNULL (1 << 1) // Pointers should only be cleaned up by this API
-
-typedef struct {
-    int flags;
-    void *ptr;
-} PFlags;
+//
+// Memory allocated using pfill is asserted to never be NULL.
 
 typedef struct {
     size_t cap;
     size_t len;
-    PFlags *data;
+    void **data;
 } PPool;
 
-void *palloc(PPool *pool, size_t size);
+fn void *pfill(PPool *pool, size_t size);
 
-void *pnalloc(PPool *pool, size_t size);
-
-void *pcalloc(PPool *pool, size_t nmeb, size_t size);
-
-void *pncalloc(PPool *pool, size_t nmeb, size_t size);
+fn void *pfillc(PPool *pool, size_t nmeb, size_t size);
 
 // Frees all memory. Doesn't free the pool itself
 // The user can always reuse the same pool
-void pfree(PPool *pool);
-
-// Discard the pool. User must free memory manually
-void pdiscard(PPool *pool);
+fn void pdrain(PPool *pool);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "pp.c"
