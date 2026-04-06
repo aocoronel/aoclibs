@@ -15,10 +15,10 @@ gcc -o merge merge.c && ./merge
 
 ### Base libraries
 
-- `arena.h` :: Linked list arena *
+- `arena.h` :: Linked-list arena *
 - `base.h` :: Handful aliases and macros
 - `colors.h` :: Terminal colors
-- `cstr.h` :: Safer string functions
+- `cstr.h` :: C String operations
 - `da.h` :: Heap/stack-based dynamic arrays *
 - `file.h` :: File operations
 - `fork.h` :: Fork high-level wrappers
@@ -38,9 +38,8 @@ gcc -o merge merge.c && ./merge
 - [tunit.h](./docs/tunit.md) :: Test Unit
 - `heap_trace.h` :: Simple drop-in replacement for malloc/calloc/realloc to catch leaks
 - `ini.h` :: INI parser
-- `match.h` :: Better if, worse switch
 - `spinner.h` :: Simple spinner without allocations
 
 ## License
 
-This repository is licensed under the MIT or Unlicense licenses, at your will.
+This repository is licensed under the MIT or Unlicense licenses, at your will, otherwise explicitly stated.
