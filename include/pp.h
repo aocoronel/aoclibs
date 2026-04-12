@@ -23,13 +23,13 @@ typedef struct {
     void **data;
 } PPool;
 
-fn void *pfill(PPool *pool, size_t size);
+AOCDEF void *pfill(PPool *pool, size_t size);
 
-fn void *pfillc(PPool *pool, size_t nmeb, size_t size);
+AOCDEF void *pfillc(PPool *pool, size_t nmeb, size_t size);
 
 // Frees all memory. Doesn't free the pool itself
 // The user can always reuse the same pool
-fn void pdrain(PPool *pool);
+AOCDEF void pdrain(PPool *pool);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "pp.c"

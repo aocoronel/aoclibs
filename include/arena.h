@@ -55,45 +55,45 @@ typedef struct {
 // This memory is freed using "arena_free_region".
 //
 // NULL :: failed to allocate
-fn Region *null arena_new_region(size_t capacity);
-fn void arena_free_region(Region *r);
+AOCDEF Region *null arena_new_region(size_t capacity);
+AOCDEF void arena_free_region(Region *r);
 
 // Reserve space from the arena with given "size_bytes".
 //
 // NULL :: failed to allocate << arena_new_region
-fn void *null arena_alloc(Arena *a, size_t size_bytes);
+AOCDEF void *null arena_alloc(Arena *a, size_t size_bytes);
 
 // Reserve space from the arena, and zero initialize with given "size_bytes".
 //
 // NULL :: failed to allocate << arena_new_region
-fn void *null arena_calloc(Arena *a, size_t size_bytes);
+AOCDEF void *null arena_calloc(Arena *a, size_t size_bytes);
 
 // Reserve new space from the arena with given "newsz".
 //
 // NULL :: failed to allocate << arena_new_region
-fn void *null arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t newsz);
+AOCDEF void *null arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t newsz);
 
 // Reserve space from the arena, and copies "data" into it. The user must also provide its "size".
 //
 // NULL :: failed to allocate << arena_new_region
-fn void *null arena_memdup(Arena *a, void *data, size_t size);
+AOCDEF void *null arena_memdup(Arena *a, void *data, size_t size);
 
 // Reserve space from the arena, and copies formatted string with given "format".
 //
 // This serves as higher abstraction to arena_vsprintf.
 //
 // NULL :: failed to allocate << arena_new_region
-fn char *null arena_sprintf(Arena *a, const char *format, ...);
-fn char *null arena_vsprintf(Arena *a, const char *format, va_list args);
+AOCDEF char *null arena_sprintf(Arena *a, const char *format, ...);
+AOCDEF char *null arena_vsprintf(Arena *a, const char *format, va_list args);
 
 // Resets all contents, without freeing memory. Allows reuse.
-fn void arena_reset(Arena *a);
+AOCDEF void arena_reset(Arena *a);
 
 // Frees the Arena memory. Doesn't allow reuse.
-fn void arena_destroy(Arena *a);
+AOCDEF void arena_destroy(Arena *a);
 
 // Frees the Arena memory. Allows reuse.
-fn void arena_trim(Arena *a);
+AOCDEF void arena_trim(Arena *a);
 
 /*
  * Dynamic Arena

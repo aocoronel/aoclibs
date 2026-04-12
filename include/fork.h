@@ -16,10 +16,10 @@ typedef struct {
     int stdout_fd;
 } ForkCmd;
 
-fn ForkCmd fork_cmd(char **argv);
-fn PipeResult run_cmd(char **argv, const char *null input);
-fn rc read_fd(int fd);
-fn int wait_for(pid_t pid);
+AOCDEF ForkCmd fork_cmd(char **argv);
+AOCDEF PipeResult run_cmd(char **argv, const char *null input);
+AOCDEF rc read_fd(int fd);
+AOCDEF int wait_for(pid_t pid);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "fork.c"

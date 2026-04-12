@@ -55,7 +55,7 @@ int dir_walker(const char *path, DirWalker *dw);
 // Stat the file and return its type
 //
 // F_FAIL :: failed to stat. Sets errno << lstat
-fn FileType get_filetype(const char *path);
+AOCDEF FileType get_filetype(const char *path);
 
 FileMetadata get_file_data(struct stat *st, const char *path);
 
@@ -63,7 +63,7 @@ FileMetadata get_file_data(struct stat *st, const char *path);
 // Returns how many bytes has been read.
 //
 // Allocates to lineptr. The user owns the allocation.
-fn size_t read_by_delim(char **restrict lineptr,
+AOCDEF size_t read_by_delim(char **restrict lineptr,
                         size_t *restrict n,
                         int delim,
                         FILE *restrict stream);

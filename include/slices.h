@@ -40,7 +40,7 @@ typedef struct {
         .data = "" s "", .len = STRLEN(s), \
     }
 
-fn Slices split(rc *f, char delim);
+AOCDEF Slices split(rc *f, char delim);
 
 // Returns slice on first occurance of a word between whitespaces.
 //
@@ -50,7 +50,7 @@ fn Slices split(rc *f, char delim);
 //      printf("%.*s\n", slice.len, slice.data); // => "Hello,"
 //      slice = extract_between_whitespace(msg, slice.len, sizeof(msg));
 //      printf("%.*s\n", slice.len, slice.data); // => "World!"
-fn Slice extract_between(const char *s, size_t begin, size_t end, char delim);
+AOCDEF Slice extract_between(const char *s, size_t begin, size_t end, char delim);
 
 bool while_token(Slice *cursor, int *remaining_len, Slice *out);
 

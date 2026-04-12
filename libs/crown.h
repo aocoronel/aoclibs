@@ -111,7 +111,7 @@ static CrownCommand *last_cmd = NULL;
     } while (0)
 
 // Once you no longer need to use Crown, you can deinitialize all memory it used.
-fn void crown_deinit(void);
+AOCDEF void crown_deinit(void);
 
 // Add new argument
 // It has a key which is used to be referenced by flags and commands
@@ -176,27 +176,27 @@ fn void crown_deinit(void);
 // Prints indented message of given "indent".
 //
 // If the size of the terminal cannot be obtained, fallback to 80 columns.
-fn void crown_iprint(const char *msg, int indent);
+AOCDEF void crown_iprint(const char *msg, int indent);
 
 // Generates bash completions for commands, flags and arguments.
 //
 // If user provides environment variables, they will be set as a global completion variable.
 // This way the user can write argument completion that uses those environment variables.
-fn void crown_bashgen(const CrownEnv *null env, size_t envc);
+AOCDEF void crown_bashgen(const CrownEnv *null env, size_t envc);
 
 // Normalizes a given "str" to a valid shell function name, by replacing it to non-alphanumeric
 // characters with underscores.
 //
 // May truncate to "buff_size".
-fn void crown_normalize_name(char *buff, const char *str, size_t buff_size);
+AOCDEF void crown_normalize_name(char *buff, const char *str, size_t buff_size);
 
 // Prints help message.
 //
 // If "cmd" is NULL, prints the main help message.
-fn void crown_help(CrownCommand *null cmd);
+AOCDEF void crown_help(CrownCommand *null cmd);
 
 // Get next argument from argv.
-fn char *crown_getarg(char *argv[], int argc);
+AOCDEF char *crown_getarg(char *argv[], int argc);
 
 // Important errors when using getopt:
 
@@ -227,7 +227,7 @@ enum {
 //
 // The returned value is the given index generated when creating a command, argument or option with
 // crown_new_cmd...
-fn int crown_getopt(CrownCommand *null cmds, char *argv[], int argc);
+AOCDEF int crown_getopt(CrownCommand *null cmds, char *argv[], int argc);
 
 // Convenient way to access a subcmd
 #define crown_subcmd(opt, idx) (opt)->subcmd->data[(idx)]
@@ -242,7 +242,7 @@ fn int crown_getopt(CrownCommand *null cmds, char *argv[], int argc);
 //
 // The returned value is the given index generated when creating a command, argument or option with
 // crown_new_cmd...
-fn int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc);
+AOCDEF int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc);
 
 #ifdef AOCLIBS_CROWN
 
@@ -250,30 +250,30 @@ fn int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc);
 #include "cstr.h"
 #include <ctype.h>
 
-fn void crown_deinit(void) {
+AOCDEF void crown_deinit(void) {
     arena_destroy(&Program_Arena);
 }
 
 // Helper function
-fn void crown_indent_completion(int indent) {
+AOCDEF void crown_indent_completion(int indent) {
     for (int i = 0; i < indent; i++) {
         CROWN_PUTC(' ');
     }
 }
 
 // Helper function
-fn void crown_bashgen_case_prev_open(int level) {
+AOCDEF void crown_bashgen_case_prev_open(int level) {
     CROWN_PRINTF("  case \"${words[%d]}\" in\n", level);
 }
 
 // Helper function
-fn void crown_bashgen_case_prev_close(int indent) {
+AOCDEF void crown_bashgen_case_prev_close(int indent) {
     crown_indent_completion(indent);
     CROWN_PRINTF("  esac\n");
 }
 
 // Helper function
-fn void crown_bashgen_options(CrownOpts *cmds, int indent) {
+AOCDEF void crown_bashgen_options(CrownOpts *cmds, int indent) {
     CrownOpts *curr_cmd = cmds == NULL ? Program->flags : cmds;
     ASSERT(curr_cmd != NULL);
 
@@ -347,7 +347,7 @@ void crown_print_subcmd_completion(CrownCommand cmd, int indent) {
 }
 
 // Helper function
-fn void crown_bashgen_subcommand(CrownCmds *cmds, int indent, int level) {
+AOCDEF void crown_bashgen_subcommand(CrownCmds *cmds, int indent, int level) {
     CrownCmds *curr_cmd = cmds == NULL ? Program->subcmd : cmds;
     ASSERT(curr_cmd != NULL);
 
@@ -399,7 +399,7 @@ fn void crown_bashgen_subcommand(CrownCmds *cmds, int indent, int level) {
     }
 }
 
-fn void crown_bashgen_env_vars(const CrownEnv *env, size_t envc) {
+AOCDEF void crown_bashgen_env_vars(const CrownEnv *env, size_t envc) {
     if (env == NULL || envc == 0) return;
     ASSERT(envc <= Program->args->len);
     for (size_t j = 0; j < envc; j++) {
@@ -522,7 +522,7 @@ void crown_generate_completion(const CrownEnv *env, int envc, int default_level)
 
 #define CROWN_COMPLETION_BASH (1 << 0)
 #define CROWN_COMPLETION_ZSH (1 << 1)
-fn void crown_completion(const CrownEnv *env, size_t envc, int shell) {
+AOCDEF void crown_completion(const CrownEnv *env, size_t envc, int shell) {
     if (shell & CROWN_COMPLETION_ZSH) {
         CROWN_PUTS("#!/usr/bin/env zsh\n\n");
     } else if (shell & CROWN_COMPLETION_BASH) {
@@ -641,7 +641,7 @@ fn void crown_completion(const CrownEnv *env, size_t envc, int shell) {
     }
 }
 
-fn void crown_normalize_name(char *buff, const char *str, size_t buff_size) {
+AOCDEF void crown_normalize_name(char *buff, const char *str, size_t buff_size) {
     if (!buff || !str || buff_size == 0) {
         if (buff && buff_size > 0) buff[0] = '\0';
         return;
@@ -671,12 +671,12 @@ fn void crown_normalize_name(char *buff, const char *str, size_t buff_size) {
 // crown_help
 
 // Helper function
-fn void crown_print_header(const char *msg) {
+AOCDEF void crown_print_header(const char *msg) {
     CROWN_PRINTF("%s%s%s", CROWN_HEADER_COLOR, msg, COLOR_RESET);
 }
 
 // Helper function
-fn int crown_help_qsort_cmd(const void *a, const void *b) {
+AOCDEF int crown_help_qsort_cmd(const void *a, const void *b) {
     const CrownCommand *CMD_A = (const CrownCommand *)a;
     const CrownCommand *CMD_B = (const CrownCommand *)b;
 
@@ -684,14 +684,14 @@ fn int crown_help_qsort_cmd(const void *a, const void *b) {
 }
 
 // Helper function
-fn const char *qsort_get_opt(const CrownOption *flag) {
+AOCDEF const char *qsort_get_opt(const CrownOption *flag) {
     if (flag->short_opt) return flag->short_opt;
     if (flag->long_opt) return flag->long_opt;
     return "";
 }
 
 // Helper function
-fn int crown_help_qsort_opt(const void *a, const void *b) {
+AOCDEF int crown_help_qsort_opt(const void *a, const void *b) {
     const CrownOption *FLAG_A = (const CrownOption *)a;
     const CrownOption *FLAG_B = (const CrownOption *)b;
 
@@ -699,7 +699,7 @@ fn int crown_help_qsort_opt(const void *a, const void *b) {
 }
 
 // Helper function
-fn bool crown_has_commands(CrownCommand *cmds) {
+AOCDEF bool crown_has_commands(CrownCommand *cmds) {
     CrownCmds *cmd = cmds && cmds->subcmd != NULL ? cmds->subcmd : Program->subcmd;
     if (cmd == NULL) return false;
     if (cmd->len == 0) return false;
@@ -712,7 +712,7 @@ fn bool crown_has_commands(CrownCommand *cmds) {
 }
 
 // Helper function
-fn bool crown_has_options(CrownCommand *cmds) {
+AOCDEF bool crown_has_options(CrownCommand *cmds) {
     CrownOpts *opt = cmds && cmds->flags != NULL ? cmds->flags : Program->flags;
     if (opt == NULL) return false;
     if (opt->len == 0) return false;
@@ -760,7 +760,7 @@ fn bool crown_has_options(CrownCommand *cmds) {
 //       Description
 
 // Helper function
-fn void crown_help_commands(CrownCommand *cmds) {
+AOCDEF void crown_help_commands(CrownCommand *cmds) {
     crown_print_header("Commands:\n");
 
     const CrownCmds *COMMAND = cmds && cmds->subcmd != NULL ? cmds->subcmd : Program->subcmd;
@@ -809,7 +809,7 @@ fn void crown_help_commands(CrownCommand *cmds) {
 //       Description
 
 // Helper function
-fn void crown_help_options(CrownCommand *cmds) {
+AOCDEF void crown_help_options(CrownCommand *cmds) {
     crown_print_header("Options:\n");
 
     const CrownOpts *FLAG = cmds && cmds->flags != NULL ? cmds->flags : Program->flags;
@@ -829,7 +829,7 @@ fn void crown_help_options(CrownCommand *cmds) {
     CROWN_PUTC('\n');
 }
 
-fn void crown_help(CrownCommand *null cmd) {
+AOCDEF void crown_help(CrownCommand *null cmd) {
     // NULL in case you want to print the general flags and commands
 
     CrownCommand *print = cmd == NULL ? NULL : cmd;
@@ -863,12 +863,12 @@ fn void crown_help(CrownCommand *null cmd) {
 
 // CLI Argument Parser
 
-fn char *crown_getarg(char *argv[], int argc) {
+AOCDEF char *crown_getarg(char *argv[], int argc) {
     if (optind >= argc) return NULL;
     return argv[optind++];
 }
 
-fn int crown_getopt(CrownCommand *null cmds, char *argv[], int argc) {
+AOCDEF int crown_getopt(CrownCommand *null cmds, char *argv[], int argc) {
     const char *arg = crown_getarg(argv, argc);
     optcur = (char *)arg;
 
@@ -905,7 +905,7 @@ fn int crown_getopt(CrownCommand *null cmds, char *argv[], int argc) {
     return CrownNotFound;
 }
 
-fn int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
+AOCDEF int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
     const CrownCommand *opt = cmds && cmds->subcmd != NULL ? cmds->subcmd->data :
                                                              Program->subcmd->data;
     const size_t len = cmds && cmds->subcmd != NULL ? cmds->subcmd->len : Program->subcmd->len;
@@ -930,7 +930,7 @@ fn int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
     return CrownNotDefined;
 }
 
-fn void crown_iprint(const char *msg, int indent) {
+AOCDEF void crown_iprint(const char *msg, int indent) {
     struct winsize w;
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 || w.ws_col == 0) {
         w.ws_col = 80;

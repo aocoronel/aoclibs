@@ -6,9 +6,9 @@
 #include <stddef.h>
 
 // Modify prefixes in all functions:
-// #define fn static inline
-#ifndef fn
-#define fn
+// #define AOCDEF static inline
+#ifndef AOCDEF
+#define AOCDEF
 #endif
 
 // === Pointers ===
@@ -51,6 +51,8 @@
 // To be used in function declarations. "static" is a very broad keyword in C,
 // internal express this idea better.
 #define internal __attribute__((visibility("hidden")));
+
+#define DISCARD(x) (void)x
 
 // === Debugging ===
 
