@@ -2,6 +2,7 @@
 
 #include "rc.h"
 #include "slices.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,18 +60,18 @@ Slices split(rc *f, char delim) {
 }
 
 Slice extract_between_whitespaces(const char *s, size_t begin, size_t end) {
-    const char *s_ptr = s + begin;
+    if (begin >= end) {
+        return (Slice){ .data = NULL, .len = 0 };
+    }
+
     size_t n_begin = begin;
     size_t n_end = end;
 
-    while (s_ptr < s + end && *s_ptr == ' ') {
-        s_ptr++;
+    while (n_begin < n_end && isspace((unsigned char)s[n_begin])) {
         n_begin++;
     }
 
-    s_ptr = s + end - 1;
-    while (s_ptr >= s + n_begin && *s_ptr == ' ') {
-        s_ptr--;
+    while (n_end > n_begin && isspace((unsigned char)s[n_end - 1])) {
         n_end--;
     }
 
