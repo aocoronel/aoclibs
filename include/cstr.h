@@ -18,7 +18,7 @@ AOCDEF bool cstr_ends_with(const char *restrict s,
                        const char *restrict pattern,
                        size_t pattern_len);
 
-#define cstr_eq(s, pattern) cstrn_eq_case((s), strlen((s)), (pattern), strlen((pattern)))
+#define cstr_eq(s, pattern) cstrn_eq((s), strlen((s)), (pattern), strlen((pattern)))
 // Compares "s" to "pattern".
 AOCDEF bool cstrn_eq(const char *restrict s,
                  const size_t s_len,
