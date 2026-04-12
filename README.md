@@ -22,8 +22,9 @@ gcc -o merge merge.c && ./merge
 - `da.h` :: Heap/stack-based dynamic arrays *
 - `file.h` :: File operations
 - `fork.h` :: Fork high-level wrappers
-- `map.h` :: Key-value pairs
+- `fquery.h` :: "Regex" simple approach based on functions
 - `io.h` :: Input/output simple functions
+- `map.h` :: Key-value pairs
 - `pp.h` :: Pointer Pool
 - `printfc.h` :: `printf` with colors
 - `rc.h` :: String type powered by `da.h`
