@@ -84,6 +84,34 @@ void slice_to_cstr(Slice s, char *buff, const size_t size) {
     buff[size_to_copy] = '\0';
 }
 
+Slice slice_goto_line(const Slice *s, const size_t line) {
+    size_t line_count = 0;
+
+    const char *pos = s->data;
+    size_t remaining = s->len;
+
+    while (remaining > 0) {
+        const char *newline = memchr(pos, '\n', remaining);
+        if (!newline) break;
+
+        line_count++;
+
+        if (line_count == line) {
+            pos = newline + 1;
+            return (Slice){ .data = pos, .len = remaining };
+        }
+
+        size_t consumed = (newline + 1) - pos;
+        pos += consumed;
+        remaining -= consumed;
+    }
+
+    PANIC("tried to go past the size of the slice. Slice is '%zu'"
+          "lines long, but requested line '%zu'\n",
+          line_count,
+          line);
+}
+
 bool while_token(Slice *cursor, int *remaining_len, Slice *out) {
     if (*remaining_len <= 0) return false;
 
