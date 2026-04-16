@@ -1,5 +1,6 @@
 #pragma once
 
+#include "base.h"
 #include "rc.h"
 #include "slices.h"
 #include <ctype.h>
@@ -59,7 +60,30 @@ Slices split(rc *f, char delim) {
     return ss;
 }
 
-Slice extract_between_whitespaces(const char *s, size_t begin, size_t end) {
+// while (begin < end) {
+//     cursor = while_extract_next_word(s, &begin, end);
+//     if (cursor.len == 0) break;
+// }
+Slice while_extract_next_word(const char *restrict s, size_t *restrict begin, size_t end) {
+    ASSERT_NONNULL(s);
+    size_t i = *begin;
+
+    while (i < end && isspace((unsigned char)s[i])) {
+        i++;
+    }
+
+    size_t start = i;
+
+    while (i < end && !isspace((unsigned char)s[i])) {
+        i++;
+    }
+
+    *begin = i;
+
+    return (Slice){ .data = s + start, .len = i - start };
+}
+
+Slice extract_between_whitespaces(const char *restrict s, size_t begin, size_t end) {
     if (begin >= end) {
         return (Slice){ .data = NULL, .len = 0 };
     }
@@ -112,6 +136,9 @@ Slice slice_goto_line(const Slice *s, const size_t line) {
           line);
 }
 
+// while (while_token(&cursor, &len, &out)) {
+//     printf("%.*s\n", (int)out.len, out.data);
+// }
 bool while_token(Slice *cursor, int *remaining_len, Slice *out) {
     if (*remaining_len <= 0) return false;
 

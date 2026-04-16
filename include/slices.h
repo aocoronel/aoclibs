@@ -50,7 +50,13 @@ AOCDEF Slices split(rc *f, char delim);
 //      printf("%.*s\n", slice.len, slice.data); // => "Hello,"
 //      slice = extract_between_whitespace(msg, slice.len, sizeof(msg));
 //      printf("%.*s\n", slice.len, slice.data); // => "World!"
-AOCDEF Slice extract_between(const char *s, size_t begin, size_t end, char delim);
+AOCDEF Slice extract_between_whitespaces(const char *restrict s, size_t begin, size_t end);
+
+// while (begin < end) {
+//     cursor = while_extract_next_word(s, &begin, end);
+//     if (cursor.len == 0) break;
+// }
+AOCDEF Slice while_extract_next_word(const char *restrict s, size_t *restrict begin, size_t end);
 
 bool while_token(Slice *cursor, int *remaining_len, Slice *out);
 
