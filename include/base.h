@@ -86,6 +86,12 @@
 #define CAT(a, b) CAT_IMPL(a, b)
 #define CAT_IMPL(a, b) a##b
 
+#define STRINGIFY(x) #x
+
+// #define hello 0
+// MSTRINGIFY(hello) -> "0"
+#define MSTRINGIFY(x) STRINGIFY(x)
+
 #define swap(x, z)           \
     do {                     \
         __typeof__(x) t = x; \
