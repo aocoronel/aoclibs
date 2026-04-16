@@ -23,17 +23,17 @@ typedef struct {
     struct stat *stat;
 } FileMetadata;
 
-typedef void (*dw_fn)(const FileMetadata *);
+typedef void (*null dw_fn)(const FileMetadata *);
 
 typedef struct DirWalker DirWalker;
 
 struct DirWalker {
     bool metadata;
-    void (*isdir)(const FileMetadata *, DirWalker *);
+    void (*null isdir)(const FileMetadata *, DirWalker *);
     dw_fn islnk;
     dw_fn isnull;
     dw_fn isreg;
-    void (*isempty)(const char *path);
+    void (*null isempty)(const char *path);
 };
 
 // dir_walk("test.md", .metadata = false);
@@ -50,25 +50,26 @@ struct DirWalker {
 // in it.
 //
 // Sets errno << opendir
-int dir_walker(const char *path, DirWalker *dw);
+AOCDEF int dir_walker(const char *restrict path, DirWalker *restrict dw);
 
 // Stat the file and return its type
 //
 // F_FAIL :: failed to stat. Sets errno << lstat
 AOCDEF FileType get_filetype(const char *path);
 
-FileMetadata get_file_data(struct stat *st, const char *path);
+// TODO: remove this and make get_filetype take a stat instead
+AOCDEF FileMetadata get_file_data(struct stat *restrict st, const char *restrict path);
 
 // Reads file, splitting the read buffer by the delimiter.
 // Returns how many bytes has been read.
 //
 // Allocates to lineptr. The user owns the allocation.
 AOCDEF size_t read_by_delim(char **restrict lineptr,
-                        size_t *restrict n,
-                        int delim,
-                        FILE *restrict stream);
+                            size_t *restrict n,
+                            int delim,
+                            FILE *restrict stream);
 
-bool read_entire_file(rc *lines, const char *filepath);
+AOCDEF bool read_entire_file(rc *null restrict lines, const char *restrict filepath);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "file.c"

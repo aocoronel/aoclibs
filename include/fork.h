@@ -17,7 +17,7 @@ typedef struct {
 } ForkCmd;
 
 AOCDEF ForkCmd fork_cmd(char **argv);
-AOCDEF PipeResult run_cmd(char **argv, const char *null input);
+AOCDEF PipeResult run_cmd(char **restrict argv, const char *null restrict input);
 AOCDEF rc read_fd(int fd);
 AOCDEF int wait_for(pid_t pid);
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "file.h"
+#include "cstr.h"
 #include "base.h"
 #include "da.h"
 #include "rc.h"
