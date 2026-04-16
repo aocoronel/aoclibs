@@ -30,6 +30,7 @@
 #include "./include/da.h"
 #include "./include/rc.h"
 
+#include "./include/fquery.h"
 #include "./include/pp.h"
 #include "./include/slices.h"
 #include "./include/cstr.h"
