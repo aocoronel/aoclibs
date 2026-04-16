@@ -48,17 +48,18 @@
 //
 // DynamicArray my_da = { 0 };
 // da_reserve(&my_da, (&my_da)->len + 1); // Needs to allocate one value
-#define da_reserve(da, new_cap)                                                \
-    do {                                                                       \
-        if (UNLIKELY((new_cap) > (da)->cap)) {                                 \
-            if ((da)->cap < AOCLIBS_DA_INITIAL_CAPACITY) {                     \
-                (da)->cap = AOCLIBS_DA_INITIAL_CAPACITY;                       \
-            }                                                                  \
-            while ((new_cap) > (da)->cap) {                                    \
-                (da)->cap *= 2;                                                \
-            }                                                                  \
-            (da)->data = realloc((da)->data, (da)->cap * sizeof(*(da)->data)); \
-        }                                                                      \
+#define da_reserve(da, new_cap)                                                           \
+    do {                                                                                  \
+        if (UNLIKELY((new_cap) > (da)->cap)) {                                            \
+            if ((da)->cap < AOCLIBS_DA_INITIAL_CAPACITY) {                                \
+                (da)->cap = AOCLIBS_DA_INITIAL_CAPACITY;                                  \
+            }                                                                             \
+            while ((new_cap) > (da)->cap) {                                               \
+                (da)->cap *= 2;                                                           \
+            }                                                                             \
+            (da)->data = realloc((da)->data, (da)->cap * sizeof(*(da)->data));            \
+            ASSERT((da)->data, "out of memory while reserving memory for dynamic array"); \
+        }                                                                                 \
     } while (0)
 
 #define da_free(da)                                \
@@ -135,9 +136,8 @@
 // Faster da_drop
 #define da_unordered_drop(da, i)                     \
     do {                                             \
-        size_t j = (i);                              \
-        ASSERT(j < (da)->count);                     \
-        (da)->items[j] = (da)->items[--(da)->count]; \
+        ASSERT(i < (da)->count);                     \
+        (da)->items[i] = (da)->items[--(da)->count]; \
     } while (0)
 
 // Swaps indexes "i1" and "i2"
