@@ -94,7 +94,8 @@ Map *null _map_find(Map *m, Slice *s, size_t cursor) {
 }
 
 Map *null map_find(Map *m, Slice *s) {
-    return _map_find(m, s, 0);
+    Map *tmp = _map_find(m, s, 0);
+    return (tmp && tmp->value) ? tmp : NULL;
 }
 
 bool map_set(Map *m, Slice *s, void *value) {
