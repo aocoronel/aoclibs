@@ -115,6 +115,7 @@ AOCDEF void arena_trim(Arena *a);
                                        (da)->data,                                               \
                                        (da)->cap * sizeof(*(da)->data),                          \
                                        new_capacity * sizeof(*(da)->data));                      \
+            ASSERT((da)->data, "out of memory while reserving memory for arena dynamic array");  \
             (da)->cap = new_capacity;                                                            \
         }                                                                                        \
     } while (0)
