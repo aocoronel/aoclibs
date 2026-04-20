@@ -8,49 +8,6 @@
  * and is licensed under the Unlicense License (Public Domain) or MIT License.
 */
 
-// === Config ===
-
-// Disable colors
-#define FEATURE_DISABLE_COLORS
-
-// === Function Definitions ===
-
-// Enabled with AOCLIBS_IMPLEMENTATION
-
-#include "./include/base.h"
-
-// Standalones
-#include "./include/colors.h"
-#include "./include/printfc.h"
-
-// Dynamic Arrays
-#include <stdlib.h>
-#include <string.h>
-
-#include "./include/da.h"
-#include "./include/rc.h"
-
-#include "./include/fquery.h"
-#include "./include/pp.h"
-#include "./include/slices.h"
-#include "./include/cstr.h"
-#include "./include/arena.h"
-#include "./include/map.h"
-#include "./include/file.h"
-#include "./include/fork.h"
-
-#ifdef AOCLIBS_IMPLEMENTATION
-
-#endif // AOCLIBS_IMPLEMENTATION
-
-// Libraries
-#include "./libs/crown.h" // AOCLIBS_CROWN
-#include "./libs/debug.h" // AOCLIBS_DEBUG
-#include "./libs/heap_trace.h" // HEAP_DEBUG
-#include "./libs/match.h" // AOCLIBS_MATCH
-#include "./libs/spinner.h" // AOCLIBS_SPINNER
-#include "./libs/tunit.h" // TUNIT
-
 /*
  * This project is licensed under Unlicense and MIT. Pick one:
  *
@@ -98,5 +55,44 @@
  * SOFTWARE.
  * =============================================================================
 */
+
+// === Config ===
+
+// Disable colors
+// #define FEATURE_DISABLE_COLORS
+
+// === Function Definitions ===
+
+// Enabled with AOCLIBS_IMPLEMENTATION
+
+#include "./include/base.h"
+
+// Standalones
+#include "./include/colors.h"
+#include "./include/printfc.h"
+
+// Dynamic Arrays
+#include <stdlib.h>
+#include <string.h>
+
+#include "./include/da.h"
+#include "./include/rc.h"
+
+#include "./include/pp.h"
+#include "./include/slices.h"
+#include "./include/fquery.h"
+#include "./include/cstr.h"
+#include "./include/arena.h"
+#include "./include/map.h"
+#include "./include/file.h"
+#include "./include/fork.h"
+
+// Libraries
+#include "./libs/crown.h" // AOCLIBS_CROWN
+#include "./libs/debug.h" // AOCLIBS_DEBUG
+#include "./libs/heap_trace.h" // HEAP_DEBUG
+#include "./libs/match.h" // AOCLIBS_MATCH
+#include "./libs/spinner.h" // AOCLIBS_SPINNER
+#include "./libs/tunit.h" // TUNIT
 
 #endif // AOCLIBS_H

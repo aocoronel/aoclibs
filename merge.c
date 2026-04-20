@@ -65,6 +65,8 @@ bool read_file(const char *file, bool ignore_include) {
                 continue;
             }
             continue;
+        } else if ((pos = MERGE_MATCH("#pragma once")) != SIZE_MAX) {
+            continue;
         }
 print:
         fprintf(output, "%s", buffer);
@@ -79,7 +81,11 @@ print:
 
 void read_source_files(const FileMetadata *data) {
     if (!cstr_ends_with(data->name, strlen(data->name), ".c", 2)) return;
+
+    fprintf(output, "%s", "#ifdef AOCLIBS_IMPLEMENTATION\n");
     if (!read_file(data->name, true)) return;
+    fprintf(output, "%s", "#endif // AOCLIBS_IMPLEMENTATION\n");
+
     return;
 }
 
