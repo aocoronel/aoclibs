@@ -64,7 +64,7 @@ Slices split(rc *f, char delim) {
 //     cursor = while_extract_next_word(s, &begin, end);
 //     if (cursor.len == 0) break;
 // }
-Slice while_extract_next_word(const char *restrict s, size_t *restrict begin, size_t end) {
+Slice while_next_word(const char *restrict s, size_t *restrict begin, size_t end) {
     ASSERT_NONNULL(s);
     size_t i = *begin;
 
@@ -83,23 +83,23 @@ Slice while_extract_next_word(const char *restrict s, size_t *restrict begin, si
     return (Slice){ .data = s + start, .len = i - start };
 }
 
-Slice extract_between_whitespaces(const char *restrict s, size_t begin, size_t end) {
-    if (begin >= end) {
-        return (Slice){ .data = NULL, .len = 0 };
+Slice while_next_word_and(const char *restrict s, size_t *restrict begin, size_t end, char delim) {
+    ASSERT_NONNULL(s);
+    size_t i = *begin;
+
+    while (i < end && isspace((unsigned char)s[i])) {
+        i++;
     }
 
-    size_t n_begin = begin;
-    size_t n_end = end;
+    size_t start = i;
 
-    while (n_begin < n_end && isspace((unsigned char)s[n_begin])) {
-        n_begin++;
+    while (i < end && !isspace((unsigned char)s[i]) && (unsigned char)s[i] != delim) {
+        i++;
     }
 
-    while (n_end > n_begin && isspace((unsigned char)s[n_end - 1])) {
-        n_end--;
-    }
+    *begin = i;
 
-    return (Slice){ .data = s + n_begin, .len = n_end - n_begin };
+    return (Slice){ .data = s + start, .len = i - start };
 }
 
 void slice_to_cstr(Slice s, char *buff, const size_t size) {

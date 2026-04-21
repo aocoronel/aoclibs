@@ -56,7 +56,11 @@ AOCDEF Slice extract_between_whitespaces(const char *restrict s, size_t begin, s
 //     cursor = while_extract_next_word(s, &begin, end);
 //     if (cursor.len == 0) break;
 // }
-AOCDEF Slice while_extract_next_word(const char *restrict s, size_t *restrict begin, size_t end);
+AOCDEF Slice while_next_word(const char *restrict s, size_t *restrict begin, size_t end);
+AOCDEF Slice while_next_word_and(const char *restrict s,
+                                 size_t *restrict begin,
+                                 size_t end,
+                                 char delim);
 
 bool while_token(Slice *cursor, int *remaining_len, Slice *out);
 
