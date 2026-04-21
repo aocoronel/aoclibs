@@ -146,7 +146,10 @@ bool read_entire_file(rc *lines, const char *filepath) {
     if (!fp) return false;
 
     struct stat st;
-    if (stat(filepath, &st) == -1) return false;
+    if (stat(filepath, &st) == -1) {
+            fclose(fp);
+            return false;
+    }
 
     da_reserve(lines, (size_t)st.st_size);
     size_t n = fread(lines->data, sizeof(char), st.st_size, fp);
