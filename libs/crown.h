@@ -243,6 +243,10 @@ AOCDEF int crown_getopt(CrownCommand *null cmds, char *argv[], int argc);
 // crown_new_cmd...
 AOCDEF int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc);
 
+// Dump the entire CrownProgram variable in a stack-based format, so the user can initialize it using
+// the arena, and at release switch to the stack-based eliminating all allocations made by Crown.
+AOCDEF void crown_dump(FILE *fp);
+
 #ifdef AOCLIBS_CROWN
 
 #include "colors.h"
@@ -1042,15 +1046,6 @@ AOCDEF void crown_dump(FILE *fp) {
         fprintf(fp, ".args = NULL,\n");
     }
     fprintf(fp, "};\n");
-
-    // fprintf(fp,
-    //         "%s",
-    //         "CrownProgram Program = (CrownProgram){\n"
-    //         "    .name = %s, .desc = %s, .usage = %s,\n"
-    //         "    .args = %s, .subcmd = %s, .flags = %s,\n",
-    //         Program->name,
-    //         Program->desc,
-    //         Program->usage);
 }
 
 // CLI Argument Parser
