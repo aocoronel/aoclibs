@@ -82,7 +82,6 @@ typedef struct {
     CrownArgs *args;
     CrownCmds *subcmd;
     CrownOpts *flags;
-    const char *version;
 } CrownProgram;
 
 CrownCmds Crown_Command = { 0 };
