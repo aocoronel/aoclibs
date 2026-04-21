@@ -104,6 +104,7 @@ IniSections ini_read_fd(Arena *arena, FILE *fd) {
 
         // Declaration
         if ((equal = index_of(buffer, '=', new_line)) != SIZE_MAX) {
+            ASSERT(buffer[equal] == '=');
             IniKeys *current_keys = &da_last(&sections).keys;
 
             size_t begin = 0;
@@ -112,11 +113,18 @@ IniSections ini_read_fd(Arena *arena, FILE *fd) {
 
             // Array
             if (slice_ends_with(&key_slice, "[]", 2)) {
+                Slices slices = { 0 };
+                while (true) {
+                    Slice value_slice = while_next_word_and(buffer, &begin, new_line, ',');
+                    if (value_slice.len == 0) break;
+                    da_insert(&slices, value_slice);
+                }
+                ini_insert_key(arena, current_keys, key_slice, slices.data[0]);
+            } else {
+                Slice value_slice = while_next_word(buffer, &begin, new_line);
+
+                ini_insert_key(arena, current_keys, key_slice, value_slice);
             }
-
-            Slice value_slice = while_next_word(buffer, &begin, new_line);
-
-            ini_insert_key(arena, current_keys, key_slice, value_slice);
         }
         // New Section
         else if ((open_brackets = index_of(buffer, '[', new_line)) != SIZE_MAX) {

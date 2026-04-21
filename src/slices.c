@@ -85,6 +85,7 @@ Slice while_next_word(const char *restrict s, size_t *restrict begin, size_t end
 
 Slice while_next_word_and(const char *restrict s, size_t *restrict begin, size_t end, char delim) {
     ASSERT_NONNULL(s);
+
     size_t i = *begin;
 
     while (i < end && isspace((unsigned char)s[i])) {
@@ -93,13 +94,23 @@ Slice while_next_word_and(const char *restrict s, size_t *restrict begin, size_t
 
     size_t start = i;
 
-    while (i < end && !isspace((unsigned char)s[i]) && (unsigned char)s[i] != delim) {
+    bool found_delim = false;
+
+    while (i < end && !isspace((unsigned char)s[i])) {
+        if (s[i] == delim) {
+            found_delim = true;
+            break;
+        }
         i++;
     }
 
     *begin = i;
 
-    return (Slice){ .data = s + start, .len = i - start };
+    if (found_delim) {
+        return (Slice){ .data = s + start, .len = i - start };
+    } else {
+        return (Slice){ .data = s + start, .len = i - start };
+    }
 }
 
 void slice_to_cstr(Slice s, char *buff, const size_t size) {
