@@ -830,8 +830,6 @@ AOCDEF void crown_help_options(CrownCommand *cmds) {
 
 AOCDEF void crown_help(CrownCommand *null cmd) {
     // NULL in case you want to print the general flags and commands
-
-    CrownCommand *print = cmd == NULL ? NULL : cmd;
     if (cmd == NULL) {
         qsort(Program->subcmd->data,
               Program->subcmd->len,
@@ -856,8 +854,203 @@ AOCDEF void crown_help(CrownCommand *null cmd) {
         crown_help_usage(cmd);
         CROWN_PUTC('\n');
     }
-    if (crown_has_commands(print)) crown_help_commands(print);
-    if (crown_has_options(print)) crown_help_options(print);
+    if (crown_has_commands(cmd)) crown_help_commands(cmd);
+    if (crown_has_options(cmd)) crown_help_options(cmd);
+}
+
+AOCDEF void crown_dump_args(FILE *fp, CrownArgs *args, size_t indent) {
+    crown_indent_completion(indent - 2);
+    fprintf(fp, ".args = &(CrownArgs) {\n");
+    crown_indent_completion(indent);
+    fprintf(fp, ".cap = %zu,\n", args->len);
+    crown_indent_completion(indent);
+    fprintf(fp, ".len = %zu,\n", args->len);
+    crown_indent_completion(indent);
+    if (args->len > 0) {
+        fprintf(fp, ".data = (CrownArgument[]) {\n");
+        foreach (args, i) {
+            CrownArgument arg = args->data[i];
+
+            crown_indent_completion(indent + 2);
+            fprintf(fp, "{\n");
+
+            crown_indent_completion(indent + 4);
+            if (arg.name) {
+                fprintf(fp, ".name = \"%s\",\n", arg.name);
+            } else {
+                fprintf(fp, ".name = NULL,\n");
+            }
+
+            crown_indent_completion(indent + 4);
+            fprintf(fp, ".completion = ");
+            if (arg.completion) {
+                int completion_len = strlen(arg.completion);
+                fputc('"', fp);
+                for (int j = 0; j < completion_len; j++) {
+                    if (arg.completion[j] == '\n') {
+                        fputc('\\', fp);
+                        fputc('n', fp);
+                        continue;
+                    } else if (arg.completion[j] == '"') {
+                        fputc('\\', fp);
+                        fputc('"', fp);
+                        continue;
+                    }
+                    fputc(arg.completion[j], fp);
+                }
+                fprintf(fp, "\",\n");
+            } else {
+                fprintf(fp, "NULL,\n");
+            }
+
+            crown_indent_completion(indent + 2);
+            fprintf(fp, "},\n"); // CrownArgument
+        }
+        crown_indent_completion(indent);
+        fprintf(fp, "},\n"); // CrownArgument[]
+        crown_indent_completion(indent - 2);
+        fprintf(fp, "},\n"); // CrownArgs
+    } else {
+        fprintf(fp, ".data = NULL,\n");
+    }
+}
+
+AOCDEF void crown_dump_opt(FILE *fp, CrownOpts *opts, size_t indent) {
+    crown_indent_completion(indent - 2);
+    fprintf(fp, ".flags = &(CrownOpts) {\n");
+    crown_indent_completion(indent);
+    fprintf(fp, ".cap = %zu,\n", opts->len);
+    crown_indent_completion(indent);
+    fprintf(fp, ".len = %zu,\n", opts->len);
+    crown_indent_completion(indent);
+    fprintf(fp, ".data = (CrownOption[]) {\n");
+    foreach (opts, i) {
+        CrownOption opt = opts->data[i];
+
+        crown_indent_completion(indent + 2);
+        fprintf(fp, "{\n");
+
+        crown_indent_completion(indent + 4);
+        if (opt.short_opt) {
+            fprintf(fp, ".short_opt = \"%s\",\n", opt.short_opt);
+        } else {
+            fprintf(fp, ".short_opt = NULL,\n");
+        }
+
+        crown_indent_completion(indent + 4);
+        if (opt.long_opt) {
+            fprintf(fp, ".long_opt = \"%s\",\n", opt.long_opt);
+        } else {
+            fprintf(fp, ".long_opt = NULL,\n");
+        }
+
+        crown_indent_completion(indent + 4);
+        if (opt.desc) {
+            fprintf(fp, ".desc = \"%s\",\n", opt.desc);
+        } else {
+            fprintf(fp, ".desc = NULL,\n");
+        }
+
+        crown_indent_completion(indent + 4);
+        fprintf(fp, ".args = %d,\n", opt.args);
+
+        crown_indent_completion(indent + 2);
+        fprintf(fp, "},\n"); // CrownOption
+    }
+    crown_indent_completion(indent);
+    fprintf(fp, "},\n"); // CrownOption[]
+    crown_indent_completion(indent - 2);
+    fprintf(fp, "},\n"); // CrownOpts
+}
+
+AOCDEF void crown_dump_cmd(FILE *fp, CrownCmds *cmds, size_t indent) {
+    crown_indent_completion(indent - 2);
+    fprintf(fp, ".subcmd = &(CrownCmds) {\n");
+    crown_indent_completion(indent);
+    fprintf(fp, ".cap = %zu,\n", cmds->len);
+    crown_indent_completion(indent);
+    fprintf(fp, ".len = %zu,\n", cmds->len);
+    crown_indent_completion(indent);
+    fprintf(fp, ".data = (CrownCommand[]) {\n");
+    foreach (cmds, i) {
+        CrownCommand cmd = cmds->data[i];
+
+        crown_indent_completion(indent + 2);
+        fprintf(fp, "{\n");
+
+        crown_indent_completion(indent + 4);
+        if (cmd.name) {
+            fprintf(fp, ".name = \"%s\",\n", cmd.name);
+        } else {
+            fprintf(fp, ".name = NULL,\n");
+        }
+
+        crown_indent_completion(indent + 4);
+        if (cmd.desc) {
+            fprintf(fp, ".desc = \"%s\",\n", cmd.desc);
+        } else {
+            fprintf(fp, ".desc = NULL,\n");
+        }
+
+        crown_indent_completion(indent + 4);
+        fprintf(fp, ".args = %d,\n", cmd.args);
+
+        if (cmd.subcmd && cmd.subcmd->len > 0) {
+            crown_dump_cmd(fp, cmd.subcmd, indent + 6);
+        }
+        if (cmd.flags && cmd.flags->len > 0) {
+            crown_dump_opt(fp, cmd.flags, indent + 6);
+        }
+        crown_indent_completion(indent + 2);
+        fprintf(fp, "},\n"); // CrownCommand
+    }
+    crown_indent_completion(indent);
+    fprintf(fp, "},\n"); // CrownCommand[]
+    crown_indent_completion(indent - 2);
+    fprintf(fp, "},\n"); // CrownCmds
+}
+
+AOCDEF void crown_dump(FILE *fp) {
+    ASSERT_NONNULL(fp);
+
+    fprintf(fp, "(CrownProgram) {\n");
+    crown_indent_completion(2);
+    fprintf(fp, ".name = \"%s\",\n", Program->name);
+    crown_indent_completion(2);
+    fprintf(fp, ".desc = \"%s\",\n", Program->desc);
+    crown_indent_completion(2);
+    fprintf(fp, ".usage = \"%s\",\n", Program->usage);
+
+    if (Program->subcmd > 0) {
+        crown_dump_cmd(fp, Program->subcmd, 4);
+    } else {
+        crown_indent_completion(2);
+        fprintf(fp, ".subcmd = NULL,\n");
+    }
+
+    if (Program->flags > 0) {
+        crown_dump_opt(fp, Program->flags, 4);
+    } else {
+        crown_indent_completion(2);
+        fprintf(fp, ".flags = NULL,\n");
+    }
+
+    if (Program->args > 0) {
+        crown_dump_args(fp, Program->args, 4);
+    } else {
+        crown_indent_completion(2);
+        fprintf(fp, ".args = NULL,\n");
+    }
+    fprintf(fp, "};\n");
+
+    // fprintf(fp,
+    //         "%s",
+    //         "CrownProgram Program = (CrownProgram){\n"
+    //         "    .name = %s, .desc = %s, .usage = %s,\n"
+    //         "    .args = %s, .subcmd = %s, .flags = %s,\n",
+    //         Program->name,
+    //         Program->desc,
+    //         Program->usage);
 }
 
 // CLI Argument Parser
@@ -883,7 +1076,9 @@ AOCDEF int crown_getopt(CrownCommand *null cmds, char *argv[], int argc) {
         const char *long_opt = opt[i].long_opt;
         const char *short_opt = opt[i].short_opt;
         const size_t flag_arg_idx = opt[i].args;
-        const char *flag_arg = Program->args && Program->args->data != NULL ? Program->args->data[flag_arg_idx].name : NULL;
+        const char *flag_arg = Program->args && Program->args->data != NULL ?
+                                       Program->args->data[flag_arg_idx].name :
+                                       NULL;
 
         if (long_opt != NULL && cstr_eq(arg, long_opt)) {
             if (flag_arg != NULL) {
@@ -914,7 +1109,9 @@ AOCDEF int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
     for (size_t i = 0; i < len; i++) {
         const char *cmd = opt[i].name;
         const size_t cmd_arg_idx = opt[i].args;
-        const char *cmd_arg = Program->args && Program->args->data != NULL ? Program->args->data[cmd_arg_idx].name : NULL;
+        const char *cmd_arg = Program->args && Program->args->data != NULL ?
+                                      Program->args->data[cmd_arg_idx].name :
+                                      NULL;
         const CrownCommand *cmd_subcmd =
                 opt[i].subcmd && opt[i].subcmd->data != NULL ? opt[i].subcmd->data : NULL;
 
