@@ -3,6 +3,7 @@
 
 #include "arena.h"
 #include "rc.h"
+#include <ctype.h>
 #include "slices.h"
 #include <assert.h>
 #include <stdint.h>
@@ -121,7 +122,20 @@ IniSections ini_read_fd(Arena *arena, FILE *fd) {
                 }
                 ini_insert_key(arena, current_keys, key_slice, slices.data[0]);
             } else {
-                Slice value_slice = while_next_word(buffer, &begin, new_line);
+                const char *pos = buffer + begin;
+                Slice value_slice = { 0 };
+                while (pos && isspace(*pos)) {
+                    pos++;
+                }
+                if (*pos == '"') {
+                    const char *end = memchr(pos + 1, '"', new_line);
+                    if (!pos) {
+                        ASSERT(0, "unterminated string. TODO: turn into error");
+                    }
+                    value_slice = (Slice){ .data = pos, .len = 1 + end - pos };
+                } else {
+                    value_slice = while_next_word(buffer, &begin, new_line);
+                }
 
                 ini_insert_key(arena, current_keys, key_slice, value_slice);
             }
