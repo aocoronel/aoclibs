@@ -77,6 +77,9 @@ cstrn_eq_case(const char *s, const size_t s_len, const char *pattern, const size
     char *s_tmp = ptr;
     char *pattern_tmp = ptr + s_len;
 
+    memcpy(s_tmp, s, s_len);
+    memcpy(pattern_tmp, pattern, pattern_len);
+
     cstrn_to_lower(s_tmp, s_len);
     cstrn_to_lower(pattern_tmp, pattern_len);
 
