@@ -1,6 +1,7 @@
 #pragma once
 
 #include "arena.h"
+#include "base.h"
 #include <stdio.h>
 
 #include <stddef.h>
@@ -12,8 +13,10 @@
 
 AOCDEF Region *arena_new_region(size_t capacity) {
     size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
+
     Region *r = (Region *)malloc(size_bytes);
-    ASSERT(r, "Out of memory");
+    if (!r) return NULL;
+
     r->next = NULL;
     r->len = 0;
     r->cap = capacity;
@@ -21,7 +24,7 @@ AOCDEF Region *arena_new_region(size_t capacity) {
 }
 
 AOCDEF void arena_free_region(Region *r) {
-    ASSERT_NONNULL(r != NULL);
+    ASSERT_NONNULL(r);
     free(r);
 }
 
@@ -32,8 +35,10 @@ AOCDEF void arena_free_region(Region *r) {
 
 AOCDEF Region *arena_new_region(size_t capacity) {
     size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
+
     Region *r = mmap(NULL, size_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-    ASSERT(r != MAP_FAILED, "Failed to allocate virtual memory");
+    if (!r) return NULL;
+
     r->next = NULL;
     r->len = 0;
     r->cap = capacity;
@@ -41,9 +46,16 @@ AOCDEF Region *arena_new_region(size_t capacity) {
 }
 
 AOCDEF void arena_free_region(Region *r) {
+    ASSERT_NONNULL(r);
     size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * r->cap;
     int ret = munmap(r, size_bytes);
-    ASSERT(ret == 0);
+
+    // Manpage:
+    // "On success, munmap() returns 0.  On failure, it returns -1, and errno
+    //  is set to indicate the error (probably to EINVAL)."
+    //
+    // For consistency, we assume the user always provide a valid address
+    ASSERT(ret == 0, "%s", strerror(errno));
 }
 
 #elif AOCLIBS_ARENA_BACKEND == AOCLIBS_ARENA_BACKEND_VIRTUAL_ALLOC && _WIN32
@@ -70,7 +82,7 @@ AOCDEF Region *arena_new_region(size_t capacity) {
 }
 
 AOCDEF void arena_free_region(Region *r) {
-    if (INV_HANDLE(r)) return;
+    ASSERT_NONNULL(r);
 
     BOOL free_result =
             VirtualFreeEx(GetCurrentProcess(), /* Deallocate from current process address space */
@@ -84,7 +96,7 @@ AOCDEF void arena_free_region(Region *r) {
 
 #else
 
-#error "Unknown Arena backend"
+#error "Supported arenas: AOCLIBS_ARENA_BACKEND_LIBC_MALLOC and AOCLIBS_ARENA_BACKEND_VIRTUAL_ALLOC"
 
 #endif
 
@@ -96,8 +108,10 @@ AOCDEF void *arena_alloc(Arena *a, size_t size_bytes) {
         ASSERT(a->begin == NULL);
         size_t capacity = AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY;
         if (capacity < size) capacity = size;
+
         a->end = arena_new_region(capacity);
         if (a->end == NULL) return NULL;
+
         a->begin = a->end;
     }
 
@@ -120,7 +134,11 @@ AOCDEF void *arena_alloc(Arena *a, size_t size_bytes) {
 }
 
 AOCDEF void *arena_calloc(Arena *a, size_t size_bytes) {
+    ASSERT_NONNULL(a);
+
     void *ptr = arena_alloc(a, size_bytes);
+    if (!ptr) return NULL;
+
     memset(ptr, 0, size_bytes);
     return ptr;
 }
@@ -128,8 +146,10 @@ AOCDEF void *arena_calloc(Arena *a, size_t size_bytes) {
 AOCDEF void *arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t newsz) {
     ASSERT_NONNULL(a != NULL);
     if (newsz <= oldsz) return oldptr;
+
     void *newptr = arena_alloc(a, newsz);
     if (newptr == NULL) return NULL;
+
     char *newptr_char = (char *)newptr;
     char *oldptr_char = (char *)oldptr;
     memcpy(newptr_char, oldptr_char, oldsz);
@@ -139,18 +159,29 @@ AOCDEF void *arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t newsz) {
 AOCDEF void *arena_memdup(Arena *a, void *data, size_t size) {
     ASSERT_NONNULL(a != NULL);
     ASSERT_NONNULL(data != NULL);
-    return memcpy(arena_alloc(a, size), data, size);
+
+    void *p = arena_alloc(a, size);
+    if (!p) return NULL;
+
+    memcpy(p, data, size);
+
+    return p;
 }
 
 AOCDEF char *arena_vsprintf(Arena *a, const char *format, va_list args) {
     ASSERT_NONNULL(a != NULL);
+    ASSERT_NONNULL(format);
+
     va_list args_copy;
     va_copy(args_copy, args);
     int n = vsnprintf(NULL, 0, format, args_copy);
     va_end(args_copy);
 
     ASSERT(n >= 0);
+
     char *result = (char *)arena_alloc(a, n + 1);
+    if (!result) return NULL;
+
     vsnprintf(result, n + 1, format, args);
 
     return result;
@@ -158,6 +189,8 @@ AOCDEF char *arena_vsprintf(Arena *a, const char *format, va_list args) {
 
 AOCDEF char *arena_sprintf(Arena *a, const char *format, ...) {
     ASSERT_NONNULL(a != NULL);
+    ASSERT_NONNULL(format);
+
     va_list args;
     va_start(args, format);
     char *result = arena_vsprintf(a, format, args);

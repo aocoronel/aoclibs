@@ -71,7 +71,7 @@ AOCDEF void *null arena_calloc(Arena *a, size_t size_bytes);
 // Reserve new space from the arena with given "newsz".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCDEF void *null arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t newsz);
+AOCDEF void *null arena_realloc(Arena *a, void *null oldptr, size_t oldsz, size_t newsz);
 
 // Reserve space from the arena, and copies "data" into it. The user must also provide its "size".
 //
