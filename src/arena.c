@@ -11,8 +11,8 @@
 
 #include <stdlib.h>
 
-AOCDEF Region *arena_new_region(size_t capacity) {
-    size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
+AOCDEF Region *arena_new_region(const size_t capacity) {
+    const size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
 
     Region *r = (Region *)malloc(size_bytes);
     if (!r) return NULL;
@@ -33,8 +33,8 @@ AOCDEF void arena_free_region(Region *r) {
 #include <unistd.h>
 #include <sys/mman.h>
 
-AOCDEF Region *arena_new_region(size_t capacity) {
-    size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
+AOCDEF Region *arena_new_region(const size_t capacity) {
+    const size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
 
     Region *r = mmap(NULL, size_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
     if (!r) return NULL;
@@ -47,7 +47,7 @@ AOCDEF Region *arena_new_region(size_t capacity) {
 
 AOCDEF void arena_free_region(Region *r) {
     ASSERT_NONNULL(r);
-    size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * r->cap;
+    const size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * r->cap;
     int ret = munmap(r, size_bytes);
 
     // Manpage:
@@ -65,8 +65,8 @@ AOCDEF void arena_free_region(Region *r) {
 
 #define INV_HANDLE(x) (((x) == NULL) || ((x) == INVALID_HANDLE_VALUE))
 
-AOCDEF Region *arena_new_region(size_t capacity) {
-    SIZE_T size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
+AOCDEF Region *arena_new_region(const SIZE_T capacity) {
+    const SIZE_T size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
     Region *r = VirtualAllocEx(GetCurrentProcess(), /* Allocate in current process address space */
                                NULL, /* Unknown position */
                                size_bytes, /* Bytes to allocate */
@@ -100,9 +100,9 @@ AOCDEF void arena_free_region(Region *r) {
 
 #endif
 
-AOCDEF void *arena_alloc(Arena *a, size_t size_bytes) {
+AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
     ASSERT_NONNULL(a != NULL);
-    size_t size = (size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t);
+    const size_t size = (size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t);
 
     if (a->end == NULL) {
         ASSERT(a->begin == NULL);
@@ -133,7 +133,7 @@ AOCDEF void *arena_alloc(Arena *a, size_t size_bytes) {
     return result;
 }
 
-AOCDEF void *arena_calloc(Arena *a, size_t size_bytes) {
+AOCDEF void *arena_calloc(Arena *a, const size_t size_bytes) {
     ASSERT_NONNULL(a);
 
     void *ptr = arena_alloc(a, size_bytes);
@@ -143,7 +143,7 @@ AOCDEF void *arena_calloc(Arena *a, size_t size_bytes) {
     return ptr;
 }
 
-AOCDEF void *arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t newsz) {
+AOCDEF void *arena_realloc(Arena *a, void *oldptr, const size_t oldsz, const size_t newsz) {
     ASSERT_NONNULL(a != NULL);
     if (newsz <= oldsz) return oldptr;
 
@@ -156,7 +156,7 @@ AOCDEF void *arena_realloc(Arena *a, void *oldptr, size_t oldsz, size_t newsz) {
     return newptr;
 }
 
-AOCDEF void *arena_memdup(Arena *a, void *data, size_t size) {
+AOCDEF void *arena_memdup(Arena *a, void *data, const size_t size) {
     ASSERT_NONNULL(a != NULL);
     ASSERT_NONNULL(data != NULL);
 

@@ -55,36 +55,39 @@ typedef struct {
 // This memory is freed using "arena_free_region".
 //
 // NULL :: failed to allocate
-AOCDEF Region *null arena_new_region(size_t capacity);
+AOCDEF Region *null arena_new_region(const size_t capacity);
 AOCDEF void arena_free_region(Region *r);
 
 // Reserve space from the arena with given "size_bytes".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCDEF void *null arena_alloc(Arena *a, size_t size_bytes);
+AOCDEF void *null arena_alloc(Arena *a, const size_t size_bytes);
 
 // Reserve space from the arena, and zero initialize with given "size_bytes".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCDEF void *null arena_calloc(Arena *a, size_t size_bytes);
+AOCDEF void *null arena_calloc(Arena *a, const size_t size_bytes);
 
 // Reserve new space from the arena with given "newsz".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCDEF void *null arena_realloc(Arena *a, void *null oldptr, size_t oldsz, size_t newsz);
+AOCDEF void *null arena_realloc(Arena *restrict a,
+                                void *null restrict oldptr,
+                                const size_t oldsz,
+                                const size_t newsz);
 
 // Reserve space from the arena, and copies "data" into it. The user must also provide its "size".
 //
 // NULL :: failed to allocate << arena_new_region
-AOCDEF void *null arena_memdup(Arena *a, void *data, size_t size);
+AOCDEF void *null arena_memdup(Arena *restrict a, void *restrict data, const size_t size);
 
 // Reserve space from the arena, and copies formatted string with given "format".
 //
 // This serves as higher abstraction to arena_vsprintf.
 //
 // NULL :: failed to allocate << arena_new_region
-AOCDEF char *null arena_sprintf(Arena *a, const char *format, ...);
-AOCDEF char *null arena_vsprintf(Arena *a, const char *format, va_list args);
+AOCDEF char *null arena_sprintf(Arena *restrict a, const char *restrict format, ...);
+AOCDEF char *null arena_vsprintf(Arena *restrict a, const char *restrict format, va_list args);
 
 // Resets all contents, without freeing memory. Allows reuse.
 AOCDEF void arena_reset(Arena *a);
@@ -151,9 +154,9 @@ AOCDEF void arena_trim(Arena *a);
 
 #define arc_appendf(a, rc, fmt, ...)                                                             \
     do {                                                                                         \
-        int needed = cstr_fmt_size(fmt, __VA_ARGS__);                                            \
+        const int needed = cstr_fmt_size(fmt, __VA_ARGS__);                                      \
         dar_reserve(a, rc, (rc)->len + needed);                                                  \
-        int written =                                                                            \
+        const int written =                                                                      \
                 cstr_fmt_write((rc)->data + (rc)->len, (rc)->cap - (rc)->len, fmt, __VA_ARGS__); \
         (rc)->len += written;                                                                    \
     } while (0)
