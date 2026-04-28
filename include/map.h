@@ -4,6 +4,7 @@
 #include "base.h"
 #include "slices.h"
 #include "arena.h"
+#include "io.h"
 
 // Map
 //
@@ -42,30 +43,134 @@
 //
 // Lookup is done using binary search
 
-typedef struct Map {
-    // Dynamic Array
-    size_t cap;
-    size_t len;
-    struct Map *data;
+// Example:
+// typedef struct Map {
+//     // Dynamic Array
+//     size_t cap;
+//     size_t len;
+//     struct Map *data;
+//
+//     char key;
+//     void *value;
+// } Map;
 
-    char key;
-    void *value;
-} Map;
+#define generate_header_map(TYPE, PREFIX)                                                      \
+    AOCDEF void PREFIX##_insert(Arena *arena, TYPE *m, Slice *s, void *key);                   \
+    AOCDEF void PREFIX##_dump(TYPE *m);                                                        \
+    AOCDEF TYPE *null PREFIX##_find(TYPE *m, Slice *s);                                        \
+    AOCDEF bool PREFIX##_set(TYPE *m, Slice *s, void *value);                                  \
+    AOCDEF bool PREFIX##_delete(TYPE *m, Slice *s);                                            \
+                                                                                               \
+    AOCDEF int _##PREFIX##_bs(TYPE *m, unsigned char k);                                       \
+    AOCDEF void _##PREFIX##_insert(Arena *arena, TYPE *m, Slice *s, void *key, size_t cursor); \
+    AOCDEF void _##PREFIX##_dump(TYPE *m, int indent, rc *buff, int depth);                    \
+    AOCDEF TYPE *null _##PREFIX##_find(TYPE *m, Slice *s, size_t cursor);
 
-AOCDEF void map_insert(Arena *arena, Map *m, Slice *s, void *key);
-AOCDEF void map_dump(Map *m);
-AOCDEF Map *null map_find(Map *m, Slice *s);
-AOCDEF bool map_set(Map *m, Slice *s, void *value);
-AOCDEF bool map_delete(Map *m, Slice *s);
-
-// Internal
-AOCDEF int _map_bs(Map *m, unsigned char k);
-AOCDEF void _map_insert(Arena *arena, Map *m, Slice *s, void *key, size_t cursor);
-AOCDEF void _map_dump(Map *m, int indent, rc *buff, int depth);
-AOCDEF Map *null _map_find(Map *m, Slice *s, size_t cursor);
-
-#ifdef AOCLIBS_IMPLEMENTATION
-#include "map.c"
-#endif
+#define generate_definition_map(TYPE, PREFIX)                                            \
+    int _##PREFIX##_bs(TYPE *m, unsigned char k) {                                       \
+        int left = 0, right = m->len;                                                    \
+                                                                                         \
+        while (left < right) {                                                           \
+            int mid = left + (right - left) / 2;                                         \
+            if ((unsigned char)m->data[mid].key < k) {                                   \
+                left = mid + 1;                                                          \
+            } else {                                                                     \
+                right = mid;                                                             \
+            }                                                                            \
+        }                                                                                \
+                                                                                         \
+        return left;                                                                     \
+    }                                                                                    \
+                                                                                         \
+    void _##PREFIX##_insert(Arena *arena, TYPE *m, Slice *s, void *key, size_t cursor) { \
+        if (cursor == s->len) {                                                          \
+            m->value = key;                                                              \
+            return;                                                                      \
+        }                                                                                \
+                                                                                         \
+        unsigned char k = (unsigned char)s->data[cursor];                                \
+                                                                                         \
+        int pos = _##PREFIX##_bs(m, k);                                                  \
+                                                                                         \
+        if (pos < m->len && (unsigned char)m->data[pos].key == k) {                      \
+            return _##PREFIX##_insert(arena, &m->data[pos], s, key, cursor + 1);         \
+        }                                                                                \
+                                                                                         \
+        int left = 0, right = m->len;                                                    \
+        while (left < right) {                                                           \
+            int mid = left + (right - left) / 2;                                         \
+            if ((unsigned char)m->data[mid].key < k)                                     \
+                left = mid + 1;                                                          \
+            else                                                                         \
+                right = mid;                                                             \
+        }                                                                                \
+                                                                                         \
+        dar_reserve(arena, m, m->len + 1);                                               \
+        memmove(&m->data[left + 1], &m->data[left], (m->len - left) * sizeof(TYPE));     \
+                                                                                         \
+        TYPE c = { 0 };                                                                  \
+        c.key = k;                                                                       \
+                                                                                         \
+        m->data[left] = c;                                                               \
+        m->len++;                                                                        \
+                                                                                         \
+        _##PREFIX##_insert(arena, &m->data[left], s, key, cursor + 1);                   \
+    }                                                                                    \
+                                                                                         \
+    void PREFIX##_insert(Arena *arena, TYPE *m, Slice *s, void *key) {                   \
+        _##PREFIX##_insert(arena, m, s, key, 0);                                         \
+    }                                                                                    \
+                                                                                         \
+    void _##PREFIX##_dump(TYPE *m, int indent, rc *buff, int depth) {                    \
+        da_reserve(buff, depth + 1);                                                     \
+        range(0, m->len, i) {                                                            \
+            buff->data[depth] = m->data[i].key;                                          \
+            buff->data[depth + 1] = '\0';                                                \
+                                                                                         \
+            fputn(stderr, indent, ' ');                                                  \
+            fprintf(stderr, "%c -> %s\n", m->data[i].key, buff->data);                   \
+                                                                                         \
+            _##PREFIX##_dump(&m->data[i], indent + 3, buff, depth + 1);                  \
+        }                                                                                \
+    }                                                                                    \
+                                                                                         \
+    void PREFIX##_dump(TYPE *m) {                                                        \
+        rc buff = { 0 };                                                                 \
+        _##PREFIX##_dump(m, 0, &buff, 0);                                                \
+        da_free(&buff);                                                                  \
+    }                                                                                    \
+                                                                                         \
+    TYPE *null _##PREFIX##_find(TYPE *m, Slice *s, size_t cursor) {                      \
+        if (cursor == s->len) return m;                                                  \
+        unsigned char k = (unsigned char)s->data[cursor];                                \
+                                                                                         \
+        int pos = _##PREFIX##_bs(m, k);                                                  \
+                                                                                         \
+        if (pos < m->len && (unsigned char)m->data[pos].key == k) {                      \
+            return _##PREFIX##_find(&m->data[pos], s, cursor + 1);                       \
+        }                                                                                \
+        return NULL;                                                                     \
+    }                                                                                    \
+                                                                                         \
+    TYPE *null PREFIX##_find(TYPE *m, Slice *s) {                                        \
+        TYPE *tmp = _##PREFIX##_find(m, s, 0);                                           \
+        return (tmp && tmp->value) ? tmp : NULL;                                         \
+    }                                                                                    \
+                                                                                         \
+    bool PREFIX##_set(TYPE *m, Slice *s, void *value) {                                  \
+        TYPE *c = PREFIX##_find(m, s);                                                   \
+        if (!c) return false;                                                            \
+                                                                                         \
+        c->value = value;                                                                \
+        return true;                                                                     \
+    }                                                                                    \
+                                                                                         \
+    bool PREFIX##_delete(TYPE *m, Slice *s) {                                            \
+        TYPE *c = PREFIX##_find(m, s);                                                   \
+        if (!c) return false;                                                            \
+                                                                                         \
+        c->value = NULL;                                                                 \
+        return true;                                                                     \
+    }
 
 #endif
