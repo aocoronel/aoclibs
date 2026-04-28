@@ -23,9 +23,11 @@ typedef struct {
     void **data;
 } PPool;
 
-AOCDEF void *pfill(PPool *pool, size_t size);
+AOCDEF void *pfill(PPool *pool, const size_t size);
 
-AOCDEF void *pfillc(PPool *pool, size_t nmeb, size_t size);
+AOCDEF void *pfillc(PPool *pool, const size_t nmeb, const size_t size);
+
+AOCDEF void *prefresh(PPool *pool, void *ptr, const size_t size);
 
 // Frees all memory. Doesn't free the pool itself
 // The user can always reuse the same pool
