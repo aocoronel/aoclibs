@@ -4,6 +4,8 @@
 #include "base.h"
 #include "da.h"
 
+// Maybe rename rc to string? rc may stand for reference counting, but we use as a abbreviation for
+// row char, which is nice to type
 typedef struct {
     size_t cap;
     size_t len;

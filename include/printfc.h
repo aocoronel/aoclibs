@@ -1,6 +1,7 @@
 #ifndef AOCLIBS_PRINTFC_H_
 #define AOCLIBS_PRINTFC_H_
 
+#include "base.h"
 #include "colors.h"
 
 // printfc :: print formatted color
