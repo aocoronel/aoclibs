@@ -65,6 +65,7 @@
 
 // Enabled with AOCLIBS_IMPLEMENTATION
 
+#include "./include/libc.h"
 #include "./include/base.h"
 
 // Standalones
