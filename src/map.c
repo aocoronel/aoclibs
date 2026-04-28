@@ -64,7 +64,7 @@ void map_insert(Arena *arena, Map *m, Slice *s, void *key) {
 
 void _map_dump(Map *m, int indent, rc *buff, int depth) {
     da_reserve(buff, depth + 1);
-    foreach (m, i) {
+    range(0, m->len, i) {
         buff->data[depth] = m->data[i].key;
         buff->data[depth + 1] = '\0';
 

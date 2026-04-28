@@ -280,7 +280,7 @@ AOCDEF void crown_bashgen_options(CrownOpts *cmds, int indent) {
     CrownOpts *curr_cmd = cmds == NULL ? Program->flags : cmds;
     ASSERT(curr_cmd != NULL);
 
-    foreach (curr_cmd, i) {
+    range(0, curr_cmd->len, i) {
         char ARG[CROWN_BUFFER];
         CrownOption flags = curr_cmd->data[i];
         CrownArgument arg = Program->args->data[flags.args];
@@ -312,7 +312,7 @@ AOCDEF void crown_bashgen_options(CrownOpts *cmds, int indent) {
 void crown_print_subcmd_completion(CrownCommand cmd, int indent) {
     crown_indent_completion(indent);
     CROWN_PUTS("    comp=(\n");
-    foreach (cmd.subcmd, j) {
+    range(0, cmd.subcmd->len, j) {
         CrownCommand completion_cmd = cmd.subcmd->data[j];
         bool has_desc = completion_cmd.desc != NULL ? true : false;
         crown_indent_completion(indent);
@@ -321,7 +321,7 @@ void crown_print_subcmd_completion(CrownCommand cmd, int indent) {
         else
             CROWN_PRINTF("      \"%s\"\n", completion_cmd.name);
     }
-    foreach (cmd.flags, j) {
+    range(0, cmd.flags->len, j) {
         CrownOption completion_opt = cmd.flags->data[j];
         bool has_desc = completion_opt.desc != NULL ? true : false;
         if (completion_opt.short_opt) {
@@ -354,7 +354,7 @@ AOCDEF void crown_bashgen_subcommand(CrownCmds *cmds, int indent, int level) {
     CrownCmds *curr_cmd = cmds == NULL ? Program->subcmd : cmds;
     ASSERT(curr_cmd != NULL);
 
-    foreach (curr_cmd, i) {
+    range(0, curr_cmd->len, i) {
         char ARG[CROWN_BUFFER];
         CrownCommand cmd = curr_cmd->data[i];
         CrownArgument arg = Program->args->data[cmd.args];
@@ -370,10 +370,10 @@ AOCDEF void crown_bashgen_subcommand(CrownCmds *cmds, int indent, int level) {
         if (cmd.subcmd && cmd.subcmd->data || cmd.flags && cmd.flags->data) {
             crown_indent_completion(indent + 4);
             crown_bashgen_case_prev_open(level + 1);
-            foreach (cmd.subcmd, j) {
+            range(0, cmd.subcmd->len, j) {
                 crown_bashgen_subcommand(cmd.subcmd, indent + 6, level + 1);
             }
-            foreach (cmd.flags, j) {
+            range(0, cmd.flags->len, j) {
                 crown_bashgen_options(cmd.flags, indent + 6);
             }
             crown_bashgen_case_prev_close(indent + 4);
@@ -449,7 +449,7 @@ void crown_generate_completion(const CrownEnv *env, int envc, int default_level)
                "  local level=${#words[@]}\n"
                "\n");
     CROWN_PUTS("  local global_commands=(\n");
-    foreach (Program->subcmd, i) {
+    range(0, Program->subcmd->len, i) {
         CrownCommand completion_cmd = Program->subcmd->data[i];
         const char *completion_desc = completion_cmd.desc;
 
@@ -465,7 +465,7 @@ void crown_generate_completion(const CrownEnv *env, int envc, int default_level)
     }
     CROWN_PUTS("  )\n");
     CROWN_PUTS("  local global_flags=(\n");
-    foreach (Program->flags, i) {
+    range(0, Program->flags->len, i) {
         CrownOption completion_flag = Program->flags->data[i];
         const char *completion_desc = completion_flag.desc;
 
@@ -872,7 +872,7 @@ AOCDEF void crown_dump_args(FILE *fp, CrownArgs *args, size_t indent) {
     crown_indent_completion(indent);
     if (args->len > 0) {
         fprintf(fp, ".data = (CrownArgument[]) {\n");
-        foreach (args, i) {
+        range(0, args->len, i) {
             CrownArgument arg = args->data[i];
 
             crown_indent_completion(indent + 2);
@@ -928,7 +928,7 @@ AOCDEF void crown_dump_opt(FILE *fp, CrownOpts *opts, size_t indent) {
     fprintf(fp, ".len = %zu,\n", opts->len);
     crown_indent_completion(indent);
     fprintf(fp, ".data = (CrownOption[]) {\n");
-    foreach (opts, i) {
+    range(0, opts->len, i) {
         CrownOption opt = opts->data[i];
 
         crown_indent_completion(indent + 2);
@@ -976,7 +976,7 @@ AOCDEF void crown_dump_cmd(FILE *fp, CrownCmds *cmds, size_t indent) {
     fprintf(fp, ".len = %zu,\n", cmds->len);
     crown_indent_completion(indent);
     fprintf(fp, ".data = (CrownCommand[]) {\n");
-    foreach (cmds, i) {
+    range(0, cmds->len, i) {
         CrownCommand cmd = cmds->data[i];
 
         crown_indent_completion(indent + 2);

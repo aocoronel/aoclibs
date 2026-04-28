@@ -24,7 +24,7 @@ void *pfillc(PPool *pool, size_t nmeb, size_t size) {
 // The user can always reuse the same pool
 void pdrain(PPool *pool) {
     ASSERT(pool != NULL, "double free attempt");
-    foreach (pool, i) {
+    range(0, pool->len, i) {
         ASSERT_NONNULL(pool->data + i);
         free(pool->data[i]);
         pool->data[i] = NULL;

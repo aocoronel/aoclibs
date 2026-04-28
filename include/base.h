@@ -44,10 +44,6 @@
 #define ATTR_DEPRECATED(fn_to_use_instead) __attribute_deprecated_msg__(fn_to_use_instead)
 #define ATTR_WARN_UNUSED __attribute__((warn_unused_result))
 
-#define ATTR_WEAK_ALIAS(name, aliasname) _ATTR_WEAK_ALIAS(name, aliasname)
-#define _ATTR_WEAK_ALIAS(name, aliasname) \
-    extern __typeof__(name) aliasname __attribute__((weak, alias(#name)));
-
 // To be used in function declarations. "static" is a very broad keyword in C,
 // internal express this idea better.
 #define internal __attribute__((visibility("hidden")));
@@ -106,17 +102,7 @@
 
 #define eprintf(...) fprintf(stderr, __VA_ARGS__)
 
-// === "Keywords" ===
-
-// struct example {
-//    size_t len;
-//    ...
-// };
-//
-// struct example myexample = {0};
-// foreach (&myexample, i) {
-//      printf("%d\n", i);
-// }
-#define foreach(struct_with_len, it) for (size_t it = 0; it < (struct_with_len)->len; it++)
+#define range(init, end, it) for (size_t it = (init); it < (end); it++)
+#define range_invert(init, end, it) for (size_t it = (end); it < (init); it++)
 
 #endif // AOCLIBS_BASE_H_
