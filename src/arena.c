@@ -2,14 +2,8 @@
 
 #include "arena.h"
 #include "base.h"
-#include <stdio.h>
-
-#include <stddef.h>
-#include <string.h>
 
 #if AOCLIBS_ARENA_BACKEND == AOCLIBS_ARENA_BACKEND_LIBC_MALLOC
-
-#include <stdlib.h>
 
 AOCDEF Region *arena_new_region(const size_t capacity) {
     const size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
