@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cstr.h"
+#include "base.h"
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
@@ -11,8 +12,10 @@
 
 AOCDEF char *cstr_dup(const char *s, const size_t len) {
     ASSERT_NONNULL(s != NULL);
+
     char *d = malloc(len);
     if (!d) return NULL;
+
     return memcpy(d, s, len);
 }
 
@@ -24,11 +27,22 @@ AOCDEF void cstr_to_lower(char *s) {
 
 AOCDEF void cstrn_to_lower(char *s, const size_t len) {
     ASSERT_NONNULL(s != NULL);
-    for (size_t i = 0; i < len; i++)
-        s[i] = tolower(s[i]);
+    range(0, len, i) s[i] = tolower(s[i]);
 }
 
-AOCDEF bool cstr_ends_with(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
+AOCDEF void cstr_to_upper(char *s) {
+    ASSERT_NONNULL(s != NULL);
+    for (; *s; s++)
+        *s = toupper(*s);
+}
+
+AOCDEF void cstrn_to_upper(char *s, const size_t len) {
+    ASSERT_NONNULL(s != NULL);
+    range(0, len, i) s[i] = toupper(s[i]);
+}
+
+AOCDEF bool
+cstr_ends_with(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
     ASSERT_NONNULL(s);
     ASSERT_NONNULL(pattern);
     if (s_len < pattern_len) return false;
@@ -36,45 +50,48 @@ AOCDEF bool cstr_ends_with(const char *s, const size_t s_len, const char *patter
 }
 
 AOCDEF bool
-cstr_begins_with(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
+cstr_begins_with(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
+    ASSERT_NONNULL(s);
+    ASSERT_NONNULL(pattern);
     return cstrn_eq(s, s_len, pattern, pattern_len);
 }
 
-AOCDEF bool cstrn_eq(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
-    if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
+AOCDEF bool
+cstrn_eq(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
+    ASSERT_NONNULL(s);
+    ASSERT_NONNULL(pattern);
+    if (pattern_len == 0 || pattern_len > s_len) return false;
     if (s_len < pattern_len) return false;
     return memcmp(s, pattern, pattern_len) == 0;
 }
 
-AOCDEF bool cstrn_eq_case(const char *s, const size_t s_len, const char *pattern, size_t pattern_len) {
-    if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
+AOCDEF char
+cstrn_eq_case(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
+    ASSERT_NONNULL(s);
+    ASSERT_NONNULL(pattern);
+    if (pattern_len == 0 || pattern_len > s_len) return false;
 
-    char *s_tmp = cstr_dup(s, s_len);
-    if (s_tmp == NULL) {
-        errno = ENOMEM;
-        return false;
-    }
+    void *ptr = malloc(sizeof(char) * s_len + pattern_len);
+    if (!ptr) return -1;
+
+    char *s_tmp = ptr;
+    char *pattern_tmp = ptr + s_len;
 
     cstrn_to_lower(s_tmp, s_len);
-
-    char *pattern_tmp = cstr_dup(pattern, pattern_len);
-    if (pattern_tmp == NULL) {
-        errno = ENOMEM;
-        return false;
-    }
-
     cstrn_to_lower(pattern_tmp, pattern_len);
 
     bool equal = memcmp(s_tmp, pattern_tmp, pattern_len) == 0;
 
-    free(s_tmp);
-    free(pattern_tmp);
+    free(ptr);
 
     return equal;
 }
 
-AOCDEF bool cstr_has(const char *s, size_t s_len, const char *pattern, size_t pattern_len) {
-    if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
+AOCDEF bool
+cstr_has(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
+    ASSERT_NONNULL(s);
+    ASSERT_NONNULL(pattern);
+    if (pattern_len == 0 || pattern_len > s_len) return false;
 
     const char *s_ptr = s;
     size_t remaining_len = s_len;
@@ -91,8 +108,13 @@ AOCDEF bool cstr_has(const char *s, size_t s_len, const char *pattern, size_t pa
     return false;
 }
 
-AOCDEF size_t cstr_has_at(const char *s, size_t s_len, const char *pattern, size_t pattern_len) {
-    if (!s || !pattern || pattern_len == 0 || pattern_len > s_len) return false;
+AOCDEF size_t cstr_has_at(const char *s,
+                          const size_t s_len,
+                          const char *pattern,
+                          const size_t pattern_len) {
+    ASSERT_NONNULL(s);
+    ASSERT_NONNULL(pattern);
+    if (pattern_len == 0 || pattern_len > s_len) return false;
 
     const char *s_ptr = s;
     size_t remaining_len = s_len;
