@@ -48,15 +48,12 @@ struct DirWalker {
 // in it.
 //
 // Sets errno << opendir
-AOCDEF int dir_walker(const char *restrict path, DirWalker *restrict dw);
+AOCDEF bool dir_walker(const char *restrict path, DirWalker *restrict dw);
 
 // Stat the file and return its type
 //
 // F_FAIL :: failed to stat. Sets errno << lstat
-AOCDEF FileType get_filetype(const char *path);
-
-// TODO: remove this and make get_filetype take a stat instead
-AOCDEF FileMetadata get_file_data(struct stat *restrict st, const char *restrict path);
+AOCDEF FileMetadata get_filedata(struct stat *restrict st, const char *restrict path);
 
 // Reads file, splitting the read buffer by the delimiter.
 // Returns how many bytes has been read.
@@ -64,7 +61,7 @@ AOCDEF FileMetadata get_file_data(struct stat *restrict st, const char *restrict
 // Allocates to lineptr. The user owns the allocation.
 AOCDEF size_t read_by_delim(char **restrict lineptr,
                             size_t *restrict n,
-                            int delim,
+                            const char delim,
                             FILE *restrict stream);
 
 AOCDEF bool read_entire_file(rc *null restrict lines, const char *restrict filepath);

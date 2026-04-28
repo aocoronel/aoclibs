@@ -1,24 +1,22 @@
 #pragma once
 
-#include "file.h"
-#include "cstr.h"
 #include "base.h"
+#include "cstr.h"
 #include "da.h"
+#include "file.h"
 #include "rc.h"
+
 #include <dirent.h>
-#include <errno.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/stat.h>
 
-size_t
-read_by_delim(char **restrict lineptr, size_t *restrict n, int delim, FILE *restrict stream) {
-    if (!lineptr || !n || !stream) {
-        errno = EINVAL;
-        return (size_t)-1;
-    }
+// akin to libc getdelim
+size_t read_by_delim(char **restrict lineptr,
+                     size_t *restrict n,
+                     const char delim,
+                     FILE *restrict stream) {
+    ASSERT_NONNULL(lineptr);
+    ASSERT_NONNULL(n);
+    ASSERT_NONNULL(stream);
 
     if (*lineptr == NULL || *n == 0) {
         *n = 128;
@@ -54,11 +52,12 @@ read_by_delim(char **restrict lineptr, size_t *restrict n, int delim, FILE *rest
     return pos;
 }
 
-int dir_walker(const char *path, DirWalker *dw) {
+bool dir_walker(const char *path, DirWalker *dw) {
     ASSERT_NONNULL(path != NULL);
+    ASSERT_NONNULL(dw);
 
     DIR *dir = opendir(path);
-    if (!dir) return errno;
+    if (!dir) return false;
 
     int8_t empty = 0;
 
@@ -71,14 +70,7 @@ int dir_walker(const char *path, DirWalker *dw) {
 
         cstr_fmt_write(fullpath, DIR_WALKER_BUFF, "%s/%s", path, entry->d_name);
 
-        FileMetadata metadata = { 0 };
-
-        if (dw->metadata) {
-            metadata = get_file_data(&st, fullpath);
-        } else {
-            FileType file_t = get_filetype(fullpath);
-            metadata.type = file_t;
-        }
+        FileMetadata metadata = get_filedata(&st, fullpath);
 
         metadata.name = fullpath;
 
@@ -105,10 +97,10 @@ int dir_walker(const char *path, DirWalker *dw) {
     if (empty == 0 && dw->isempty != NULL) dw->isempty(path);
 
     closedir(dir);
-    return 0;
+    return true;
 }
 
-FileMetadata get_file_data(struct stat *st, const char *path) {
+FileMetadata get_filedata(struct stat *st, const char *path) {
     ASSERT_NONNULL(path != NULL);
 
     if (lstat(path, st) == -1) return (FileMetadata){ .type = F_FAIL, .stat = NULL };
@@ -123,22 +115,6 @@ FileMetadata get_file_data(struct stat *st, const char *path) {
     return (FileMetadata){ .type = F_FAIL, .stat = st };
 }
 
-FileType get_filetype(const char *path) {
-    ASSERT_NONNULL(path != NULL);
-
-    struct stat st;
-    if (lstat(path, &st) == -1) return F_FAIL;
-
-    if (S_ISREG(st.st_mode))
-        return F_REG;
-    else if (S_ISDIR(st.st_mode))
-        return F_DIR;
-    else if (S_ISLNK(st.st_mode))
-        return F_LNK;
-
-    return F_NULL;
-}
-
 bool read_entire_file(rc *lines, const char *filepath) {
     ASSERT_NONNULL(lines);
 
@@ -147,8 +123,8 @@ bool read_entire_file(rc *lines, const char *filepath) {
 
     struct stat st;
     if (stat(filepath, &st) == -1) {
-            fclose(fp);
-            return false;
+        fclose(fp);
+        return false;
     }
 
     da_reserve(lines, (size_t)st.st_size);
