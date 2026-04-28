@@ -77,13 +77,16 @@
         (da)->data[(da)->len++] = (item); \
     } while (0)
 
-#define da_append(da, items_buff, items_size) da_add(da, items_buff, items_size, (da)->len)
+#define da_append(da, items_buff, items_size)          \
+    do {                                               \
+        da_add(da, items_buff, items_size, (da)->len); \
+        (da)->len += (items_size);                     \
+    } while (0)
 
 #define da_add(da, items_buff, items_size, offset)                                       \
     do {                                                                                 \
         da_reserve((da), (da)->len + (items_size));                                      \
         memcpy((da)->data + (offset), (items_buff), (items_size) * sizeof(*(da)->data)); \
-        (da)->len += (items_size);                                                       \
     } while (0)
 
 // =================================

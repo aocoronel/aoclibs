@@ -38,8 +38,17 @@ typedef struct {
     } while (0)
 
 // Heap concat and appending
-#define rc_lcat(rc, items_buff) da_add(rc, items_buff, STRLEN(items_buff), (rc)->len)
-#define rc_cat(rc, items_buff, items_len) da_add(rc, items_buff, items_len, (rc)->len)
+#define rc_lcat(rc, items_buff)                                \
+    do {                                                       \
+        da_add(rc, items_buff, STRLEN(items_buff), (rc)->len); \
+        (rc)->len += STRLEN(items_buff);                       \
+    } while (0)
+
+#define rc_cat(rc, items_buff, items_len)             \
+    do {                                              \
+        da_add(rc, items_buff, items_len, (rc)->len); \
+        (rc)->len += (items_len);                     \
+    } while (0)
 
 #define rc_lappend(rc, items_buff) rc_append(rc, items_buff, STRLEN((items_buff)))
 #define rc_append(rc, items_buff, items_size)                                             \
