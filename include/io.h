@@ -2,8 +2,6 @@
 #define AOCLIBS_IO_H
 
 #include "base.h"
-#include <stdbool.h>
-#include <stdio.h>
 
 AOCDEF bool bputc(char *dst, size_t *len, size_t size, char src);
 AOCDEF bool bputs(char *dst, size_t *dst_len, size_t dst_size, char *src, size_t src_len);

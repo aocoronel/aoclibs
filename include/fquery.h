@@ -2,7 +2,6 @@
 #define AOCLIBS_FQUERY_H_
 
 #include "base.h"
-#include <stdbool.h>
 
 // FQuery takes the same use case of regular expressions, however, without compilation.
 //

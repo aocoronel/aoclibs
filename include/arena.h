@@ -23,8 +23,6 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "base.h"
-#include <stdint.h>
-#include <stdarg.h>
 
 #define AOCLIBS_ARENA_BACKEND_LIBC_MALLOC 0
 #define AOCLIBS_ARENA_BACKEND_VIRTUAL_ALLOC 1

@@ -3,7 +3,6 @@
 
 #include "base.h"
 #include "rc.h"
-#include <sys/types.h>
 
 typedef struct {
     rc data;

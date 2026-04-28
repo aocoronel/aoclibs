@@ -3,7 +3,7 @@
 
 // This is the foundation for all libraries
 
-#include <stddef.h>
+#include "libc.h"
 
 // Modify prefixes in all functions:
 // #define AOCDEF static inline

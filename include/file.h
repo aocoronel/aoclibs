@@ -4,8 +4,6 @@
 #define _GNU_SOURCE
 #include "base.h"
 #include "rc.h"
-#include <stdbool.h>
-#include <stdio.h>
 
 #define DIR_WALKER_BUFF 4096
 

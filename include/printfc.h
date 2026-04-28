@@ -3,10 +3,6 @@
 
 #include "colors.h"
 
-#ifdef AOCLIBS_IMPLEMENTATION
-#include <stdio.h>
-#endif
-
 // printfc :: print formatted color
 
 /*

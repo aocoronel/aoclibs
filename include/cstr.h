@@ -2,8 +2,6 @@
 #define AOCLIBS_CSTR_H_
 
 #include "base.h"
-#include <stdbool.h>
-#include <stdio.h>
 
 // NULL :: Out of memory
 AOCDEF char *null cstr_dup(const char *s, const size_t len);

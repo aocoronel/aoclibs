@@ -2,8 +2,6 @@
 #define AOCLIBS_DA_H_
 
 #include "base.h"
-#include <string.h>
-#include <stdlib.h>
 
 // This is implementation has few modifications and additions, and is inspired by
 // the dynamic array available here: https://github.com/tsoding/nob.h

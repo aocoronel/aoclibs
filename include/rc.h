@@ -2,20 +2,8 @@
 #define AOCLIBS_RC_H_
 
 #include "base.h"
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "da.h"
 
-// Row Char
-// This is Dynamic Array compatible. This implementation is suppose to give you a 'String' type
-// which provides safer operations. It can work with string literals, stack allocated and heap
-// allocated strings. If you decide to use this like an Dynamic Array, make sure to just use it
-// with a heap RC.
 typedef struct {
     size_t cap;
     size_t len;

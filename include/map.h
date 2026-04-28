@@ -4,7 +4,6 @@
 #include "base.h"
 #include "slices.h"
 #include "arena.h"
-#include <stdio.h>
 
 // Map
 //

@@ -3,8 +3,6 @@
 
 #include "base.h"
 #include "rc.h"
-#include <stdbool.h>
-#include <stdio.h>
 
 // printf("%.*s\n", VSLICE(slice))
 #define VSLICE(r) ((int)(r)->len), ((r)->data)
