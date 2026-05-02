@@ -31,7 +31,7 @@ AOCDEF void *pfill(PPool *pool, const size_t size);
 // Allocates zero initialized 'size' bytes using malloc and stores pointer to pool
 //
 // NULL :: Out of memory
-AOCDEF void *pfillc(PPool *pool, const size_t nmeb, const size_t size);
+AOCDEF void *pfillc(PPool *pool, const size_t size);
 
 // Reallocates pointer at 'idx' using new 'size' in bytes
 //

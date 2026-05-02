@@ -14,12 +14,13 @@ void *pfill(PPool *pool, const size_t size) {
     return tmp;
 }
 
-void *pfillc(PPool *pool, const size_t nmeb, const size_t size) {
+void *pfillc(PPool *pool, const size_t size) {
     ASSERT_NONNULL(pool);
 
-    void *tmp = calloc(nmeb, size);
+    void *tmp = malloc(size);
     if (!tmp) return NULL;
 
+    memset(tmp, '\0', size);
     da_insert(pool, tmp);
     return tmp;
 }
