@@ -12,12 +12,6 @@ typedef struct {
     const char *data;
 } Slice;
 
-typedef struct {
-    size_t len;
-    size_t cap;
-    Slice *data;
-} Slices;
-
 #define slice_eq(cs1, cs2) cstrn_eq((cs1)->data, (cs1)->len, (cs2)->data, (cs2)->len)
 
 #define slice_eq_case(cs1, cs2, offset) \
@@ -37,8 +31,6 @@ typedef struct {
     (Slice) {                              \
         .data = "" s "", .len = STRLEN(s), \
     }
-
-AOCDEF Slices split(rc *f, char delim);
 
 // Returns slice on first occurance of a word between whitespaces.
 //
