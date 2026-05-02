@@ -1,6 +1,6 @@
 # aoclibs
 
-This repository contemplates C libraries developed specially for personal CLI development.
+This repository contemplates C libraries developed specially for personal CLI development. This project is in constant development, although I use this almost everywhere, breaking changes may occur at any moment. It may take a while for this to become stable.
 
 ## How to use
 
