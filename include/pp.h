@@ -23,14 +23,32 @@ typedef struct {
     void **data;
 } PPool;
 
+// Allocates 'size' bytes using malloc and stores pointer to pool
+//
+// NULL :: Out of memory
 AOCDEF void *pfill(PPool *pool, const size_t size);
 
+// Allocates zero initialized 'size' bytes using malloc and stores pointer to pool
+//
+// NULL :: Out of memory
 AOCDEF void *pfillc(PPool *pool, const size_t nmeb, const size_t size);
 
-AOCDEF void *prefresh(PPool *pool, void *ptr, const size_t size);
+// Reallocates pointer at 'idx' using new 'size' in bytes
+//
+// NULL :: Out of memory
+//
+// Example:
+//
+// void *p = pfill(&pool, 100);
+// size_t idx = pool.len - 1;
+// p = prefresh(&pool, idx, 200);
+AOCDEF void *prefresh(PPool *pool, size_t idx, const size_t size);
 
-// Frees all memory. Doesn't free the pool itself
-// The user can always reuse the same pool
+// Frees all memory. Doesn't free the pool itself.
+//
+// The user can always reuse the same pool.
+//
+// To free the pool, use da_free(pool)
 AOCDEF void pdrain(PPool *pool);
 
 #ifdef AOCLIBS_IMPLEMENTATION

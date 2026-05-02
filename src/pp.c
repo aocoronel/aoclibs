@@ -1,8 +1,7 @@
 #pragma once
 
-#include "pp.h"
 #include "base.h"
-#include <stdio.h>
+#include "pp.h"
 #include "da.h"
 
 void *pfill(PPool *pool, const size_t size) {
@@ -25,28 +24,17 @@ void *pfillc(PPool *pool, const size_t nmeb, const size_t size) {
     return tmp;
 }
 
-void *prefresh(PPool *pool, void *ptr, const size_t size) {
+void *prefresh(PPool *pool, size_t idx, const size_t size) {
     ASSERT_NONNULL(pool);
 
-    void *tmp = realloc(ptr, size);
+    void *tmp = realloc(pool->data[idx], size);
     if (!tmp) return NULL;
 
-    bool found = false;
-    for (size_t i = 0; i < pool->len && !found; i++) {
-        void *p = pool->data[i];
+    pool->data[idx] = tmp;
 
-        if (p == ptr) {
-            pool->data[i] = tmp;
-            found = true;
-        }
-    }
-
-    if (!found) da_insert(pool, tmp);
     return tmp;
 }
 
-// Frees all memory. Doesn't free the pool itself
-// The user can always reuse the same pool
 void pdrain(PPool *pool) {
     ASSERT(pool != NULL, "double free attempt");
 
