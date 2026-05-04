@@ -116,19 +116,28 @@ int main(void) {
     fclose(fp);
 
     char *compile_args[] = { "gcc", "-o", "test", "test.c", "-lm", NULL };
-    PipeResult result = run_cmd(compile_args, NULL);
+    {
+        CmdResult output = { 0 };
+        int status = run_cmd(compile_args, NULL, &output, .in = false, .out = true, .err = true);
 
-    if (result.status != 0) {
-        fprintf(stderr, "Failed to build aoclibs.h. Got error: %d\n", result.status);
-        return 1;
+        if (status != 0) {
+            fprintf(stderr, "%s", output.err.data);
+            fprintf(stderr, "Failed to build aoclibs.h. Got error: %d\n", status);
+            return 1;
+        }
     }
 
     char *run_args[] = { "./test", NULL };
-    result = run_cmd(run_args, NULL);
 
-    if (result.status != 0) {
-        fprintf(stderr, "Failed to run test. Got error %d\n", result.status);
-        return 1;
+    {
+        CmdResult output = { 0 };
+        int status = run_cmd(run_args, NULL, &output, .in = false, .out = true, .err = true);
+
+        if (status != 0) {
+            fprintf(stderr, "%s", output.err.data);
+            fprintf(stderr, "Failed to run test. Got error %d\n", status);
+            return 1;
+        }
     }
 
     printf("Created ./aoclibs.h\n");

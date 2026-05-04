@@ -3,22 +3,41 @@
 
 #include "base.h"
 #include "rc.h"
-
-typedef struct {
-    rc data;
-    int status;
-} PipeResult;
+#include <sys/types.h>
 
 typedef struct {
     pid_t pid;
     int stdin_fd;
     int stdout_fd;
-} ForkCmd;
+    int stderr_fd;
+} fork_cmd_t;
 
-AOCDEF ForkCmd fork_cmd(char **argv);
-AOCDEF PipeResult run_cmd(char **restrict argv, const char *null restrict input);
-AOCDEF rc read_fd(int fd);
-AOCDEF int wait_for(pid_t pid);
+typedef struct {
+    rc out;
+    rc err;
+} fork_buff_t;
+
+typedef struct {
+    bool in;
+    bool out;
+    bool err;
+} ForkOptions;
+
+typedef struct {
+    rc out;
+    rc err;
+} CmdResult;
+
+// run("ls", NULL, &output, .in = true, .out = true, .err = true)
+#define run_cmd(argv, input, out, ...) _run_cmd((argv), (input), (out), (ForkOptions){__VA_ARGS__})
+AOCDEF int _run_cmd(char **restrict argv, const char *null restrict input, CmdResult *restrict out, ForkOptions opt);
+
+AOCDEF fork_cmd_t fork_cmd(char **argv, ForkOptions opt);
+AOCDEF int wait_child(pid_t pid);
+
+AOCDEF ssize_t write_fd(int fd, const void *buf, size_t count);
+AOCDEF int read_fds(int out_fd, int err_fd, fork_buff_t *fb);
+AOCDEF void close_fd(int fd);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "fork.c"
