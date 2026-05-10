@@ -35,7 +35,6 @@ gcc -o merge merge.c && ./merge
 ### Libraries
 
 - [crown.h](./docs/crown.md) :: Full-blown CLI suite
-- [match.h](./docs/match.md) :: Better `if`, worst `switch`
 - [tunit.h](./docs/tunit.md) :: Test Unit
 - `heap_trace.h` :: Simple drop-in replacement for malloc/calloc/realloc to catch leaks
 - `ini.h` :: INI parser
