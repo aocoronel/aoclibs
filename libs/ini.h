@@ -1,196 +1,238 @@
 #ifndef AOCLIBS_INI_H_
 #define AOCLIBS_INI_H_
 
-#include "arena.h"
 #include "rc.h"
 #include <ctype.h>
 #include "slices.h"
-#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
 typedef struct {
-    rc key;
-    rc value;
+    const char *key;
+    const char *value;
+
+    rc key_string;
+    rc value_string;
 } IniKey;
 
 typedef struct {
-    size_t len;
-    size_t cap;
-    IniKey *null data;
-} IniKeys;
+    FILE *fd;
+    char *pos;
+    size_t size;
+} IniIterator;
 
 typedef struct {
-    IniKeys keys;
-    rc name;
-} IniSection;
+    const char *message;
+    size_t line;
+    size_t column;
+
+    const char *pos;
+    size_t len;
+} IniError;
 
 typedef struct {
-    size_t len;
-    size_t cap;
-    IniSection *null data;
-} IniSections;
+    IniIterator iterator;
+    IniError error;
+    rc section;
 
-AOCDEF void ini_insert_key(Arena *a, IniKeys *keys, const Slice key, const Slice value);
-AOCDEF void ini_insert_section(Arena *a, IniSections *section, const Slice name);
-AOCDEF IniSections ini_read_fd(Arena *arena, FILE *fd);
-AOCDEF IniSections ini_read(Arena *arena, const char *file_path);
-AOCDEF int ini_write_fd(IniSections sections, FILE *fd);
-AOCDEF int ini_write(IniSections sections, const char *file_path);
+    Slice key;
+    Slice value;
+} Ini;
+
+#ifdef DEBUG
+#define print_loc eprintf("%s:%d location: %s\n", __FILE__, __LINE__, __func__);
+#else
+#define print_loc
+#endif
+
+AOCDEF bool ini_init(Ini *restrict output, FILE *restrict fp);
+AOCDEF bool ini_next_line(Ini *ini);
+AOCDEF bool ini_has_error(Ini *ini);
+AOCDEF bool ini_parse(Ini *ini);
+AOCDEF void ini_print_error(Ini *restrict ini, const char *restrict file);
+AOCDEF void ini_deinit(Ini *ini);
 
 #ifdef AOCLIBS_INI
-#include "arena.h"
-#include "base.h"
-#include "cstr.h"
 #include "da.h"
 #include "file.h"
-#include "slices.h"
+#include "printfc.h"
 #include "rc.h"
-
-#include <assert.h>
+#include "slices.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
-void ini_insert_key(Arena *a, IniKeys *keys, const Slice key, const Slice value) {
-    IniKey k = { 0 };
-    arc_cat(a, &k.key, key.data, key.len);
-    dar_add_null(a, &k.key);
+// fp should be opened to read and closed by the caller.
+bool ini_init(Ini *output, FILE *fp) {
+    ASSERT_NONNULL(output);
+    ASSERT_NONNULL(fp);
 
-    arc_cat(a, &k.value, value.data, value.len);
-    dar_add_null(a, &k.value);
+    *output = (Ini) {
+        .iterator = {
+            .pos = NULL,
+            .size = 0,
+            .fd = fp,
+        },
+        .error = { 0 },
+        .section = { 0 },
+    };
 
-    dar_insert(a, keys, k);
+    output->section.len = STRLEN("DEFAULT");
+    da_add(&output->section, "DEFAULT", STRLEN("DEFAULT"), 0);
+    da_add_null(&output->section);
+
+    return true;
 }
 
-void ini_insert_section(Arena *a, IniSections *section, const Slice name) {
-    IniSection s = { 0 };
-    arc_cat(a, &s.name, name.data, name.len);
-    dar_add_null(a, &s.name);
+#ifdef DEBUG
+#define print_loc eprintf("%s:%d location: %s\n", __FILE__, __LINE__, __func__);
+#else
+#define print_loc
+#endif
 
-    dar_insert(a, section, s);
-}
+bool ini_next_line(Ini *ini) {
+    ASSERT_NONNULL(ini);
+    IniIterator *it = &ini->iterator;
+    IniError *error = &ini->error;
 
-IniSections ini_read_fd(Arena *arena, FILE *fd) {
-    if (!fd) return (IniSections){};
+    while (true) {
+        size_t newline = read_by_delim(&it->pos, &it->size, '\n', it->fd);
+        if (newline == SIZE_MAX) return false;
 
-    IniSections sections = { 0 };
+        error->line++;
 
-    char *buffer = NULL;
-    size_t size = 0;
-    size_t new_line = 0;
+        if (newline == 0) continue;
 
-    Slice default_section = slice("DEFAULT");
-    ini_insert_section(arena, &sections, default_section);
+        if (it->pos[0] == ';' || it->pos[0] == '#') continue;
 
-    IniSection curr_section = da_last(&sections);
+        error->column = 1;
+        error->pos = it->pos;
+        error->len = newline;
 
-    for (; (new_line = read_by_delim(&buffer, &size, '\n', fd)) != SIZE_MAX;) {
-        int open_brackets = 0;
-        int close_brackets = 0;
-        int equal = 0;
-
-        int comment = 0;
-
-        comment = index_of(buffer, ';', new_line);
-        if (comment != SIZE_MAX) {
-            buffer[comment] = '\0';
-            new_line = comment;
-        }
-        comment = index_of(buffer, '#', new_line);
-        if (comment != SIZE_MAX) {
-            buffer[comment] = '\0';
-            new_line = comment;
-        }
-
-        // Declaration
-        if ((equal = index_of(buffer, '=', new_line)) != SIZE_MAX) {
-            ASSERT(buffer[equal] == '=');
-            IniKeys *current_keys = &da_last(&sections).keys;
-
-            size_t begin = 0;
-            Slice key_slice = while_next_word(buffer, &begin, equal);
-            begin = equal + 1;
-
-            // Array
-            if (slice_ends_with(&key_slice, "[]", 2)) {
-                Slices slices = { 0 };
-                while (true) {
-                    Slice value_slice = while_next_word_and(buffer, &begin, new_line, ',');
-                    if (value_slice.len == 0) break;
-                    da_insert(&slices, value_slice);
-                }
-                ini_insert_key(arena, current_keys, key_slice, slices.data[0]);
-            } else {
-                const char *pos = buffer + begin;
-                Slice value_slice = { 0 };
-                while (pos && isspace(*pos)) {
-                    pos++;
-                }
-                if (*pos == '"') {
-                    const char *end = memchr(pos + 1, '"', new_line);
-                    if (!pos) {
-                        ASSERT(0, "unterminated string. TODO: turn into error");
-                    }
-                    value_slice = (Slice){ .data = pos, .len = 1 + end - pos };
-                } else {
-                    value_slice = while_next_word(buffer, &begin, new_line);
-                }
-
-                ini_insert_key(arena, current_keys, key_slice, value_slice);
-            }
-        }
-        // New Section
-        else if ((open_brackets = index_of(buffer, '[', new_line)) != SIZE_MAX) {
-            close_brackets = index_of(buffer, ']', new_line);
-            if (close_brackets == SIZE_MAX) continue;
-
-            // Subsection
-            if (cstr_begins_with(buffer, close_brackets - 1, "[.", 2)) {
-            }
-
-            IniSection new_section = { .name = (rc){ 0 }, .keys = (IniKeys){ 0 } };
-
-            Slice s_name = { .data = buffer + open_brackets + 1, .len = close_brackets - 1 };
-            ini_insert_section(arena, &sections, s_name);
-
-            curr_section = da_last(&sections);
-        }
+        return true;
     }
-
-    free(buffer);
-    return sections;
 }
 
-IniSections ini_read(Arena *arena, const char *file_path) {
-    ASSERT_NONNULL(arena != NULL);
-    ASSERT_NONNULL(file_path != NULL);
-    FILE *fd = fopen(file_path, "r");
-    if (!fd) {
-        return (IniSections){};
+bool ini_has_error(Ini *ini) {
+    ASSERT_NONNULL(ini);
+    if (ini->error.message) {
+        return true;
+    } else {
+        return false;
     }
-    IniSections s = ini_read_fd(arena, fd);
-    fclose(fd);
-    return s;
 }
 
-int ini_write_fd(IniSections sections, FILE *fd) {
-    foreach (&sections, i) {
-        IniKeys keys = sections.data[i].keys;
-        fprintf(fd, "[%s]\n", sections.data[i].name.data);
-        foreach (&keys, j) {
-            fprintf(fd, "    %s = %s\n", keys.data[j].key.data, keys.data[j].value.data);
+bool ini_parse(Ini *ini) {
+    ASSERT_NONNULL(ini);
+    if (!ini_next_line(ini)) return false;
+
+    IniIterator *it = &ini->iterator;
+    IniError *error = &ini->error;
+
+    size_t new_line = error->len;
+
+    error->message = NULL;
+
+    const char *pos = it->pos;
+
+    if (*pos == '[') {
+        // skip '['
+        {
+            pos++;
+            new_line--;
         }
+
+        const char *close_bracket = memchr(pos, ']', new_line);
+        if (!close_bracket) {
+            error->message = "could not find ending ']'";
+            return false;
+        }
+
+        Slice section = { .data = pos, .len = (size_t)(close_bracket - (pos)) };
+        slice_trim(&section);
+
+        ini->section.len = section.len;
+        da_add(&ini->section, section.data, section.len, 0);
+        da_add_null(&ini->section);
+
+        return ini_parse(ini);
+    } else {
+        bool key_is_array = false;
+        const char *equal = memchr(pos, '=', new_line);
+        if (!equal) {
+            error->message = "expected 'key=value' pair";
+            return false;
+        }
+
+        if ((equal - pos) == new_line) {
+            error->message = "value not set";
+            return false;
+        }
+
+        {
+            Slice key = { .data = pos, .len = (size_t)(equal - pos) };
+            slice_trim(&key);
+            ini->key = key;
+        }
+
+        {
+            Slice value = { .data = equal + 1, .len = (size_t)((pos + new_line) - (equal + 1)) };
+            slice_trim(&value);
+
+            value = slice_extract_from_substring(&value);
+
+            slice_chop_right_by(&value, ';');
+            slice_chop_right_by(&value, '#');
+
+            ini->value = value;
+        }
+
+        return true;
     }
-    return 0;
 }
 
-int ini_write(IniSections sections, const char *file_path) {
-    FILE *fd = fopen(file_path, "w");
-    int err = ini_write_fd(sections, fd);
-    fclose(fd);
-    return 0;
+void ini_print_error(Ini *ini, const char *file) {
+    ASSERT_NONNULL(ini);
+    ASSERT_NONNULL(file);
+    fprintf(stderr,
+            "%s:%zu:%zu: error: %s\n",
+            file,
+            ini->error.line,
+            ini->error.column,
+            ini->error.message);
+}
+
+void ini_deinit(Ini *ini) {
+    ASSERT_NONNULL(ini);
+    free(ini->iterator.pos);
+    da_free(&ini->section);
 }
 #endif
+
+// int main() {
+//     print_loc;
+//     FILE *fp = fopen("test.ini", "r");
+//     if (!fp) return 1;
+//
+//     Ini ini = { 0 };
+//     ini_init(&ini, fp);
+//     while (ini_parse(&ini)) {
+//         printf("Section: %.*s\n", (int)ini.section.len, ini.section.data);
+//         printf("  key = %.*s\n", (int)ini.key.len, ini.key.data);
+//         printf("  value = %.*s\n", (int)ini.value.len, ini.value.data);
+//     }
+//
+//     if (ini_has_error(&ini)) {
+//         ini_print_error(&ini, "test.ini");
+//     }
+//
+//     ini_deinit(&ini);
+//
+//     ASSERT(fp);
+//     fclose(fp);
+//
+//     return 0;
+// }
 
 #endif
