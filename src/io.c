@@ -4,6 +4,7 @@
 #include "io.h"
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -173,6 +174,7 @@ bool bputsi(char *dst, size_t *len, size_t size, signed long long n) {
 
 size_t fputn(FILE *fp, size_t count, char c) {
     ASSERT_NONNULL(fp != NULL);
+    if (AOCLIBS_IO_PUT_BUFF < count) return SIZE_MAX;
     char space[AOCLIBS_IO_PUT_BUFF];
     memset(space, c, count);
     return fwrite(space, sizeof(char), count, fp);
