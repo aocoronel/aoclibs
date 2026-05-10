@@ -29,6 +29,7 @@ gcc -o merge merge.c && ./merge
 - `printfc.h` :: `printf` with colors
 - `rc.h` :: String type powered by `da.h`
 - `slices.h` :: String slices
+- `stack.h` :: Stack allocator
 
 \* Based on [Tsoding](https://github.com/tsoding) code.
 
