@@ -4,6 +4,7 @@
 #define _GNU_SOURCE
 #include "base.h"
 #include "rc.h"
+#include "slices.h"
 
 #define DIR_WALKER_BUFF 4096
 
@@ -65,6 +66,8 @@ AOCDEF size_t read_by_delim(char **restrict lineptr,
                             FILE *restrict stream);
 
 AOCDEF bool read_entire_file(rc *null restrict lines, const char *restrict filepath);
+
+AOCDEF bool expand_path(rc *restrict output, Slice *restrict path);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "file.c"
