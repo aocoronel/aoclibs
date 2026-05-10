@@ -17,6 +17,7 @@ gcc -o merge merge.c && ./merge
 
 - `arena.h` :: Linked-list arena *
 - `base.h` :: Handful aliases and macros
+- `buddy.h` :: Buddy allocator
 - `colors.h` :: Terminal colors
 - `cstr.h` :: C String operations
 - `da.h` :: Heap/stack-based dynamic arrays *
