@@ -79,14 +79,16 @@
 #include "./include/da.h"
 #include "./include/rc.h"
 
-#include "./include/pp.h"
-#include "./include/slices.h"
-#include "./include/fquery.h"
-#include "./include/cstr.h"
 #include "./include/arena.h"
-#include "./include/map.h"
+#include "./include/buddy.h"
+#include "./include/cstr.h"
 #include "./include/file.h"
 #include "./include/fork.h"
+#include "./include/fquery.h"
+#include "./include/map.h"
+#include "./include/pp.h"
+#include "./include/slices.h"
+#include "./include/stack.h"
 
 // Libraries
 #include "./libs/crown.h" // AOCLIBS_CROWN
