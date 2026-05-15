@@ -3,12 +3,6 @@
 #include "cstr.h"
 #include "base.h"
 #include <ctype.h>
-#include <errno.h>
-#include <limits.h>
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 
 AOCDEF char *cstr_dup(const char *s, const size_t len) {
     ASSERT_NONNULL(s != NULL);

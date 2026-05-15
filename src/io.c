@@ -3,11 +3,6 @@
 #include "base.h"
 #include "io.h"
 #include <math.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define AOCLIBS_IO_PUT_BUFF 64
 

@@ -3,9 +3,6 @@
 #include "base.h"
 #include "fquery.h"
 #include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 AOCDEF const char *null fquery_eq_int(const char *null p, const void *c) {
     ASSERT_NONNULL(c);
