@@ -61,6 +61,7 @@ AOCDEF void slice_skip_whitespace_forward(Slice *s);
 AOCDEF void slice_trim(Slice *s);
 AOCDEF void slice_chop_right_by(Slice *s, char delim);
 AOCDEF Slice slice_extract_from_substring(Slice *s);
+AOCDEF void slice_shift_by(Slice *s, size_t len);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "slices.c"

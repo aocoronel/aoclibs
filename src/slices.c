@@ -249,3 +249,8 @@ Slice slice_extract_from_substring(Slice *s) {
         .len = len,
     };
 }
+
+void slice_shift_by(Slice *s, size_t len) {
+    s->data += len;
+    s->len -= len;
+}
