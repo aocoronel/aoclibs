@@ -34,4 +34,27 @@
 #define printfc_info(...) printfc(COLOR_GREEN, "INFO", __VA_ARGS__)
 #define printfc_critical(...) printfc(COLOR_RED, "CRITICAL", __VA_ARGS__)
 
+// TTY printfc
+// When the program may not be guaranteed to run in a TTY, use tprintfc instead
+// bool istty = isatty(int fd) == 1;
+
+#ifdef NDEBUG
+#define tprintfc_debug(istty, ...) ((void)0)
+#define tprintfc_trace(istty, ...) ((void)0)
+#else // NDEBUG
+#define tprintfc_debug(istty, ...) tprintfc(istty, COLOR_CYAN, "DEBUG", __VA_ARGS__)
+#define tprintfc_trace(istty, ...) tprintfc(istty, COLOR_MAGENTA, "TRACE", __VA_ARGS__)
+#endif // NDEBUG
+
+#define tprintfc(istty, color, level, ...)                                         \
+    do {                                                                           \
+        (istty) ? printfc(color, level, __VA_ARGS__) :                             \
+                  (fprintf(stderr, "[%s] ", level), fprintf(stderr, __VA_ARGS__)); \
+    } while (0)
+#define tprintfc_fatal(istty, ...) tprintfc(istty, COLOR_RED, "FATAL", __VA_ARGS__)
+#define tprintfc_error(istty, ...) tprintfc(istty, COLOR_RED, "ERROR", __VA_ARGS__)
+#define tprintfc_warn(istty, ...) tprintfc(istty, COLOR_YELLOW, "WARNING", __VA_ARGS__)
+#define tprintfc_info(istty, ...) tprintfc(istty, COLOR_GREEN, "INFO", __VA_ARGS__)
+#define tprintfc_critical(istty, ...) tprintfc(istty, COLOR_RED, "CRITICAL", __VA_ARGS__)
+
 #endif // AOCLIBS_PRINTFC_H_
