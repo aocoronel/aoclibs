@@ -4,7 +4,7 @@
 #include "base.h"
 #include <ctype.h>
 
-AOCDEF char *cstr_dup(const char *s, const size_t len) {
+char *cstr_dup(const char *s, const size_t len) {
     ASSERT_NONNULL(s != NULL);
 
     char *d = malloc(len);
@@ -13,45 +13,48 @@ AOCDEF char *cstr_dup(const char *s, const size_t len) {
     return memcpy(d, s, len);
 }
 
-AOCDEF void cstr_to_lower(char *s) {
+void cstr_to_lower(char *s) {
     ASSERT_NONNULL(s != NULL);
     for (; *s; s++)
         *s = tolower(*s);
 }
 
-AOCDEF void cstrn_to_lower(char *s, const size_t len) {
+void cstrn_to_lower(char *s, const size_t len) {
     ASSERT_NONNULL(s != NULL);
     range(0, len, i) s[i] = tolower(s[i]);
 }
 
-AOCDEF void cstr_to_upper(char *s) {
+void cstr_to_upper(char *s) {
     ASSERT_NONNULL(s != NULL);
     for (; *s; s++)
         *s = toupper(*s);
 }
 
-AOCDEF void cstrn_to_upper(char *s, const size_t len) {
+void cstrn_to_upper(char *s, const size_t len) {
     ASSERT_NONNULL(s != NULL);
     range(0, len, i) s[i] = toupper(s[i]);
 }
 
-AOCDEF bool
-cstr_ends_with(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
+bool cstr_ends_with(const char *s,
+                    const size_t s_len,
+                    const char *pattern,
+                    const size_t pattern_len) {
     ASSERT_NONNULL(s);
     ASSERT_NONNULL(pattern);
     if (s_len < pattern_len) return false;
     return memcmp(s + s_len - pattern_len, pattern, pattern_len) == 0;
 }
 
-AOCDEF bool
-cstr_begins_with(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
+bool cstr_begins_with(const char *s,
+                      const size_t s_len,
+                      const char *pattern,
+                      const size_t pattern_len) {
     ASSERT_NONNULL(s);
     ASSERT_NONNULL(pattern);
     return cstrn_eq(s, s_len, pattern, pattern_len);
 }
 
-AOCDEF bool
-cstrn_eq(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
+bool cstrn_eq(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
     ASSERT_NONNULL(s);
     ASSERT_NONNULL(pattern);
     if (pattern_len == 0 || pattern_len > s_len) return false;
@@ -59,8 +62,10 @@ cstrn_eq(const char *s, const size_t s_len, const char *pattern, const size_t pa
     return memcmp(s, pattern, pattern_len) == 0;
 }
 
-AOCDEF char
-cstrn_eq_case(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
+char cstrn_eq_case(const char *s,
+                   const size_t s_len,
+                   const char *pattern,
+                   const size_t pattern_len) {
     ASSERT_NONNULL(s);
     ASSERT_NONNULL(pattern);
     if (pattern_len == 0 || pattern_len > s_len) return false;
@@ -84,8 +89,7 @@ cstrn_eq_case(const char *s, const size_t s_len, const char *pattern, const size
     return equal;
 }
 
-AOCDEF bool
-cstr_has(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
+bool cstr_has(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
     ASSERT_NONNULL(s);
     ASSERT_NONNULL(pattern);
     if (pattern_len == 0 || pattern_len > s_len) return false;
@@ -105,10 +109,8 @@ cstr_has(const char *s, const size_t s_len, const char *pattern, const size_t pa
     return false;
 }
 
-AOCDEF size_t cstr_has_at(const char *s,
-                          const size_t s_len,
-                          const char *pattern,
-                          const size_t pattern_len) {
+size_t
+cstr_has_at(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
     ASSERT_NONNULL(s);
     ASSERT_NONNULL(pattern);
     if (pattern_len == 0 || pattern_len > s_len) return false;
@@ -142,7 +144,7 @@ size_t index_of(const char *s, char delim, size_t size) {
     return ptr - s;
 }
 
-AOCDEF int cstr_fmt_size(const char *fmt, ...) {
+int cstr_fmt_size(const char *fmt, ...) {
     ASSERT_NONNULL(fmt != NULL);
 
     va_list args;
@@ -153,7 +155,7 @@ AOCDEF int cstr_fmt_size(const char *fmt, ...) {
     return needed_len;
 }
 
-AOCDEF int cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...) {
+int cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...) {
     ASSERT_NONNULL(s != NULL);
     ASSERT_NONNULL(fmt != NULL);
 
@@ -167,7 +169,7 @@ AOCDEF int cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...) {
     return allocated_len;
 }
 
-AOCDEF double cstr_to_double(const char *s, const double _default) {
+double cstr_to_double(const char *s, const double _default) {
     ASSERT_NONNULL(s != NULL);
     char *endptr;
     double val = strtod(s, &endptr);
@@ -177,14 +179,14 @@ AOCDEF double cstr_to_double(const char *s, const double _default) {
     return val;
 }
 
-AOCDEF bool cstr_to_bool(const char *s, const bool _default) {
+bool cstr_to_bool(const char *s, const bool _default) {
     ASSERT_NONNULL(s != NULL);
     if (cstr_eq_case(s, "true") || cstr_eq(s, "1")) return true;
     if (cstr_eq_case(s, "false") || cstr_eq(s, "0")) return false;
     return _default;
 }
 
-AOCDEF float cstr_to_float(const char *s, const float _default) {
+float cstr_to_float(const char *s, const float _default) {
     ASSERT_NONNULL(s != NULL);
     char *endptr;
     float val = strtof(s, &endptr);
@@ -194,7 +196,7 @@ AOCDEF float cstr_to_float(const char *s, const float _default) {
     return val;
 }
 
-AOCDEF long cstr_to_long(const char *s, const long _default) {
+long cstr_to_long(const char *s, const long _default) {
     ASSERT_NONNULL(s != NULL);
     char *endptr;
     long val = strtol(s, &endptr, 10);
@@ -202,4 +204,132 @@ AOCDEF long cstr_to_long(const char *s, const long _default) {
         return _default;
     }
     return val;
+}
+
+Slice while_next_word(const char *restrict s, size_t *restrict begin, size_t end) {
+    ASSERT_NONNULL(s);
+    size_t i = *begin;
+
+    while (i < end && isspace((unsigned char)s[i])) {
+        i++;
+    }
+
+    size_t start = i;
+
+    while (i < end && !isspace((unsigned char)s[i])) {
+        i++;
+    }
+
+    *begin = i;
+
+    return (Slice){ .data = s + start, .len = i - start };
+}
+
+Slice while_next_word_and(const char *restrict s, size_t *restrict begin, size_t end, char delim) {
+    ASSERT_NONNULL(s);
+
+    size_t i = *begin;
+
+    while (i < end && isspace((unsigned char)s[i])) {
+        i++;
+    }
+
+    size_t start = i;
+
+    bool found_delim = false;
+
+    while (i < end && !isspace((unsigned char)s[i])) {
+        if (s[i] == delim) {
+            found_delim = true;
+            break;
+        }
+        i++;
+    }
+
+    *begin = i;
+
+    if (found_delim) {
+        return (Slice){ .data = s + start, .len = i - start };
+    } else {
+        return (Slice){ .data = s + start, .len = i - start };
+    }
+}
+
+void slice_to_cstr(Slice s, char *buff, const size_t size) {
+    int size_to_copy = s.len > size ? size : s.len;
+    memcpy(buff, s.data, size_to_copy);
+    buff[size_to_copy] = '\0';
+}
+
+size_t cstr_skip_whitespace_forward(const char *pos, size_t len) {
+    ASSERT_NONNULL(pos);
+    size_t i = 0;
+    while (i < len && isspace((unsigned char)pos[i]))
+        i++;
+    return i;
+}
+
+size_t cstr_skip_whitespace_backward(const char *pos, size_t len) {
+    ASSERT_NONNULL(pos);
+    size_t i = 0;
+    while (i < len && isspace((unsigned char)pos[len - 1 - i]))
+        i++;
+    return i;
+}
+
+void slice_skip_whitespace_backward(Slice *s) {
+    size_t skipped_whitesapce = cstr_skip_whitespace_backward(s->data, s->len);
+    s->len -= skipped_whitesapce;
+}
+
+void slice_skip_whitespace_forward(Slice *s) {
+    size_t skipped_whitesapce = cstr_skip_whitespace_forward(s->data, s->len);
+    s->data += skipped_whitesapce;
+    s->len -= skipped_whitesapce;
+}
+
+void slice_trim(Slice *s) {
+    slice_skip_whitespace_forward(s);
+    slice_skip_whitespace_backward(s);
+}
+
+void slice_chop_right_by(Slice *s, char delim) {
+    ASSERT_NONNULL(s);
+    const char *ptr = memchr(s->data, delim, s->len);
+    if (!ptr) return;
+
+    s->len = (size_t)(ptr - s->data);
+}
+
+Slice slice_extract_from_substring(Slice *s) {
+    ASSERT_NONNULL(s);
+    if (s->len == 0 || s->data[0] != '"') {
+        return *s;
+    }
+
+    const char *pos = s->data + 1;
+    size_t len = 0;
+
+    while (len < s->len - 1) {
+        if (pos[len] == '\\') {
+            if (len + 1 < s->len - 1)
+                len += 2;
+            else
+                break;
+        } else if (pos[len] == '"') {
+            break;
+        } else {
+            len++;
+        }
+    }
+
+    return (Slice){
+        .data = pos,
+        .len = len,
+    };
+}
+
+void slice_shift_by(Slice *s, size_t len) {
+    s->data += len;
+    s->len -= len;
 }

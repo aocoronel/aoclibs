@@ -3,7 +3,7 @@
 
 #include "rc.h"
 #include <ctype.h>
-#include "slices.h"
+#include "cstr.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -58,7 +58,7 @@ AOCDEF void ini_deinit(Ini *ini);
 #include "file.h"
 #include "printfc.h"
 #include "rc.h"
-#include "slices.h"
+#include "cstr.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>

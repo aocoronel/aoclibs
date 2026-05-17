@@ -4,7 +4,7 @@
 #define _GNU_SOURCE
 #include "base.h"
 #include "rc.h"
-#include "slices.h"
+#include "cstr.h"
 
 #define DIR_WALKER_BUFF 4096
 

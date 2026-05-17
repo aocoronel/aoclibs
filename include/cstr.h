@@ -66,6 +66,57 @@ AOCDEF bool cstr_to_bool(const char *s, const bool _default);
 AOCDEF float cstr_to_float(const char *s, const float _default);
 AOCDEF long cstr_to_long(const char *s, const long _default);
 
+// Slices
+
+// printf("%.*s\n", VSLICE(slice))
+#define VSLICE(r) ((int)(r)->len), ((r)->data)
+
+typedef struct {
+    size_t len;
+    const char *data;
+} Slice;
+
+#define slice_eq(cs1, cs2) cstrn_eq((cs1)->data, (cs1)->len, (cs2)->data, (cs2)->len)
+
+#define slice_eq_case(cs1, cs2, offset) \
+    cstrn_eq_case((cs1)->data + (offset), (cs1)->len, (cs2)->data, (cs2)->len)
+
+#define slice_begins_with(cs, begin, begin_len) \
+    cstr_begins_with((cs)->data, (cs)->len, (begin), (begin_len))
+#define slice_ends_with(cs, end, end_len) cstr_ends_with((cs)->data, (cs)->len, (end), (end_len))
+
+#define cstr_to_slice(s, start, end)                  \
+    (Slice) {                                         \
+        .data = (s) + (start), .len = (end) - (start) \
+    }
+
+// Slice myslice = slice("hello, world!");
+#define slice(s)                           \
+    (Slice) {                              \
+        .data = "" s "", .len = STRLEN(s), \
+    }
+
+// while (begin < end) {
+//     cursor = while_extract_next_word(s, &begin, end);
+//     if (cursor.len == 0) break;
+// }
+AOCDEF Slice while_next_word(const char *restrict s, size_t *restrict begin, size_t end);
+AOCDEF Slice while_next_word_and(const char *restrict s,
+                                 size_t *restrict begin,
+                                 size_t end,
+                                 char delim);
+
+AOCDEF bool while_token(Slice *cursor, int *remaining_len, Slice *out);
+
+AOCDEF size_t cstr_skip_whitespace_forward(const char *pos, size_t len);
+AOCDEF size_t cstr_skip_whitespace_backward(const char *pos, size_t len);
+AOCDEF void slice_skip_whitespace_backward(Slice *s);
+AOCDEF void slice_skip_whitespace_forward(Slice *s);
+AOCDEF void slice_trim(Slice *s);
+AOCDEF void slice_chop_right_by(Slice *s, char delim);
+AOCDEF Slice slice_extract_from_substring(Slice *s);
+AOCDEF void slice_shift_by(Slice *s, size_t len);
+
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "cstr.c"
 #endif // AOCLIBS_IMPLEMENTATION

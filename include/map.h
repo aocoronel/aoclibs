@@ -2,7 +2,7 @@
 #define AOCLIBS_MAP_H_
 
 #include "base.h"
-#include "slices.h"
+#include "cstr.h"
 #include "arena.h"
 #include "io.h"
 

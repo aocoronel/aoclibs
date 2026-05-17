@@ -3,7 +3,7 @@
 #include "base.h"
 #include "cstr.h"
 #include "printfc.h"
-#include "slices.h"
+#include "cstr.h"
 #include "da.h"
 #include "file.h"
 #include "rc.h"
