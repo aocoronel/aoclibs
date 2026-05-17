@@ -19,7 +19,7 @@ gcc -o merge merge.c && ./merge
 - `base.h` :: Handful aliases and macros
 - `buddy.h` :: Buddy allocator
 - `colors.h` :: Terminal colors
-- `cstr.h` :: C String operations
+- `cstr.h` :: C String operations and slices
 - `da.h` :: Heap/stack-based dynamic arrays *
 - `file.h` :: File operations
 - `fork.h` :: Fork high-level wrappers
@@ -29,7 +29,6 @@ gcc -o merge merge.c && ./merge
 - `pp.h` :: Pointer Pool
 - `printfc.h` :: `printf` with colors
 - `rc.h` :: String type powered by `da.h`
-- `slices.h` :: String slices
 - `stack.h` :: Stack allocator
 
 \* Based on [Tsoding](https://github.com/tsoding) code.
