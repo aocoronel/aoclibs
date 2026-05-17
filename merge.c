@@ -82,9 +82,7 @@ print:
 void read_source_files(const FileMetadata *data) {
     if (!cstr_ends_with(data->name, strlen(data->name), ".c", 2)) return;
 
-    fprintf(output, "%s", "#ifdef AOCLIBS_IMPLEMENTATION\n");
     if (!read_file(data->name, true)) return;
-    fprintf(output, "%s", "#endif // AOCLIBS_IMPLEMENTATION\n");
 
     return;
 }
@@ -106,8 +104,15 @@ int main(void) {
         return false;
     }
 
+    fputs("#ifndef AOCLIBS_H\n", output);
+    fputs("#define AOCLIBS_H\n", output);
+
     if (read_file(TEMPLATE_FILE, false) == false) return 1;
+
+    fprintf(output, "%s", "#ifdef AOCLIBS_IMPLEMENTATION\n");
     dir_walk("src", .isreg = read_source_files);
+    fprintf(output, "%s", "#endif // AOCLIBS_IMPLEMENTATION\n");
+    fputs("#endif // AOCLIBS_H\n", output);
 
     fclose(output);
 

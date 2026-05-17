@@ -1,6 +1,3 @@
-#ifndef AOCLIBS_H
-#define AOCLIBS_H
-
 /*
  * AOCLIBS - Augusto Coronel's C Libraries
  *
@@ -94,5 +91,3 @@
 #include "./libs/spinner.h" // AOCLIBS_SPINNER
 #include "./libs/ini.h" // AOCLIBS_SPINNER
 #include "./libs/tunit.h" // TUNIT
-
-#endif // AOCLIBS_H
