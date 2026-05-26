@@ -832,6 +832,7 @@ AOCDEF void crown_help_options(CrownCommand *cmds) {
     CROWN_PUTC('\n');
 }
 
+// TODO: when no argument is initialized, this segfaults
 AOCDEF void crown_help(CrownCommand *null cmd) {
     // NULL in case you want to print the general flags and commands
     if (cmd == NULL) {
