@@ -15,7 +15,7 @@
 FILE *output = NULL;
 const char *file_to_open = NULL;
 
-void read_source_files(const FileMetadata *data);
+void read_source_files(FileType ft, struct stat *st, const char *path);
 
 bool read_file(const char *file, bool ignore_include) {
     FILE *fp = fopen(file, "r");
@@ -79,10 +79,10 @@ print:
     return true;
 }
 
-void read_source_files(const FileMetadata *data) {
-    if (!cstr_ends_with(data->name, strlen(data->name), ".c", 2)) return;
+void read_source_files(FileType ft, struct stat *st, const char *path) {
+    if (!cstr_ends_with(path, strlen(path), ".c", 2)) return;
 
-    if (!read_file(data->name, true)) return;
+    if (!read_file(path, true)) return;
 
     return;
 }
