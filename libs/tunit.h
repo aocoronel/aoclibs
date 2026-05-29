@@ -38,6 +38,17 @@
     } while (0)
 #endif
 
+#ifdef HEAP_TRACE
+#define no_debug_malloc no_debug_malloc
+#define no_debug_free no_debug_free
+#define TASSERT_HEAP_TRACE() TASSERT(heap_count_leaks == 0, "memory leak");
+#else
+#define no_debug_malloc malloc
+#define no_debug_free free
+#define TASSERT_HEAP_TRACE()
+#endif
+
+
 #ifdef TUNIT
 #define _XOPEN_SOURCE 600
 
@@ -225,7 +236,7 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
 }
 #endif
 static inline void tunit_register_test(const char *desc, void (*func)(void)) {
-    __TUnitTest *tc = malloc(sizeof(__TUnitTest));
+    __TUnitTest *tc = no_debug_malloc(sizeof(__TUnitTest));
     tc->description = desc;
     tc->func = func;
     tc->next = NULL;
@@ -318,6 +329,17 @@ static inline void __tunit_close_log(void) {
     if (tunit_fd != -1) close(tunit_fd);
 }
 
+static inline void __tunit_free(void) {
+    __TUnitTest *cur = __TUnitHead;
+    while (cur) {
+        __TUnitTest *next = cur->next;
+        no_debug_free(cur);
+        cur = next;
+    }
+    __TUnitHead = NULL;
+    __TUnitTail = NULL;
+}
+
 int main(void) {
     srand((unsigned)time(NULL));
     char perturb[16];
@@ -329,6 +351,8 @@ int main(void) {
     __tunit_run_all_tests();
     __tunit_log("Finished test");
     __tunit_close_log();
+
+    __tunit_free();
     return TESTS_FAIL;
 }
 #endif // TUNIT
