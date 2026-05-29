@@ -1,12 +1,34 @@
 #ifndef AOCLIBS_HEAP_TRACE_H_
 #define AOCLIBS_HEAP_TRACE_H_
 
-#ifdef HEAP_TRACE
-
 #include <stdio.h>
 #include <stdlib.h>
 
+// These functions will be ignored by HEAP_TRACE
+void *no_debug_malloc(size_t size);
+void *no_debug_calloc(size_t nmeb, size_t size);
+void *no_debug_realloc(void *ptr, size_t size);
+void no_debug_free(void *ptr);
+
+#ifdef HEAP_TRACE
+
 // Enable Heap Tracer :: cc -DHEAP_TRACE
+
+void *no_debug_malloc(size_t size) {
+    return malloc(size);
+}
+
+void *no_debug_calloc(size_t nmeb, size_t size) {
+    return calloc(nmeb, size);
+}
+
+void *no_debug_realloc(void *ptr, size_t size) {
+    return realloc(ptr, size);
+}
+
+void no_debug_free(void *ptr) {
+    free(ptr);
+}
 
 /*
  * heap_count_leaks :: Returns how many leaks found
