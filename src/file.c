@@ -61,6 +61,27 @@ const char *get_home_env() {
     return home;
 }
 
+bool read_by_lines(Slice *out, char **restrict buff, size_t *restrict size, FILE *restrict fd) {
+    char *p = NULL;
+    size_t len = 0;
+
+    len = read_by_delim(buff, size, '\n', fd);
+    if (len == SIZE_MAX) return false;
+
+    p = *buff;
+    if (p[len - 1] == '\n') {
+        p[len - 1] = '\0';
+    } else {
+        // There was one project of mine, where I was making an experimental programming language
+        // I had this problem, where the last newline couldn't be found, hopefully I had an assertion
+        // to catch it
+        ASSERT(p[len - 1] == '\0');
+    }
+
+    *out = (Slice){ .data = p + 1, .len = len - 1 };
+    return true;
+}
+
 int absolute_path_from(rc *output, Slice *path) {
     ASSERT_NONNULL(path);
     ASSERT_NONNULL(output);
