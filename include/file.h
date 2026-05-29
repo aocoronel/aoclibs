@@ -68,7 +68,22 @@ AOCDEF size_t read_by_delim(char **restrict lineptr,
 // Reads entire file from "filepath" into "lines"
 AOCDEF bool read_entire_file(rc *null restrict lines, const char *restrict filepath);
 
-AOCDEF bool expand_path(rc *restrict output, Slice *restrict path);
+// Returns the path corresponding to $HOME environment variable
+// This function stores the getenv() output into a `static const char *` variable
+//
+// NULL :: failed to get env
+AOCDEF const char *null get_home_env();
+
+// Returns string to "output" containing the absolute path from "path"
+// Expands these special paths: "~/", "." and "./"
+// Expands environment variables
+// The output is not NULL-terminated
+// If the "output" already has allocated memory, and it fails, no memory is freed
+//
+// 0 :: OK
+// 1 :: Failed to get environment variables
+// 2 :: Failed to get current working directory
+AOCDEF int expand_path(rc *restrict output, Slice *restrict path);
 
 AOCDEF char *null make_path(char *restrict out,
                             const size_t size,

@@ -55,23 +55,22 @@ size_t read_by_delim(char **restrict lineptr,
     return pos;
 }
 
-bool expand_path(rc *output, Slice *path) {
+const char *get_home_env() {
+    static const char *home = NULL;
+    if (!home) home = getenv("HOME");
+    return home;
+}
+
+int expand_path(rc *output, Slice *path) {
     ASSERT_NONNULL(path);
     ASSERT_NONNULL(output);
 
-    const char *home = getenv("HOME");
-    if (!home) {
-        printfc_debug("failed to get $HOME environment value\n");
-        return false;
-    }
+    const char *home = get_home_env();
+    if (!home) return 1;
     size_t home_len = strlen(home);
 
-    char cwd[4096] = { 0 };
-    if (getcwd(cwd, sizeof(cwd)) == NULL) {
-        printfc_debug("failed to get current working directory\n");
-        return false;
-    }
     char cwd[AOC_MAX_PATH] = { 0 };
+    if (getcwd(cwd, sizeof(cwd)) == NULL) return 2;
     size_t cwd_len = strlen(cwd);
 
     const char *pos = path->data;
@@ -88,6 +87,9 @@ bool expand_path(rc *output, Slice *path) {
             da_insert(output, '/');
             pos += 2;
             len -= 2;
+        } else {
+            rc_cat(output, cwd, cwd_len);
+            da_insert(output, '/');
         }
     } else {
         if (pos[0] == '.' && pos[1] == '\0') {
@@ -111,7 +113,9 @@ bool expand_path(rc *output, Slice *path) {
             varname[vi] = '\0';
 
             const char *env = getenv(varname);
-            if (env) rc_cat(output, env, strlen(env));
+            if (!env) return 1;
+
+            rc_cat(output, env, strlen(env));
 
             continue;
         }
@@ -121,9 +125,8 @@ bool expand_path(rc *output, Slice *path) {
     }
 
     rc_cat(output, pos, len);
-    da_add_null(output);
 
-    return true;
+    return 0;
 }
 
 bool dir_walker(const char *path, DirWalker *dw) {
