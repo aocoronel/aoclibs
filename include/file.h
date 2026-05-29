@@ -31,8 +31,6 @@ struct DirWalker {
 
 // dir_walk("test.md", .islnk = my_fn);
 #define dir_walk(path, ...) dir_walker(path, &(DirWalker){ __VA_ARGS__ })
-// Walks into a directory and read it's content
-//
 // dir_walk can run four user provided functions based on each filetype:
 // reg, directory, lnk and null.
 //
