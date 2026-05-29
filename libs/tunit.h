@@ -51,6 +51,7 @@
 #define no_debug_free no_debug_free
 #define TASSERT_HEAP_TRACE() TASSERT(heap_count_leaks == 0, "memory leak");
 #else
+#define heap_count_leaks 0
 #define no_debug_malloc malloc
 #define no_debug_free free
 #define TASSERT_HEAP_TRACE()
@@ -94,8 +95,9 @@ static __TUnitTest *__TUnitTail = NULL;
 static int TESTS_RUN = 0;
 static int TESTS_FAIL = 0;
 static int TESTS_SKIP = 0;
-static const char *CURRENT_TEST = NULL;
+static int TESTS_LEAKS = 0;
 static double TESTS_TIME = 0.0;
+static const char *CURRENT_TEST = NULL;
 
 static jmp_buf __TUnitJMP;
 static volatile int __TUnitTimeoutOccurred = 0;
@@ -174,6 +176,9 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
             exit(EXIT_SUCCESS);
         }
     } else { // Parent process
+        struct timespec start, end;
+        clock_gettime(CLOCK_MONOTONIC, &start);
+
         close(pipefd[1]); // Close write end
 
         char result[5] = { 0 };
@@ -183,16 +188,13 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
         int status;
         waitpid(pid, &status, 0);
 
-        struct timespec start, end;
-        clock_gettime(CLOCK_MONOTONIC, &start);
-
         if (WIFEXITED(status)) {
             clock_gettime(CLOCK_MONOTONIC, &end);
             double duration_ms = get_time_diff_ms(&start);
             if (strcmp(result, "OK") == 0) {
-                fprintf(stderr, " ok: %s %.2fms\n", CURRENT_TEST, duration_ms);
+                fprintf(stderr, " ok: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
             } else if (strcmp(result, "SKIP") == 0) {
-                fprintf(stderr, " skip: %s %.2fms\n", CURRENT_TEST, duration_ms);
+                fprintf(stderr, " skip: %s\r\n", CURRENT_TEST);
                 TESTS_SKIP++;
             }
             TESTS_TIME += duration_ms;
@@ -201,12 +203,12 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
             double duration_ms = get_time_diff_ms(&start);
             if (WIFSIGNALED(status)) {
                 fprintf(stderr,
-                        " fail: %s %.2fms (CRASH: signal %d)\n",
+                        " fail: %s %.2fms (CRASH: signal %d)\r\n",
                         CURRENT_TEST,
                         duration_ms,
                         WTERMSIG(status));
             } else {
-                fprintf(stderr, " fatal: %s %.2fms (UNKNOWN ERROR)\n", CURRENT_TEST, duration_ms);
+                fprintf(stderr, " fatal: %s %.2fms (UNKNOWN ERROR)\r\n", CURRENT_TEST, duration_ms);
             }
             TESTS_TIME += duration_ms;
             TESTS_FAIL++;
@@ -216,11 +218,9 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
 #else
 static inline void __tunit_run_single_test(__TUnitTest *test) {
     double duration_ms = 0.0;
+    int leaks_begin = heap_count_leaks;
     CURRENT_TEST = test->description;
     __TUnitTimeoutOccurred = 0;
-
-    fprintf(stderr, "  [RUN] %s\r", CURRENT_TEST);
-    fflush(stdout);
 
     clock_gettime(CLOCK_MONOTONIC, &__TUnitStartTime);
 
@@ -238,14 +238,34 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
         signal(SIGSEGV, SIG_DFL);
 
         duration_ms = get_time_diff_ms(&__TUnitStartTime);
-        fprintf(stderr, " ok: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
+
+        int leaks = heap_count_leaks - leaks_begin;
+        if (leaks > 0) {
+            TESTS_LEAKS++;
+            fprintf(stderr, " ok: %s %.2fms (%d leaks)\r\n", CURRENT_TEST, duration_ms, leaks);
+        } else {
+            fprintf(stderr, " ok: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
+        }
     } else if (jump_val == 1) { /* Assertion fail or crash */
         duration_ms = get_time_diff_ms(&__TUnitStartTime);
-        fprintf(stderr, " fail: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
+
+        int leaks = heap_count_leaks - leaks_begin;
+        if (leaks > 0) {
+            TESTS_LEAKS++;
+            fprintf(stderr, " fail: %s %.2fms (%d leaks)\r\n", CURRENT_TEST, duration_ms, leaks);
+        } else {
+            fprintf(stderr, " fail: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
+        }
     } else if (jump_val == 2) { /* Skipped test */
         duration_ms = get_time_diff_ms(&__TUnitStartTime);
-        fprintf(stderr, " skip: %s %.2fms\r\n", CURRENT_TEST,
-                duration_ms); // s for skipped
+
+        int leaks = heap_count_leaks - leaks_begin;
+        if (leaks > 0) {
+            TESTS_LEAKS++;
+            fprintf(stderr, " skip: %s %.2fms (%d leaks)\r\n", CURRENT_TEST, duration_ms, leaks);
+        } else {
+            fprintf(stderr, " skip: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
+        }
     }
     TESTS_TIME += duration_ms;
 }
