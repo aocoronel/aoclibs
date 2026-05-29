@@ -22,7 +22,6 @@ typedef void (*null dw_fn)(FileType, struct stat *, const char *);
 typedef struct DirWalker DirWalker;
 
 struct DirWalker {
-    bool metadata;
     void (*null isdir)(FileType, DirWalker *);
     dw_fn islnk;
     dw_fn isnull;
@@ -30,7 +29,7 @@ struct DirWalker {
     void (*null isempty)(const char *path);
 };
 
-// dir_walk("test.md", .metadata = false);
+// dir_walk("test.md", .islnk = my_fn);
 #define dir_walk(path, ...) dir_walker(path, &(DirWalker){ __VA_ARGS__ })
 // Walks into a directory and read it's content
 //
@@ -40,8 +39,8 @@ struct DirWalker {
 // If the user prefers to ignore a certain filetype, the function values can be
 // passed as NULL.
 //
-// When recurse is set to true, when a directory is found, dir_walk will recurse
-// in it.
+// dir_walker will not recurse by itself. You have to call dir_walker again inside
+// the isdir function
 //
 // Sets errno << opendir
 AOCDEF bool dir_walker(const char *restrict path, DirWalker *restrict dw);
