@@ -299,19 +299,16 @@ char *make_path(char *restrict out,
 #ifdef TUNIT
 TEST(make_path) {
     Slice dirs[] = { slice("home"), slice("user"), slice(".cache") };
+    char out[256];
 
-    {
-        char out[256];
-        if (!make_path(out, 256, dirs, ARRAY_LEN(dirs))) {
-            TASSERT(0, "path should fit");
-        }
+    if (!make_path(out, 256, dirs, ARRAY_LEN(dirs))) {
+        TASSERT(0, "path should fit");
     }
 
-    {
-        char out[256];
-        if (make_path(out, 1, dirs, ARRAY_LEN(dirs))) {
-            TASSERT(1, "path should not fit");
-        }
+    if (make_path(out, 1, dirs, ARRAY_LEN(dirs))) {
+        TASSERT(1, "path should not fit");
+    }
+}
     }
 }
 #endif
