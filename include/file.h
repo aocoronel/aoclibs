@@ -65,6 +65,7 @@ AOCDEF size_t read_by_delim(char **restrict lineptr,
                             const char delim,
                             FILE *restrict stream);
 
+// Reads entire file from "filepath" into "lines"
 AOCDEF bool read_entire_file(rc *null restrict lines, const char *restrict filepath);
 
 AOCDEF bool expand_path(rc *restrict output, Slice *restrict path);
