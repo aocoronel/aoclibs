@@ -133,7 +133,14 @@ int main(int argc, char *argv[]) {
                     fwrite(STRING, sizeof(char), STRLEN(STRING), fp);
     fclose(fp);
 
-    char *compile_args[] = { "gcc", "-o", "test", "test.c", "-lm", "-DHEAP_TRACE", disable_tunit ? NULL : "-DTUNIT",
+    char *compile_args[] = { "gcc",
+                             "-o",
+                             "test",
+                             "test.c",
+                             "-lm",
+                             // "-DTUNIT_SUBPROCESS",
+                             "-DHEAP_TRACE",
+                             disable_tunit ? NULL : "-DTUNIT",
                              NULL };
     {
         CmdResult output = { 0 };
@@ -152,7 +159,11 @@ int main(int argc, char *argv[]) {
         CmdResult output = { 0 };
         int status = run_cmd(run_args, NULL, &output, .in = false, .out = false, .err = true);
 
-        eprintf("%s", output.err.data);
+        if (disable_tunit) {
+            eprintf("%s", output.err.data);
+        } else {
+            eprintf("Running tests:\n%s", output.err.data);
+        }
         if (status != 0) {
             fprintf(stderr, "Failed to run test. Got error %d\n", status);
             return 1;
