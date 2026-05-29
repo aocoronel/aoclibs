@@ -6,7 +6,7 @@ This repository contemplates C libraries developed specially for personal CLI de
 
 ```shell
 # Generate a single header with all the libraries
-gcc -o merge merge.c && ./merge
+gcc -Isrc -Ilibs -Iinclude -o merge merge.c && ./merge
 ```
 
 ## Explore
