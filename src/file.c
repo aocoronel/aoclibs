@@ -13,45 +13,45 @@
 #include <unistd.h>
 
 // akin to libc getdelim
-size_t read_by_delim(char **restrict lineptr,
-                     size_t *restrict n,
+size_t read_by_delim(char **restrict buff,
+                     size_t *restrict size,
                      const char delim,
-                     FILE *restrict stream) {
-    ASSERT_NONNULL(lineptr);
-    ASSERT_NONNULL(n);
-    ASSERT_NONNULL(stream);
+                     FILE *restrict fd) {
+    ASSERT_NONNULL(buff);
+    ASSERT_NONNULL(size);
+    ASSERT_NONNULL(fd);
 
-    if (*lineptr == NULL || *n == 0) {
-        *n = 128;
-        *lineptr = malloc(*n);
-        if (!*lineptr) return (size_t)-1;
+    if (*buff == NULL || *size == 0) {
+        *size = 128;
+        *buff = malloc(*size);
+        if (!*buff) return SIZE_MAX;
     }
 
     size_t pos = 0;
 
     for (;;) {
-        int c = getc(stream);
+        int c = getc(fd);
 
         if (c == EOF) {
-            if (pos == 0) return (size_t)-1;
+            if (pos == 0) return SIZE_MAX;
             break;
         }
 
-        if (pos + 1 >= *n) {
-            size_t new_size = *n * 2;
-            char *new_ptr = realloc(*lineptr, new_size);
-            if (!new_ptr) return (size_t)-1;
+        if (pos + 1 >= *size) {
+            size_t new_size = *size * 2;
+            char *new_ptr = realloc(*buff, new_size);
+            if (!new_ptr) return SIZE_MAX;
 
-            *lineptr = new_ptr;
-            *n = new_size;
+            *buff = new_ptr;
+            *size = new_size;
         }
 
-        (*lineptr)[pos++] = (char)c;
+        (*buff)[pos++] = (char)c;
 
         if (c == delim) break;
     }
 
-    (*lineptr)[pos] = '\0';
+    (*buff)[pos] = '\0';
     return pos;
 }
 

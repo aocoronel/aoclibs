@@ -54,11 +54,20 @@ AOCDEF FileType get_filetype(struct stat *restrict st, const char *restrict path
 // Reads file, splitting the read buffer by the delimiter.
 // Returns how many bytes has been read.
 //
-// Allocates to lineptr. The user owns the allocation.
-AOCDEF size_t read_by_delim(char **restrict lineptr,
-                            size_t *restrict n,
+// Allocates to "buff". The user owns the allocation.
+// The buffer is null terminated
+//
+// SIZE_MAX :: failed to allocate
+// SIZE_MAX :: EOF
+AOCDEF size_t read_by_delim(char **restrict buff,
+                            size_t *restrict size,
                             const char delim,
-                            FILE *restrict stream);
+                            FILE *restrict fd);
+
+// Reads stream by lines.
+// The slice is null terminated.
+AOCDEF bool
+read_by_lines(Slice *out, char **restrict buff, size_t *restrict size, FILE *restrict fd);
 
 // Reads entire file from "filepath" into "lines"
 AOCDEF bool read_entire_file(rc *null restrict lines, const char *restrict filepath);
