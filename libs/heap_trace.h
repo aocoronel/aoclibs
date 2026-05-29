@@ -9,8 +9,9 @@
 // Enable Heap Tracer :: cc -DHEAP_TRACE
 
 /*
- * count_leaks :: Returns how many leaks found
+ * heap_count_leaks :: Returns how many leaks found
 */
+#define heap_count_leaks __trace_alloc_count - __trace_free_count
 
 /*
  * Prints allocation and free count.
