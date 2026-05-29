@@ -309,6 +309,21 @@ TEST(make_path) {
         TASSERT(1, "path should not fit");
     }
 }
+
+TEST(dismantle_path) {
+    Slice *slice = NULL;
+    size_t n = 0;
+
+    if ((n = dismantle_path(&slice, "/home/aoc/.cache", STRLEN("/home/aoc/.cache"))) == 0) {
+        eprintf("Failed to dismantle path\n");
     }
+    TASSERT(slice_eq(&slice[0], &slice("home")), "slices are different");
+    TASSERT(slice_eq(&slice[1], &slice("aoc")), "slices are different");
+    TASSERT(slice_eq(&slice[2], &slice(".cache")), "slices are different");
+    slice[0] = slice("usr");
+    TASSERT(slice_eq(&slice[0], &slice("usr")), "slices are different");
+
+    free(slice);
+    TASSERT_HEAP_TRACE();
 }
 #endif
