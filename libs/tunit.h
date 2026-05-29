@@ -168,11 +168,11 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
             if (strcmp(result, "OK") == 0) {
                 clock_gettime(CLOCK_MONOTONIC, &end);
                 double duration_ms = get_time_diff_ms(&start);
-                fprintf(stderr, " ✓ %s %.2fms\n", CURRENT_TEST, duration_ms);
+                fprintf(stderr, " ok: %s %.2fms\n", CURRENT_TEST, duration_ms);
             } else if (strcmp(result, "SKIP") == 0) {
                 clock_gettime(CLOCK_MONOTONIC, &end);
                 double duration_ms = get_time_diff_ms(&start);
-                fprintf(stderr, " s %s %.2fms\n", CURRENT_TEST, duration_ms);
+                fprintf(stderr, " skip: %s %.2fms\n", CURRENT_TEST, duration_ms);
                 TESTS_SKIP++;
             }
         } else {
@@ -180,12 +180,12 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
             double duration_ms = get_time_diff_ms(&start);
             if (WIFSIGNALED(status)) {
                 fprintf(stderr,
-                        " ✗ %s %.2fms (CRASH: signal %d)\n",
+                        " fail: %s %.2fms (CRASH: signal %d)\n",
                         CURRENT_TEST,
                         duration_ms,
                         WTERMSIG(status));
             } else {
-                fprintf(stderr, " ✗ %s %.2fms (UNKNOWN ERROR)\n", CURRENT_TEST, duration_ms);
+                fprintf(stderr, " fatal: %s %.2fms (UNKNOWN ERROR)\n", CURRENT_TEST, duration_ms);
             }
             TESTS_FAIL++;
         }
@@ -213,13 +213,13 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
         signal(SIGSEGV, SIG_DFL);
 
         double duration_ms = get_time_diff_ms(&__TUnitStartTime);
-        fprintf(stderr, " ✓ %s %.2fms\r\n", CURRENT_TEST, duration_ms);
+        fprintf(stderr, " ok: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
     } else if (jump_val == 1) { /* Assertion fail or crash */
         double duration_ms = get_time_diff_ms(&__TUnitStartTime);
-        fprintf(stderr, " ✗ %s %.2fms\r\n", CURRENT_TEST, duration_ms);
+        fprintf(stderr, " fail: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
     } else if (jump_val == 2) { /* Skipped test */
         double duration_ms = get_time_diff_ms(&__TUnitStartTime);
-        fprintf(stderr, " s %s %.2fms\r\n", CURRENT_TEST,
+        fprintf(stderr, " skip: %s %.2fms\r\n", CURRENT_TEST,
                 duration_ms); // s for skipped
     }
 }
