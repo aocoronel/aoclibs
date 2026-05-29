@@ -69,6 +69,11 @@ AOCDEF bool read_entire_file(rc *null restrict lines, const char *restrict filep
 
 AOCDEF bool expand_path(rc *restrict output, Slice *restrict path);
 
+AOCDEF char *null make_path(char *restrict out,
+                            const size_t size,
+                            const Slice *restrict dirs,
+                            const size_t dir_count);
+
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "file.c"
 #endif

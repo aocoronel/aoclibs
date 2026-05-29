@@ -209,3 +209,46 @@ bool read_entire_file(rc *lines, const char *filepath) {
     fclose(fp);
     return true;
 }
+
+char *make_path(char *restrict out,
+                const size_t size,
+                const Slice *restrict dirs,
+                const size_t dir_count) {
+    ASSERT_NONNULL(out);
+    ASSERT_NONNULL(dirs);
+
+    char *ptr = out;
+    char *end = out + size;
+
+    range(0, dir_count, i) {
+        const Slice *s = &dirs[i];
+        size_t needed = s->len + 1; // '/'
+        if ((size_t)(end - ptr) <= needed) return NULL;
+        *ptr++ = '/';
+        memcpy(ptr, s->data, s->len);
+        ptr += s->len;
+    }
+    *ptr = '\0';
+
+    return out;
+}
+
+#ifdef TUNIT
+TEST(make_path) {
+    Slice dirs[] = { slice("home"), slice("user"), slice(".cache") };
+
+    {
+        char out[256];
+        if (!make_path(out, 256, dirs, ARRAY_LEN(dirs))) {
+            TASSERT(0, "path should fit");
+        }
+    }
+
+    {
+        char out[256];
+        if (make_path(out, 1, dirs, ARRAY_LEN(dirs))) {
+            TASSERT(1, "path should not fit");
+        }
+    }
+}
+#endif
