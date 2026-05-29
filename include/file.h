@@ -6,7 +6,7 @@
 #include "rc.h"
 #include "cstr.h"
 
-#define DIR_WALKER_BUFF 4096
+#define AOC_MAX_PATH 4096
 
 typedef enum FileType {
     F_NULL, // Doesn't exist

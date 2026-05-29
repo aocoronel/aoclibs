@@ -71,6 +71,7 @@ bool expand_path(rc *output, Slice *path) {
         printfc_debug("failed to get current working directory\n");
         return false;
     }
+    char cwd[AOC_MAX_PATH] = { 0 };
     size_t cwd_len = strlen(cwd);
 
     const char *pos = path->data;
@@ -136,12 +137,12 @@ bool dir_walker(const char *path, DirWalker *dw) {
 
     struct stat st;
     struct dirent *entry;
-    char fullpath[DIR_WALKER_BUFF];
+    char fullpath[AOC_MAX_PATH];
 
     while ((entry = readdir(dir)) != NULL) {
         if (cstr_eq(entry->d_name, ".") || cstr_eq(entry->d_name, "..")) continue;
 
-        cstr_fmt_write(fullpath, DIR_WALKER_BUFF, "%s/%s", path, entry->d_name);
+        cstr_fmt_write(fullpath, AOC_MAX_PATH, "%s/%s", path, entry->d_name);
 
         FileMetadata metadata = get_filedata(&st, fullpath);
 
