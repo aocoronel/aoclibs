@@ -102,12 +102,21 @@ void read_source_files(FileType ft, struct stat *st, const char *path) {
     "        return 0;\n"                  \
     "}\n"
 
+// I didn't want to deploy crown, so I made this silly flag parsing
+#define flag(var, string)                     \
+    range(1, argc, i) {                       \
+        if (cstr_eq(argv[i], "" string "")) { \
+            var = true;                       \
+            break;                            \
+        }                                     \
+    }
+
 int main(int argc, char *argv[]) {
     bool disable_tunit = false;
+    bool compile_object = false;
 
-    if (argc > 1) {
-        disable_tunit = cstr_eq(argv[1], "-no-test");
-    }
+    flag(disable_tunit, "-no-test");
+    flag(compile_object, "-obj");
 
     output = fopen(OUTPUT_FILE, "w");
 
@@ -128,21 +137,38 @@ int main(int argc, char *argv[]) {
 
     fclose(output);
 
-    FILE *fp = fopen("test.c", "w");
-    disable_tunit ? fwrite(STRING_MAIN, sizeof(char), STRLEN(STRING_MAIN), fp) :
-                    fwrite(STRING, sizeof(char), STRLEN(STRING), fp);
-    fclose(fp);
-
-    char *compile_args[] = { "gcc",
-                             "-o",
-                             "test",
-                             "test.c",
-                             "-lm",
-                             // "-DTUNIT_SUBPROCESS",
-                             "-DHEAP_TRACE",
-                             disable_tunit ? NULL : "-DTUNIT",
-                             NULL };
     {
+        FILE *fp = fopen("test.c", "w");
+        if (!fp) {
+            perror("fopen(test.c, w)");
+            return 1;
+        }
+        disable_tunit ? fwrite(STRING_MAIN, sizeof(char), STRLEN(STRING_MAIN), fp) :
+                        fwrite(STRING, sizeof(char), STRLEN(STRING), fp);
+
+        fclose(fp);
+    }
+
+    if (compile_object) {
+        FILE *fp = fopen("aoclibs.c", "w");
+        if (!fp) {
+            perror("fopen(aoclibs, w)");
+            return 1;
+        }
+        fwrite(STRING, sizeof(char), STRLEN(STRING), fp);
+        fclose(fp);
+    }
+
+    {
+        char *compile_args[] = { "gcc",
+                                 "-o",
+                                 "test",
+                                 "test.c",
+                                 "-lm",
+                                 // "-DTUNIT_SUBPROCESS",
+                                 "-DHEAP_TRACE",
+                                 disable_tunit ? NULL : "-DTUNIT",
+                                 NULL };
         CmdResult output = { 0 };
         int status = run_cmd(compile_args, NULL, &output, .in = false, .out = false, .err = true);
 
@@ -169,9 +195,24 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
-
     if (!disable_tunit) fputc('\n', stderr);
-    eprintf("Created ./aoclibs.h\n");
+
+    if (compile_object) {
+        char *compile_args[] = { "gcc", "-c",        "-O2",       "-flto", "-pipe", "-fPIC",
+                                 "-o",  "aoclibs.o", "aoclibs.c", "-lm",   NULL };
+        CmdResult output = { 0 };
+        int status = run_cmd(compile_args, NULL, &output, .in = false, .out = false, .err = true);
+
+        if (status != 0) {
+            eprintf("%s", output.err.data);
+            eprintf("Failed to build aoclibs.h. Got error: %d\n", status);
+            return 1;
+        } else {
+            eprintf("Generated aoclibs.o\n");
+        }
+    }
+
+    eprintf("Generated ./aoclibs.h\n");
 
     return 0;
 }
