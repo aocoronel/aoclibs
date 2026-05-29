@@ -51,15 +51,15 @@ fork_cmd_t fork_cmd(char **argv, ForkOptions opt) {
     if (pid == 0) { // child
         if (opt.in) {
             close(in_pipe[1]);
-            dup2(in_pipe[0], STDIN_FILENO);
+            if (dup2(in_pipe[0], STDIN_FILENO) == -1) _exit(127);
         }
         if (opt.out) {
             close(out_pipe[0]);
-            dup2(out_pipe[1], STDOUT_FILENO);
+            if (dup2(out_pipe[1], STDOUT_FILENO) == -1) _exit(127);
         }
         if (opt.err) {
             close(err_pipe[0]);
-            dup2(err_pipe[1], STDERR_FILENO);
+            if (dup2(err_pipe[1], STDERR_FILENO) == -1) _exit(127);
         }
 
         close_fd(in_pipe[0]);
@@ -98,7 +98,10 @@ int read_fds(int out_fd, int err_fd, fork_buff_t *fb) {
     bool out_eof = (out_fd == -1);
     bool err_eof = (err_fd == -1);
 
-    int maxfd = out_fd > err_fd ? out_fd : err_fd;
+    int maxfd = -1;
+    if (out_fd >= 0) maxfd = out_fd;
+    if (err_fd >= 0 && err_fd > maxfd) maxfd = err_fd;
+
     char buf[4096];
 
     while (!out_eof || !err_eof) {
