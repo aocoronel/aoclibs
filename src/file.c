@@ -61,7 +61,7 @@ const char *get_home_env() {
     return home;
 }
 
-int expand_path(rc *output, Slice *path) {
+int absolute_path_from(rc *output, Slice *path) {
     ASSERT_NONNULL(path);
     ASSERT_NONNULL(output);
 

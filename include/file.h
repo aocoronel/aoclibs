@@ -83,7 +83,7 @@ AOCDEF const char *null get_home_env();
 // 0 :: OK
 // 1 :: Failed to get environment variables
 // 2 :: Failed to get current working directory
-AOCDEF int expand_path(rc *restrict output, Slice *restrict path);
+AOCDEF int absolute_path_from(rc *restrict output, Slice *restrict path);
 
 AOCDEF char *null make_path(char *restrict out,
                             const size_t size,
