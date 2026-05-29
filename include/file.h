@@ -88,6 +88,18 @@ AOCDEF const char *null get_home_env();
 // 2 :: Failed to get current working directory
 AOCDEF int absolute_path_from(rc *restrict output, Slice *restrict path);
 
+// Turns a path into a array of slices containing each directory that composes a path
+//
+// Memory is allocated in "out" and can be freed using free()
+//
+// 0 :: nothing to do
+// >0 :: slice count
+AOCDEF size_t dismantle_path(Slice **restrict out, const char *restrict path, size_t len);
+
+// Turns a array of slices containing each directory that composes a path into a path
+// The path is null-terminated, and is set into "out"
+//
+// NULL :: path doesn't fit in "size"
 AOCDEF char *null make_path(char *restrict out,
                             const size_t size,
                             const Slice *restrict dirs,

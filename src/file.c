@@ -13,10 +13,8 @@
 #include <unistd.h>
 
 // akin to libc getdelim
-size_t read_by_delim(char **restrict buff,
-                     size_t *restrict size,
-                     const char delim,
-                     FILE *restrict fd) {
+size_t
+read_by_delim(char **restrict buff, size_t *restrict size, const char delim, FILE *restrict fd) {
     ASSERT_NONNULL(buff);
     ASSERT_NONNULL(size);
     ASSERT_NONNULL(fd);
@@ -231,6 +229,48 @@ bool read_entire_file(rc *lines, const char *filepath) {
 
     fclose(fp);
     return true;
+}
+
+size_t dismantle_path(Slice **out, const char *path, size_t len) {
+    ASSERT_NONNULL(out);
+    ASSERT_NONNULL(path);
+
+    struct slices_t {
+        size_t len;
+        size_t cap;
+        Slice *data;
+    } slices = { 0 };
+
+    size_t i = 0;
+
+    if (len == 0) {
+        *out = NULL;
+        return 0;
+    }
+
+    if (path[0] == '/') i = 1;
+
+    while (i < len) {
+        size_t j = index_of(path + i, '/', len - i);
+
+        if (j == SIZE_MAX) {
+            Slice s = { .data = path + i, .len = len - i };
+            da_insert(&slices, s);
+            break;
+        }
+
+        if (j == 0) {
+            i += 1;
+            continue;
+        }
+
+        Slice s = { .data = path + i, .len = j };
+        da_insert(&slices, s);
+        i += j + 1;
+    }
+
+    *out = slices.data;
+    return slices.len;
 }
 
 char *make_path(char *restrict out,
