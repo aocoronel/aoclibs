@@ -5,6 +5,7 @@
 #include "base.h"
 #include "rc.h"
 #include "cstr.h"
+#include <sys/stat.h>
 
 #define AOC_MAX_PATH 4096
 
@@ -16,19 +17,13 @@ typedef enum FileType {
     F_FAIL, // Failed to stat
 } FileType;
 
-typedef struct {
-    FileType type;
-    const char *name;
-    struct stat *stat;
-} FileMetadata;
-
-typedef void (*null dw_fn)(const FileMetadata *);
+typedef void (*null dw_fn)(FileType, struct stat *, const char *);
 
 typedef struct DirWalker DirWalker;
 
 struct DirWalker {
     bool metadata;
-    void (*null isdir)(const FileMetadata *, DirWalker *);
+    void (*null isdir)(FileType, DirWalker *);
     dw_fn islnk;
     dw_fn isnull;
     dw_fn isreg;
@@ -54,7 +49,7 @@ AOCDEF bool dir_walker(const char *restrict path, DirWalker *restrict dw);
 // Stat the file and return its type
 //
 // F_FAIL :: failed to stat. Sets errno << lstat
-AOCDEF FileMetadata get_filedata(struct stat *restrict st, const char *restrict path);
+AOCDEF FileType get_filetype(struct stat *restrict st, const char *restrict path);
 
 // Reads file, splitting the read buffer by the delimiter.
 // Returns how many bytes has been read.

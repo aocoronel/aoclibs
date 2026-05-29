@@ -147,22 +147,20 @@ bool dir_walker(const char *path, DirWalker *dw) {
 
         cstr_fmt_write(fullpath, AOC_MAX_PATH, "%s/%s", path, entry->d_name);
 
-        FileMetadata metadata = get_filedata(&st, fullpath);
+        FileType ft = get_filetype(&st, fullpath);
 
-        metadata.name = fullpath;
-
-        switch (metadata.type) {
+        switch (ft) {
         case F_REG:
-            if (dw->isreg != NULL) dw->isreg(&metadata);
+            if (dw->isreg != NULL) dw->isreg(ft, &st, fullpath);
             break;
         case F_DIR:
-            if (dw->isdir != NULL) dw->isdir(&metadata, dw);
+            if (dw->isdir != NULL) dw->isdir(ft, dw);
             break;
         case F_LNK:
-            if (dw->islnk != NULL) dw->islnk(&metadata);
+            if (dw->islnk != NULL) dw->islnk(ft, &st, fullpath);
             break;
         case F_NULL:
-            if (dw->isnull != NULL) dw->isnull(&metadata);
+            if (dw->isnull != NULL) dw->isnull(ft, &st, fullpath);
             break;
         default:
             break;
@@ -177,19 +175,19 @@ bool dir_walker(const char *path, DirWalker *dw) {
     return true;
 }
 
-FileMetadata get_filedata(struct stat *st, const char *path) {
+FileType get_filetype(struct stat *restrict st, const char *restrict path) {
     ASSERT_NONNULL(path != NULL);
 
-    if (lstat(path, st) == -1) return (FileMetadata){ .type = F_FAIL, .stat = NULL };
+    if (lstat(path, st) == -1) return F_FAIL;
 
     if (S_ISREG(st->st_mode))
-        return (FileMetadata){ .type = F_REG, .stat = st };
+        return F_REG;
     else if (S_ISDIR(st->st_mode))
-        return (FileMetadata){ .type = F_DIR, .stat = st };
+        return F_DIR;
     else if (S_ISLNK(st->st_mode))
-        return (FileMetadata){ .type = F_LNK, .stat = st };
+        return F_LNK;
 
-    return (FileMetadata){ .type = F_FAIL, .stat = st };
+    return F_FAIL;
 }
 
 bool read_entire_file(rc *lines, const char *filepath) {
