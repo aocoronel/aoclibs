@@ -15,11 +15,19 @@
 #define TEST(...)
 #define TASSERT(...)
 #define SKIP_TEST(...)
+#define TEST_TIMEOUT(...)
 #else
 #define TEST(desc)                                                   \
     static void test_##desc(void);                                   \
     __attribute__((constructor)) static void register_##desc(void) { \
-        tunit_register_test(#desc, test_##desc);                     \
+        tunit_register_test(#desc, test_##desc, 0);                  \
+    }                                                                \
+    static void test_##desc(void)
+
+#define TEST_TIMEOUT(desc, timeout)                                  \
+    static void test_##desc(void);                                   \
+    __attribute__((constructor)) static void register_##desc(void) { \
+        tunit_register_test(#desc, test_##desc, timeout);            \
     }                                                                \
     static void test_##desc(void)
 
@@ -77,6 +85,7 @@ typedef struct __TUnitTest {
     const char *description;
     TestFunc func;
     struct __TUnitTest *next;
+    size_t timeout;
 } __TUnitTest;
 
 static __TUnitTest *__TUnitHead = NULL;
@@ -140,7 +149,9 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
         if (jump_val == 0) {
             signal(SIGSEGV, __tunit_segfault_handler);
             signal(SIGALRM, __tunit_timeout_handler);
-            alarm(5); // 5 second timeout
+            if (test->timeout > 0) {
+                alarm(test->timeout);
+            }
 
             test->func();
 
@@ -217,7 +228,9 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
     if (jump_val == 0) {
         signal(SIGSEGV, __tunit_segfault_handler);
         signal(SIGALRM, __tunit_timeout_handler);
-        alarm(30); // 30 second timeout
+        if (test->timeout > 0) {
+            alarm(test->timeout);
+        }
 
         test->func();
 
@@ -237,11 +250,12 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
     TESTS_TIME += duration_ms;
 }
 #endif
-static inline void tunit_register_test(const char *desc, void (*func)(void)) {
+static inline void tunit_register_test(const char *desc, void (*func)(void), size_t timeout) {
     __TUnitTest *tc = no_debug_malloc(sizeof(__TUnitTest));
     tc->description = desc;
     tc->func = func;
     tc->next = NULL;
+    tc->timeout = timeout;
     if (__TUnitTail)
         __TUnitTail->next = tc;
     else
