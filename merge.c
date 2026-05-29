@@ -111,6 +111,7 @@ void read_source_files(FileType ft, struct stat *st, const char *path) {
         }                                     \
     }
 
+// TODO: add option to strip tests from header files
 int main(int argc, char *argv[]) {
     bool disable_tunit = false;
     bool compile_object = false;
