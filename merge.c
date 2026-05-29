@@ -87,7 +87,13 @@ void read_source_files(const FileMetadata *data) {
     return;
 }
 
-#define STRING                             \
+#define STRING                         \
+    "#define AOCLIBS_IMPLEMENTATION\n" \
+    "#include <string.h>\n"            \
+    "#include <stdlib.h>\n"            \
+    "#include \"aoclibs.h\"\n"
+
+#define STRING_MAIN                        \
     "#define AOCLIBS_IMPLEMENTATION\n"     \
     "#include <string.h>\n"                \
     "#include <stdlib.h>\n"                \
@@ -96,7 +102,13 @@ void read_source_files(const FileMetadata *data) {
     "        return 0;\n"                  \
     "}\n"
 
-int main(void) {
+int main(int argc, char *argv[]) {
+    bool disable_tunit = false;
+
+    if (argc > 1) {
+        disable_tunit = cstr_eq(argv[1], "-no-test");
+    }
+
     output = fopen(OUTPUT_FILE, "w");
 
     if (!output) {
@@ -117,17 +129,19 @@ int main(void) {
     fclose(output);
 
     FILE *fp = fopen("test.c", "w");
-    fwrite(STRING, sizeof(char), STRLEN(STRING), fp);
+    disable_tunit ? fwrite(STRING_MAIN, sizeof(char), STRLEN(STRING_MAIN), fp) :
+                    fwrite(STRING, sizeof(char), STRLEN(STRING), fp);
     fclose(fp);
 
-    char *compile_args[] = { "gcc", "-o", "test", "test.c", "-lm", NULL };
+    char *compile_args[] = { "gcc", "-o", "test", "test.c", "-lm", disable_tunit ? NULL : "-DTUNIT",
+                             NULL };
     {
         CmdResult output = { 0 };
-        int status = run_cmd(compile_args, NULL, &output, .in = false, .out = true, .err = true);
+        int status = run_cmd(compile_args, NULL, &output, .in = false, .out = false, .err = true);
 
         if (status != 0) {
-            fprintf(stderr, "%s", output.err.data);
-            fprintf(stderr, "Failed to build aoclibs.h. Got error: %d\n", status);
+            eprintf("%s", output.err.data);
+            eprintf("Failed to build aoclibs.h. Got error: %d\n", status);
             return 1;
         }
     }
@@ -136,16 +150,17 @@ int main(void) {
 
     {
         CmdResult output = { 0 };
-        int status = run_cmd(run_args, NULL, &output, .in = false, .out = true, .err = true);
+        int status = run_cmd(run_args, NULL, &output, .in = false, .out = false, .err = true);
 
+        eprintf("%s", output.err.data);
         if (status != 0) {
-            fprintf(stderr, "%s", output.err.data);
             fprintf(stderr, "Failed to run test. Got error %d\n", status);
             return 1;
         }
     }
 
-    printf("Created ./aoclibs.h\n");
+    if (!disable_tunit) fputc('\n', stderr);
+    eprintf("Created ./aoclibs.h\n");
 
     return 0;
 }
