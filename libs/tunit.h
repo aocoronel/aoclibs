@@ -280,7 +280,6 @@ static inline void __tunit_run_all_tests(void) {
     }
 
     double suite_duration_ms = get_time_diff_ms(&suite_start);
-    fprintf(stderr, " === Test Summary ===\n");
     fprintf(stderr,
             "%d succeed, %d failed and %d skipped (%.2fms total)\n",
             TESTS_RUN,
