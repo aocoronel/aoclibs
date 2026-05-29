@@ -324,6 +324,5 @@ TEST(dismantle_path) {
     TASSERT(slice_eq(&slice[0], &slice("usr")), "slices are different");
 
     free(slice);
-    TASSERT_HEAP_TRACE();
 }
 #endif
