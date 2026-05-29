@@ -48,7 +48,6 @@
 #define TASSERT_HEAP_TRACE()
 #endif
 
-
 #ifdef TUNIT
 #define _XOPEN_SOURCE 600
 
@@ -87,6 +86,7 @@ static int TESTS_RUN = 0;
 static int TESTS_FAIL = 0;
 static int TESTS_SKIP = 0;
 static const char *CURRENT_TEST = NULL;
+static double TESTS_TIME = 0.0;
 
 static jmp_buf __TUnitJMP;
 static volatile int __TUnitTimeoutOccurred = 0;
@@ -176,16 +176,15 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
         clock_gettime(CLOCK_MONOTONIC, &start);
 
         if (WIFEXITED(status)) {
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            double duration_ms = get_time_diff_ms(&start);
             if (strcmp(result, "OK") == 0) {
-                clock_gettime(CLOCK_MONOTONIC, &end);
-                double duration_ms = get_time_diff_ms(&start);
                 fprintf(stderr, " ok: %s %.2fms\n", CURRENT_TEST, duration_ms);
             } else if (strcmp(result, "SKIP") == 0) {
-                clock_gettime(CLOCK_MONOTONIC, &end);
-                double duration_ms = get_time_diff_ms(&start);
                 fprintf(stderr, " skip: %s %.2fms\n", CURRENT_TEST, duration_ms);
                 TESTS_SKIP++;
             }
+            TESTS_TIME += duration_ms;
         } else {
             clock_gettime(CLOCK_MONOTONIC, &end);
             double duration_ms = get_time_diff_ms(&start);
@@ -198,12 +197,14 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
             } else {
                 fprintf(stderr, " fatal: %s %.2fms (UNKNOWN ERROR)\n", CURRENT_TEST, duration_ms);
             }
+            TESTS_TIME += duration_ms;
             TESTS_FAIL++;
         }
     }
 }
 #else
 static inline void __tunit_run_single_test(__TUnitTest *test) {
+    double duration_ms = 0.0;
     CURRENT_TEST = test->description;
     __TUnitTimeoutOccurred = 0;
 
@@ -223,16 +224,17 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
         alarm(0);
         signal(SIGSEGV, SIG_DFL);
 
-        double duration_ms = get_time_diff_ms(&__TUnitStartTime);
+        duration_ms = get_time_diff_ms(&__TUnitStartTime);
         fprintf(stderr, " ok: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
     } else if (jump_val == 1) { /* Assertion fail or crash */
-        double duration_ms = get_time_diff_ms(&__TUnitStartTime);
+        duration_ms = get_time_diff_ms(&__TUnitStartTime);
         fprintf(stderr, " fail: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
     } else if (jump_val == 2) { /* Skipped test */
-        double duration_ms = get_time_diff_ms(&__TUnitStartTime);
+        duration_ms = get_time_diff_ms(&__TUnitStartTime);
         fprintf(stderr, " skip: %s %.2fms\r\n", CURRENT_TEST,
                 duration_ms); // s for skipped
     }
+    TESTS_TIME += duration_ms;
 }
 #endif
 static inline void tunit_register_test(const char *desc, void (*func)(void)) {
@@ -269,9 +271,6 @@ static inline void tunit_skip_test(const char *reason) {
 }
 
 static inline void __tunit_run_all_tests(void) {
-    struct timespec suite_start;
-    clock_gettime(CLOCK_MONOTONIC, &suite_start);
-
     __TUnitTest *curr = __TUnitHead;
     while (curr) {
         TESTS_RUN++;
@@ -279,13 +278,12 @@ static inline void __tunit_run_all_tests(void) {
         curr = curr->next;
     }
 
-    double suite_duration_ms = get_time_diff_ms(&suite_start);
     fprintf(stderr,
             "%d succeed, %d failed and %d skipped (%.2fms total)\n",
             TESTS_RUN,
             TESTS_FAIL,
             TESTS_SKIP,
-            suite_duration_ms);
+            TESTS_TIME);
 }
 
 static inline void __tunit_init_log(const char *log_path) {
