@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
                     fwrite(STRING, sizeof(char), STRLEN(STRING), fp);
     fclose(fp);
 
-    char *compile_args[] = { "gcc", "-o", "test", "test.c", "-lm", disable_tunit ? NULL : "-DTUNIT",
+    char *compile_args[] = { "gcc", "-o", "test", "test.c", "-lm", "-DHEAP_TRACE", disable_tunit ? NULL : "-DTUNIT",
                              NULL };
     {
         CmdResult output = { 0 };
