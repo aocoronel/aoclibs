@@ -34,14 +34,14 @@ void close_fd(int fd) {
     if (fd != -1) close(fd);
 }
 
-fork_cmd_t fork_cmd(char **argv, ForkOptions opt) {
+fork_cmd_t fork_cmd(char **argv, const char *input, ForkOptions opt) {
     ASSERT_NONNULL(argv);
 
     int in_pipe[2] = { -1, -1 };
     int out_pipe[2] = { -1, -1 };
     int err_pipe[2] = { -1, -1 };
 
-    if (opt.in && pipe(in_pipe) == -1) goto err;
+    if (input && pipe(in_pipe) == -1) goto err;
     if (opt.out && pipe(out_pipe) == -1) goto err;
     if (opt.err && pipe(err_pipe) == -1) goto err;
 
@@ -49,7 +49,7 @@ fork_cmd_t fork_cmd(char **argv, ForkOptions opt) {
     if (pid == -1) goto err;
 
     if (pid == 0) { // child
-        if (opt.in) {
+        if (input) {
             close(in_pipe[1]);
             if (dup2(in_pipe[0], STDIN_FILENO) == -1) _exit(127);
         }
@@ -72,14 +72,29 @@ fork_cmd_t fork_cmd(char **argv, ForkOptions opt) {
         execvp(argv[0], argv);
         _exit(127);
     }
-    if (opt.in) close(in_pipe[0]);
+    if (input) close(in_pipe[0]);
     if (opt.out) close(out_pipe[1]);
     if (opt.err) close(err_pipe[1]);
 
-    return (fork_cmd_t){ .pid = pid,
-                         .stdin_fd = opt.in ? in_pipe[1] : -1,
-                         .stdout_fd = opt.out ? out_pipe[0] : -1,
-                         .stderr_fd = opt.err ? err_pipe[0] : -1 };
+    int stdin_fd = input ? in_pipe[1] : -1;
+    int stdout_fd = opt.out ? out_pipe[0] : -1;
+    int stderr_fd = opt.err ? err_pipe[0] : -1;
+
+    if (input) {
+        if (stdin_fd == -1) goto err_stdin;
+        if (write_fd(stdin_fd, input, strlen(input)) < 0) {
+            goto err_stdin;
+        }
+        close(stdin_fd);
+    }
+
+    return (fork_cmd_t){
+        .pid = pid, .stdin_fd = stdin_fd, .stdout_fd = stdout_fd, .stderr_fd = stderr_fd
+    };
+
+err_stdin:
+    kill(pid, SIGTERM);
+    wait_child(pid);
 
 err:
     close_fd(in_pipe[0]);
@@ -159,28 +174,10 @@ int _run_cmd(char **argv, const char *input, CmdResult *out, ForkOptions opt) {
     ASSERT_NONNULL(out);
 
     CmdResult result = { 0 };
-    fork_cmd_t fc = fork_cmd(argv, opt);
+    fork_cmd_t fc = fork_cmd(argv, input, opt);
 
     if (fc.pid == -1) {
         return fc.pid;
-    }
-
-    if (opt.in) {
-        if (fc.stdin_fd == -1) {
-            kill(fc.pid, SIGTERM);
-            wait_child(fc.pid);
-            return -1;
-        } else {
-            if (input) {
-                if (write_fd(fc.stdin_fd, input, strlen(input)) < 0) {
-                    close(fc.stdin_fd);
-                    kill(fc.pid, SIGTERM);
-                    wait_child(fc.pid);
-                    return -1;
-                }
-            }
-        }
-        close(fc.stdin_fd);
     }
 
     fork_buff_t fb = { 0 };
