@@ -25,10 +25,6 @@
 #define CROWN_OUTPUT stdout
 #endif
 
-int optind = 0; // == getopt
-char *optarg = NULL; // == getopt
-char *optcur = NULL; // opt current
-
 typedef struct CrownCommand CrownCommand;
 
 typedef struct {
@@ -84,14 +80,18 @@ typedef struct {
     CrownOpts *flags;
 } CrownProgram;
 
-CrownCmds Crown_Command = { 0 };
-CrownOpts Crown_Option = { 0 };
-CrownArgs Crown_Argument = { 0 };
+extern int optind; // == getopt
+extern char *optarg; // == getopt
+extern char *optcur; // opt current
 
-CrownProgram *Program;
-Arena Program_Arena = { 0 };
+extern CrownCmds Crown_Command;
+extern CrownOpts Crown_Option;
+extern CrownArgs Crown_Argument;
 
-static CrownCommand *last_cmd = NULL;
+extern CrownProgram *Program;
+extern Arena Program_Arena;
+
+extern CrownCommand *last_cmd;
 
 #define CROWN_PRINTF(...) fprintf(CROWN_OUTPUT, __VA_ARGS__)
 #define CROWN_PUTS(string) fputs(string, CROWN_OUTPUT)
@@ -248,6 +248,19 @@ AOCDEF int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc);
 AOCDEF void crown_dump(FILE *fp);
 
 #ifdef AOCLIBS_CROWN
+
+int optind = 0;
+char *optarg = NULL;
+char *optcur = NULL;
+
+CrownCmds Crown_Command = { 0 };
+CrownOpts Crown_Option = { 0 };
+CrownArgs Crown_Argument = { 0 };
+
+CrownProgram *Program;
+Arena Program_Arena = { 0 };
+
+CrownCommand *last_cmd = NULL;
 
 #include "colors.h"
 #include "cstr.h"
