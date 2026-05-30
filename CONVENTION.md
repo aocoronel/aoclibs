@@ -54,9 +54,9 @@ The header guards are defined as follows: `AOCLIBS_LIBNAME_H_`.
 
 ## Functions
 
-Functions are always named with the `aoc` prefix, and can be stripped by defining `AOCLIBS_STRIP_PREFIX`. An exception apply, to libraries in `libs`, which uses their names as prefix.
+`base` libraries are not prefixed, but `libs` are. The reason is that `aoclibs` is not meant to be a dependency for already consolidated projects, but as some sort of a second standard library alternative to start a new project. In the early days, I found it to be very frustrating to add the `aoc` prefix all over the place, but since I'm the main consumer of my own library, I decided to simply remove all prefixes.
 
-The documentation for each function is available in the header file. The documentation must describe what each function does, what defines can be set to apply special behavior, and describe the expected returned values or errors, if applicable.
+The documentation for each function is available in the header file. The documentation must describe what each function does, unless it's obvious enough, what defines can be set to apply special behavior, and describe the expected returned values or errors, if applicable.
 
 ```c
 // Returns the index where 'pattern' starts in 's'.
@@ -65,7 +65,7 @@ The documentation for each function is available in the header file. The documen
 // SIZE_MAX :: Pattern not found
 //
 // #NDEBUG disable assertions
-AOCDEF size_t aoc_cstrstr_index(const char *restrict s, const char *restrict pattern);
+AOCDEF size_t cstrstr_index(const char *restrict s, const char *restrict pattern);
 ```
 
 ## Macros
