@@ -52,42 +52,6 @@ AOCDEF void arena_free_region(Region *r) {
     ASSERT(ret == 0, "%s", strerror(errno));
 }
 
-#elif AOCLIBS_ARENA_BACKEND == AOCLIBS_ARENA_BACKEND_VIRTUAL_ALLOC && _WIN32
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-#define INV_HANDLE(x) (((x) == NULL) || ((x) == INVALID_HANDLE_VALUE))
-
-AOCDEF Region *arena_new_region(const SIZE_T capacity) {
-    const SIZE_T size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
-    Region *r = VirtualAllocEx(GetCurrentProcess(), /* Allocate in current process address space */
-                               NULL, /* Unknown position */
-                               size_bytes, /* Bytes to allocate */
-                               MEM_COMMIT | MEM_RESERVE, /* Reserve and commit allocated page */
-                               PAGE_READWRITE /* Permissions ( Read/Write )*/
-    );
-    if (INV_HANDLE(r)) ASSERT(0, "VirtualAllocEx() failed.");
-
-    r->next = NULL;
-    r->len = 0;
-    r->cap = capacity;
-    return r;
-}
-
-AOCDEF void arena_free_region(Region *r) {
-    ASSERT_NONNULL(r);
-
-    BOOL free_result =
-            VirtualFreeEx(GetCurrentProcess(), /* Deallocate from current process address space */
-                          (LPVOID)r, /* Address to deallocate */
-                          0, /* Bytes to deallocate ( Unknown, deallocate entire page ) */
-                          MEM_RELEASE /* Release the page ( And implicitly decommit it ) */
-            );
-
-    if (FALSE == free_result) ASSERT(0, "VirtualFreeEx() failed.");
-}
-
 #else
 
 #error "Supported arenas: AOCLIBS_ARENA_BACKEND_LIBC_MALLOC and AOCLIBS_ARENA_BACKEND_VIRTUAL_ALLOC"
