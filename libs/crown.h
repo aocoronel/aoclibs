@@ -5,7 +5,6 @@
 #include "base.h"
 #include "cstr.c"
 #include <assert.h>
-#include <alloca.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
