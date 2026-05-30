@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
                                  disable_tunit ? NULL : "-DTUNIT",
                                  NULL };
         CmdResult output = { 0 };
-        int status = run_cmd(compile_args, NULL, &output, .in = false, .out = false, .err = true);
+        int status = run_cmd(compile_args, NULL, &output, .out = false, .err = true);
 
         if (status != 0) {
             eprintf("%s", output.err.data);
@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
 
     {
         CmdResult output = { 0 };
-        int status = run_cmd(run_args, NULL, &output, .in = false, .out = false, .err = true);
+        int status = run_cmd(run_args, NULL, &output, .out = false, .err = true);
 
         if (disable_tunit) {
             eprintf("%s", output.err.data);
@@ -199,10 +199,10 @@ int main(int argc, char *argv[]) {
     if (!disable_tunit) fputc('\n', stderr);
 
     if (compile_object) {
-        char *compile_args[] = { "gcc", "-c",        "-O2",       "-flto", "-pipe", "-fPIC",
+        char *compile_args[] = { "gcc", "-c",        "-O2",       "-flto", "-fPIC",
                                  "-o",  "aoclibs.o", "aoclibs.c", "-lm",   NULL };
         CmdResult output = { 0 };
-        int status = run_cmd(compile_args, NULL, &output, .in = false, .out = false, .err = true);
+        int status = run_cmd(compile_args, NULL, &output, .out = false, .err = true);
 
         if (status != 0) {
             eprintf("%s", output.err.data);
