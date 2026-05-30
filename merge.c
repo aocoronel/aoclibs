@@ -111,13 +111,27 @@ void read_source_files(FileType ft, struct stat *st, const char *path) {
         }                                     \
     }
 
+void usage() {
+    eprintf("Usage: merge [OPTIONS]\n"
+            "  -h Displays this message and exits\n"
+            "  -obj Also emits object file\n"
+            "  -no-test Disable TUnit tests\n");
+}
+
 // TODO: add option to strip tests from header files
 int main(int argc, char *argv[]) {
     bool disable_tunit = false;
     bool compile_object = false;
+    bool print_usage = false;
 
     flag(disable_tunit, "-no-test");
     flag(compile_object, "-obj");
+    flag(print_usage, "-h");
+
+    if (print_usage) {
+        usage();
+        return 0;
+    }
 
     output = fopen(OUTPUT_FILE, "w");
 
