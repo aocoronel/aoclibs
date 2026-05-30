@@ -2,7 +2,7 @@
 
 > This project is in constant development, although I use this almost everywhere, breaking changes may occur at any moment. It may take a while for this to become stable.
 
-I'm the main consumer of this library. As I refuse to write in many modern programming languages, I stick to simplicity of C. However, relying solely in `libc` and also implement a tiny standard library in every single project I do in C was becoming very common, I just decided to develop a more robust and feature rich standard library for myself to enjoy programming in C more.
+I'm the main consumer of this library. As I refuse to write in many modern programming languages, I stick to simplicity of C. However, relying solely in `libc` and also as I was implementing a tiny standard library in every single project I do in C was becoming very common, I just decided to develop a more robust and feature rich standard library for myself to enjoy programming in C more.
 
 The goal is to make writing programs in C more enjoyable, and decrease the amount of external third-party dependencies in the project. As of now, `aoclibs` does only depends on `libc` and in a few places, it uses `linux` specific APIs.
 
