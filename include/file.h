@@ -1,7 +1,6 @@
 #ifndef AOCLIBS_FILE_H_
 #define AOCLIBS_FILE_H_
 
-#define _GNU_SOURCE
 #include "base.h"
 #include "rc.h"
 #include "cstr.h"

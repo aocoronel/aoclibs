@@ -58,7 +58,8 @@
 #endif
 
 #ifdef TUNIT
-#define _XOPEN_SOURCE 600
+#define _POSIX_C_SOURCE 200809L
+#define _XOPEN_SOURCE 700
 
 #include <setjmp.h>
 #include <signal.h>

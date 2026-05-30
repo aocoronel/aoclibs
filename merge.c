@@ -89,15 +89,15 @@ void read_source_files(FileType ft, struct stat *st, const char *path) {
 
 #define STRING                         \
     "#define AOCLIBS_IMPLEMENTATION\n" \
+    "#include \"aoclibs.h\"\n"         \
     "#include <string.h>\n"            \
-    "#include <stdlib.h>\n"            \
-    "#include \"aoclibs.h\"\n"
+    "#include <stdlib.h>\n"
 
 #define STRING_MAIN                        \
     "#define AOCLIBS_IMPLEMENTATION\n"     \
+    "#include \"aoclibs.h\"\n"             \
     "#include <string.h>\n"                \
     "#include <stdlib.h>\n"                \
-    "#include \"aoclibs.h\"\n"             \
     "int main(int argc, char *argv[]) {\n" \
     "        return 0;\n"                  \
     "}\n"
@@ -162,6 +162,7 @@ int main(int argc, char *argv[]) {
 
     {
         char *compile_args[] = { "gcc",
+                                 "-std=c11",
                                  "-o",
                                  "test",
                                  "test.c",
@@ -199,8 +200,8 @@ int main(int argc, char *argv[]) {
     if (!disable_tunit) fputc('\n', stderr);
 
     if (compile_object) {
-        char *compile_args[] = { "gcc", "-c",        "-O2",       "-flto", "-fPIC",
-                                 "-o",  "aoclibs.o", "aoclibs.c", "-lm",   NULL };
+        char *compile_args[] = { "gcc", "-std=c11",  "-c",        "-O2", "-flto", "-fPIC",
+                                 "-o",  "aoclibs.o", "aoclibs.c", "-lm", NULL };
         CmdResult output = { 0 };
         int status = run_cmd(compile_args, NULL, &output, .out = false, .err = true);
 

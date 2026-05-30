@@ -62,6 +62,9 @@
 
 // Enabled with AOCLIBS_IMPLEMENTATION
 
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+
 #include "./include/libc.h"
 #include "./include/base.h"
 

@@ -1,6 +1,8 @@
 #ifndef AOCLIBS_BASE_H_
 #define AOCLIBS_BASE_H_
 
+#define _XOPEN_SOURCE 700
+
 // This is the foundation for all libraries
 
 #include "libc.h"
