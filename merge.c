@@ -89,12 +89,14 @@ void read_source_files(FileType ft, struct stat *st, const char *path) {
 
 #define STRING                         \
     "#define AOCLIBS_IMPLEMENTATION\n" \
+    "#define AOCLIBS_CROWN\n"          \
     "#include \"aoclibs.h\"\n"         \
     "#include <string.h>\n"            \
     "#include <stdlib.h>\n"
 
 #define STRING_MAIN                        \
     "#define AOCLIBS_IMPLEMENTATION\n"     \
+    "#define AOCLIBS_CROWN\n"              \
     "#include \"aoclibs.h\"\n"             \
     "#include <string.h>\n"                \
     "#include <stdlib.h>\n"                \

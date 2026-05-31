@@ -88,9 +88,9 @@
 #include "./include/map.h"
 
 // Libraries
+#include "./libs/heap_trace.h" // HEAP_DEBUG
+#include "./libs/tunit.h" // TUNIT
 #include "./libs/crown.h" // AOCLIBS_CROWN
 #include "./libs/debug.h" // AOCLIBS_DEBUG
-#include "./libs/heap_trace.h" // HEAP_DEBUG
 #include "./libs/spinner.h" // AOCLIBS_SPINNER
 #include "./libs/ini.h" // AOCLIBS_SPINNER
-#include "./libs/tunit.h" // TUNIT

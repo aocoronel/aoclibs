@@ -1183,4 +1183,28 @@ AOCDEF void crown_iprint(const char *msg, int indent) {
 }
 #endif // AOCLIBS_CROWN
 
+#ifdef TUNIT
+TEST(crown_normalize_name) {
+#define crown_normalize_name_test(string, match)                        \
+    do {                                                                \
+        char funcname[64];                                              \
+        crown_normalize_name(funcname, "" string "", sizeof(funcname)); \
+        TASSERT(cstr_eq("" match "", funcname), "strings don't match"); \
+    } while (0)
+
+    crown_normalize_name_test("id|url|tag", "id_url_tag");
+    crown_normalize_name_test("<TAG>", "_TAG_");
+    crown_normalize_name_test("[TAG]", "_TAG_");
+    crown_normalize_name_test("field=id URL TAG NOTE TITLE", "field_id_URL_TAG_NOTE_TITLE");
+    crown_normalize_name_test("ENTER || TAG || TITLE && NOTE", "ENTER____TAG____TITLE____NOTE");
+    crown_normalize_name_test("path/to/directory", "path_to_directory");
+    crown_normalize_name_test("%cache", "_cache");
+    crown_normalize_name_test("email@go.com", "email_go_com");
+    crown_normalize_name_test("!STRING", "_STRING");
+    crown_normalize_name_test("^message$", "_message_");
+    crown_normalize_name_test("AND * NOT * NEXT", "AND___NOT___NEXT");
+    crown_normalize_name_test("try-next", "try_next");
+}
+#endif
+
 #endif // AOCLIBS_CROWN_H_
