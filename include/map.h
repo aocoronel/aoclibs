@@ -98,14 +98,15 @@ struct _Map {
         curr;                                                                          \
     })
 
-AOCDEF void _map_dump(struct _Map *m, rc *buff, int indent, int depth);
-AOCDEF struct _Map *_map_prepare(Arena *arena, struct _Map *map, Slice *slice);
-AOCDEF struct _Map *_map_find(struct _Map *map, Slice *slice);
+AOCDEF void _map_dump(struct _Map *restrict m, rc *restrict buff, const int indent, const int depth);
+AOCDEF struct _Map *null _map_prepare(Arena *restrict arena, struct _Map *restrict map, const Slice slice);
+AOCDEF struct _Map *null _map_find(struct _Map *map, const Slice slice);
 AOCDEF
-int map_binary_search(struct _Map *map, unsigned char k);
+int map_binary_search(struct _Map *map, const unsigned char k);
 
 #ifdef AOCLIBS_IMPLEMENTATION
-int map_binary_search(struct _Map *map, unsigned char k) {
+int map_binary_search(struct _Map *map, const unsigned char k) {
+    ASSERT_NONNULL(map);
     int left = 0, right = (int)map->len;
     while (left < right) {
         int mid = left + (right - left) / 2;
@@ -118,7 +119,9 @@ int map_binary_search(struct _Map *map, unsigned char k) {
     return left;
 }
 
-void _map_dump(struct _Map *m, rc *buff, int indent, int depth) {
+void _map_dump(struct _Map *restrict m, rc *restrict buff, const int indent, const int depth) {
+    ASSERT_NONNULL(m);
+    ASSERT_NONNULL(buff);
     da_reserve(buff, depth + 1);
     range(0, m->len, i) {
         buff->data[depth] = m->data[i].key;
@@ -131,12 +134,14 @@ void _map_dump(struct _Map *m, rc *buff, int indent, int depth) {
     }
 }
 
-struct _Map *_map_prepare(Arena *arena, struct _Map *map, Slice *slice) {
+struct _Map *_map_prepare(Arena *restrict arena, struct _Map *restrict map, const Slice slice) {
+    ASSERT_NONNULL(arena);
+    ASSERT_NONNULL(map);
     struct _Map *curr = map;
     size_t cursor = 0;
 
-    while (cursor < (slice)->len) {
-        unsigned char k = (unsigned char)(slice)->data[cursor];
+    while (cursor < (slice).len) {
+        unsigned char k = (unsigned char)(slice).data[cursor];
 
         int pos = map_binary_search(curr, k);
 
@@ -162,12 +167,13 @@ struct _Map *_map_prepare(Arena *arena, struct _Map *map, Slice *slice) {
     return curr;
 }
 
-struct _Map *_map_find(struct _Map *map, Slice *slice) {
+struct _Map *_map_find(struct _Map *map, const Slice slice) {
+    ASSERT_NONNULL(map);
     struct _Map *result = map;
     size_t cursor = 0;
 
-    while (result && cursor < (slice)->len) {
-        unsigned char k = (unsigned char)(slice)->data[cursor];
+    while (result && cursor < (slice).len) {
+        unsigned char k = (unsigned char)(slice).data[cursor];
 
         int pos = map_binary_search(result, k);
 
@@ -199,19 +205,19 @@ struct _Map *_map_find(struct _Map *map, Slice *slice) {
 //     Slice s = slice("hello");
 //     Arena arena = { 0 };
 //
-//     map_insert(&arena, &map, &slice("hello"), 20);
-//     Map *m = map_find(&map, &slice("hello"));
+//     map_insert(&arena, &map, slice("hello"), 20);
+//     Map *m = map_find(&map, slice("hello"));
 //     printf("Value: %d\n", m->value);
 //
-//     map_set(&map, &s, 23);
+//     map_set(&map, s, 23);
 //     printf("Value: %d\n", m->value);
 //
-//     Map *m2 = map_prepare(&arena, &map, &slice("hello2"));
+//     Map *m2 = map_prepare(&arena, &map, slice("hello2"));
 //     ASSERT(m2->occupied == false);
 //
 //     rc buff = { 0 };
 //     map_dump(&map, &buff);
-//     if (!map_delete(&map, &s)) {
+//     if (!map_delete(&map, s)) {
 //         printf("Failed to delete!\n");
 //     }
 //     return 0;
