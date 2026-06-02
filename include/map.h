@@ -3,6 +3,7 @@
 
 #include "base.h"
 #include "cstr.h"
+#include "rc.h"
 #include "arena.h"
 #include "io.h"
 
@@ -43,176 +44,177 @@
 //
 // Lookup is done using binary search
 
-// Example:
+// This is the assumed layout of the map
+struct _Map {
+    size_t len;
+    size_t cap;
+    struct _Map *data;
+
+    bool occupied;
+    char key;
+    int value;
+};
+
+#define map_dump(map, buff) _map_dump((struct _Map *)(map), (buff), 0, 0)
+
+#define map_delete(map, slice)                    \
+    ({                                            \
+        bool result = true;                       \
+        __typeof__(map) c = map_find(map, slice); \
+        if (!c) {                                 \
+            result = false;                       \
+        } else {                                  \
+            (c)->occupied = false;                \
+        }                                         \
+        result;                                   \
+    })
+
+#define map_set(map, slice, val)                  \
+    ({                                            \
+        bool result = true;                       \
+        __typeof__(map) c = map_find(map, slice); \
+        if (!c) {                                 \
+            result = false;                       \
+        } else {                                  \
+            c->value = (val);                     \
+        }                                         \
+        result;                                   \
+    })
+
+#define map_find(map, slice) (__typeof__(map))_map_find((struct _Map *)(map), (slice))
+
+#define map_prepare(arena, map, slice) \
+    (__typeof__(map))_map_prepare((arena), (struct _Map *)(map), (slice))
+
+#define map_insert(arena, map, slice, val)                                             \
+    ({                                                                                 \
+        __typeof__(map) curr =                                                         \
+                (__typeof__(map))_map_prepare((arena), (struct _Map *)(map), (slice)); \
+        void *ptr = _map_prepare((arena), (struct _Map *)(map), (slice));              \
+        if (!curr->occupied) {                                                         \
+            curr->occupied = true;                                                     \
+            curr->value = (val);                                                       \
+        }                                                                              \
+        curr;                                                                          \
+    })
+
+AOCDEF void _map_dump(struct _Map *m, rc *buff, int indent, int depth);
+AOCDEF struct _Map *_map_prepare(Arena *arena, struct _Map *map, Slice *slice);
+AOCDEF struct _Map *_map_find(struct _Map *map, Slice *slice);
+AOCDEF
+int map_binary_search(struct _Map *map, unsigned char k);
+
+#ifdef AOCLIBS_IMPLEMENTATION
+int map_binary_search(struct _Map *map, unsigned char k) {
+    int left = 0, right = (int)map->len;
+    while (left < right) {
+        int mid = left + (right - left) / 2;
+        if ((unsigned char)map->data[mid].key < k) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    return left;
+}
+
+void _map_dump(struct _Map *m, rc *buff, int indent, int depth) {
+    da_reserve(buff, depth + 1);
+    range(0, m->len, i) {
+        buff->data[depth] = m->data[i].key;
+        buff->data[depth + 1] = '\0';
+
+        fputn(stderr, indent, ' ');
+        fprintf(stderr, "%c -> %s\n", m->data[i].key, buff->data);
+
+        _map_dump(&m->data[i], buff, indent + 3, depth + 1);
+    }
+}
+
+struct _Map *_map_prepare(Arena *arena, struct _Map *map, Slice *slice) {
+    struct _Map *curr = map;
+    size_t cursor = 0;
+
+    while (cursor < (slice)->len) {
+        unsigned char k = (unsigned char)(slice)->data[cursor];
+
+        int pos = map_binary_search(curr, k);
+
+        if (pos < (int)curr->len && (unsigned char)curr->data[pos].key == k) {
+            curr = &curr->data[pos];
+            cursor++;
+            continue;
+        }
+
+        dar_reserve(arena, curr, curr->len + 1);
+
+        memmove(&curr->data[pos + 1], &curr->data[pos], (curr->len - pos) * sizeof(curr->data[0]));
+
+        struct _Map next = { 0 };
+        next.key = k;
+
+        curr->data[pos] = next;
+        curr->len++;
+
+        curr = &curr->data[pos];
+        cursor++;
+    }
+    return curr;
+}
+
+struct _Map *_map_find(struct _Map *map, Slice *slice) {
+    struct _Map *result = map;
+    size_t cursor = 0;
+
+    while (result && cursor < (slice)->len) {
+        unsigned char k = (unsigned char)(slice)->data[cursor];
+
+        int pos = map_binary_search(result, k);
+
+        if (pos < (int)result->len && (unsigned char)result->data[pos].key == k) {
+            result = &result->data[pos];
+            cursor++;
+        } else {
+            result = NULL;
+        }
+    }
+
+    return (result && result->occupied) ? result : NULL;
+}
+
+#endif
+
 // typedef struct Map {
-//     // Dynamic Array
-//     size_t cap;
 //     size_t len;
+//     size_t cap;
 //     struct Map *data;
 //
+//     bool occupied;
 //     char key;
-//     void *value;
+//     int value;
 // } Map;
-
-#define generate_header_map(TYPE, VALUE_TYPE, PREFIX)                              \
-    TYPE *_##PREFIX##_prepare(Arena *arena, TYPE *m, Slice *s, size_t cursor);     \
-    TYPE *PREFIX##_prepare(Arena *arena, TYPE *m, Slice *s);                       \
-    AOCDEF TYPE *PREFIX##_insert(Arena *arena, TYPE *m, Slice *s, VALUE_TYPE key); \
-    AOCDEF void PREFIX##_dump(TYPE *m);                                            \
-    AOCDEF TYPE *null PREFIX##_find(TYPE *m, Slice *s);                            \
-    AOCDEF bool PREFIX##_set(TYPE *m, Slice *s, VALUE_TYPE value);                 \
-    AOCDEF bool PREFIX##_delete(TYPE *m, Slice *s);                                \
-                                                                                   \
-    AOCDEF int _##PREFIX##_bs(TYPE *m, unsigned char k);                           \
-    AOCDEF TYPE *_##PREFIX##_insert(                                               \
-            Arena *arena, TYPE *m, Slice *s, VALUE_TYPE key, size_t cursor);       \
-    AOCDEF void _##PREFIX##_dump(TYPE *m, int indent, rc *buff, int depth);        \
-    AOCDEF TYPE *null _##PREFIX##_find(TYPE *m, Slice *s, size_t cursor);
-
-#define generate_definition_map(TYPE, VALUE_TYPE, PREFIX)                                      \
-    int _##PREFIX##_bs(TYPE *m, unsigned char k) {                                             \
-        int left = 0, right = m->len;                                                          \
-                                                                                               \
-        while (left < right) {                                                                 \
-            int mid = left + (right - left) / 2;                                               \
-            if ((unsigned char)m->data[mid].key < k) {                                         \
-                left = mid + 1;                                                                \
-            } else {                                                                           \
-                right = mid;                                                                   \
-            }                                                                                  \
-        }                                                                                      \
-                                                                                               \
-        return left;                                                                           \
-    }                                                                                          \
-                                                                                               \
-    TYPE *_##PREFIX##_prepare(Arena *arena, TYPE *m, Slice *s, size_t cursor) {                \
-        if (cursor == s->len) {                                                                \
-            return m;                                                                          \
-        }                                                                                      \
-                                                                                               \
-        unsigned char k = (unsigned char)s->data[cursor];                                      \
-                                                                                               \
-        int pos = _##PREFIX##_bs(m, k);                                                        \
-                                                                                               \
-        if (pos < m->len && (unsigned char)m->data[pos].key == k) {                            \
-            return _##PREFIX##_prepare(arena, &m->data[pos], s, cursor + 1);                   \
-        }                                                                                      \
-                                                                                               \
-        int left = 0, right = m->len;                                                          \
-        while (left < right) {                                                                 \
-            int mid = left + (right - left) / 2;                                               \
-            if ((unsigned char)m->data[mid].key < k)                                           \
-                left = mid + 1;                                                                \
-            else                                                                               \
-                right = mid;                                                                   \
-        }                                                                                      \
-                                                                                               \
-        dar_reserve(arena, m, m->len + 1);                                                     \
-        memmove(&m->data[left + 1], &m->data[left], (m->len - left) * sizeof(TYPE));           \
-                                                                                               \
-        TYPE c = { 0 };                                                                        \
-        c.key = k;                                                                             \
-                                                                                               \
-        m->data[left] = c;                                                                     \
-        m->len++;                                                                              \
-                                                                                               \
-        return _##PREFIX##_prepare(arena, &m->data[left], s, cursor + 1);                      \
-    }                                                                                          \
-                                                                                               \
-    TYPE *PREFIX##_prepare(Arena *arena, TYPE *m, Slice *s) {                                  \
-        return _##PREFIX##_prepare(arena, m, s, 0);                                            \
-    }                                                                                          \
-                                                                                               \
-    TYPE *_##PREFIX##_insert(Arena *arena, TYPE *m, Slice *s, VALUE_TYPE key, size_t cursor) { \
-        if (cursor == s->len) {                                                                \
-            if (m->occupied == true) return m;                                                 \
-            m->occupied = true;                                                                \
-            m->value = key;                                                                    \
-            return m;                                                                          \
-        }                                                                                      \
-                                                                                               \
-        unsigned char k = (unsigned char)s->data[cursor];                                      \
-                                                                                               \
-        int pos = _##PREFIX##_bs(m, k);                                                        \
-                                                                                               \
-        if (pos < m->len && (unsigned char)m->data[pos].key == k) {                            \
-            return _##PREFIX##_insert(arena, &m->data[pos], s, key, cursor + 1);               \
-        }                                                                                      \
-                                                                                               \
-        int left = 0, right = m->len;                                                          \
-        while (left < right) {                                                                 \
-            int mid = left + (right - left) / 2;                                               \
-            if ((unsigned char)m->data[mid].key < k)                                           \
-                left = mid + 1;                                                                \
-            else                                                                               \
-                right = mid;                                                                   \
-        }                                                                                      \
-                                                                                               \
-        dar_reserve(arena, m, m->len + 1);                                                     \
-        memmove(&m->data[left + 1], &m->data[left], (m->len - left) * sizeof(TYPE));           \
-                                                                                               \
-        TYPE c = { 0 };                                                                        \
-        c.key = k;                                                                             \
-                                                                                               \
-        m->data[left] = c;                                                                     \
-        m->len++;                                                                              \
-                                                                                               \
-        return _##PREFIX##_insert(arena, &m->data[left], s, key, cursor + 1);                  \
-    }                                                                                          \
-                                                                                               \
-    TYPE *PREFIX##_insert(Arena *arena, TYPE *m, Slice *s, VALUE_TYPE key) {                   \
-        return _##PREFIX##_insert(arena, m, s, key, 0);                                        \
-    }                                                                                          \
-                                                                                               \
-    void _##PREFIX##_dump(TYPE *m, int indent, rc *buff, int depth) {                          \
-        da_reserve(buff, depth + 1);                                                           \
-        range(0, m->len, i) {                                                                  \
-            buff->data[depth] = m->data[i].key;                                                \
-            buff->data[depth + 1] = '\0';                                                      \
-                                                                                               \
-            fputn(stderr, indent, ' ');                                                        \
-            fprintf(stderr, "%c -> %s\n", m->data[i].key, buff->data);                         \
-                                                                                               \
-            _##PREFIX##_dump(&m->data[i], indent + 3, buff, depth + 1);                        \
-        }                                                                                      \
-    }                                                                                          \
-                                                                                               \
-    void PREFIX##_dump(TYPE *m) {                                                              \
-        rc buff = { 0 };                                                                       \
-        _##PREFIX##_dump(m, 0, &buff, 0);                                                      \
-        da_free(&buff);                                                                        \
-    }                                                                                          \
-                                                                                               \
-    TYPE *null _##PREFIX##_find(TYPE *m, Slice *s, size_t cursor) {                            \
-        if (cursor == s->len) return m;                                                        \
-        unsigned char k = (unsigned char)s->data[cursor];                                      \
-                                                                                               \
-        int pos = _##PREFIX##_bs(m, k);                                                        \
-                                                                                               \
-        if (pos < m->len && (unsigned char)m->data[pos].key == k) {                            \
-            return _##PREFIX##_find(&m->data[pos], s, cursor + 1);                             \
-        }                                                                                      \
-        return NULL;                                                                           \
-    }                                                                                          \
-                                                                                               \
-    TYPE *null PREFIX##_find(TYPE *m, Slice *s) {                                              \
-        TYPE *tmp = _##PREFIX##_find(m, s, 0);                                                 \
-        return (tmp && tmp->occupied) ? tmp : NULL;                                            \
-    }                                                                                          \
-                                                                                               \
-    bool PREFIX##_set(TYPE *m, Slice *s, VALUE_TYPE value) {                                   \
-        TYPE *c = PREFIX##_find(m, s);                                                         \
-        if (!c) return false;                                                                  \
-                                                                                               \
-        c->value = value;                                                                      \
-        return true;                                                                           \
-    }                                                                                          \
-                                                                                               \
-    bool PREFIX##_delete(TYPE *m, Slice *s) {                                                  \
-        TYPE *c = PREFIX##_find(m, s);                                                         \
-        if (!c) return false;                                                                  \
-        c->occupied = false;                                                                   \
-        return true;                                                                           \
-    }
+//
+// int main(int argc, char *argv[]) {
+//     Map map = { 0 };
+//     Slice s = slice("hello");
+//     Arena arena = { 0 };
+//
+//     map_insert(&arena, &map, &slice("hello"), 20);
+//     Map *m = map_find(&map, &slice("hello"));
+//     printf("Value: %d\n", m->value);
+//
+//     map_set(&map, &s, 23);
+//     printf("Value: %d\n", m->value);
+//
+//     Map *m2 = map_prepare(&arena, &map, &slice("hello2"));
+//     ASSERT(m2->occupied == false);
+//
+//     rc buff = { 0 };
+//     map_dump(&map, &buff);
+//     if (!map_delete(&map, &s)) {
+//         printf("Failed to delete!\n");
+//     }
+//     return 0;
+// }
 
 #endif
