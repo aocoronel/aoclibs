@@ -90,7 +90,6 @@ struct _Map {
     ({                                                                                 \
         __typeof__(map) curr =                                                         \
                 (__typeof__(map))_map_prepare((arena), (struct _Map *)(map), (slice)); \
-        void *ptr = _map_prepare((arena), (struct _Map *)(map), (slice));              \
         if (!curr->occupied) {                                                         \
             curr->occupied = true;                                                     \
             curr->value = (val);                                                       \
