@@ -57,28 +57,28 @@ struct _Map {
 
 #define map_dump(map, buff) _map_dump((struct _Map *)(map), (buff), 0, 0)
 
-#define map_delete(map, slice)                    \
-    ({                                            \
-        bool result = true;                       \
-        __typeof__(map) c = map_find(map, slice); \
-        if (!c) {                                 \
-            result = false;                       \
-        } else {                                  \
-            (c)->occupied = false;                \
-        }                                         \
-        result;                                   \
+#define map_delete(map, slice)                        \
+    ({                                                \
+        bool result = true;                           \
+        __typeof__(map) c = map_find((map), (slice)); \
+        if (!c) {                                     \
+            result = false;                           \
+        } else {                                      \
+            (c)->occupied = false;                    \
+        }                                             \
+        result;                                       \
     })
 
-#define map_set(map, slice, val)                  \
-    ({                                            \
-        bool result = true;                       \
-        __typeof__(map) c = map_find(map, slice); \
-        if (!c) {                                 \
-            result = false;                       \
-        } else {                                  \
-            c->value = (val);                     \
-        }                                         \
-        result;                                   \
+#define map_set(map, slice, val)                      \
+    ({                                                \
+        bool result = true;                           \
+        __typeof__(map) c = map_find((map), (slice)); \
+        if (!c) {                                     \
+            result = false;                           \
+        } else {                                      \
+            c->value = (val);                         \
+        }                                             \
+        result;                                       \
     })
 
 #define map_find(map, slice) (__typeof__(map))_map_find((struct _Map *)(map), (slice))
