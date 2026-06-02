@@ -97,8 +97,11 @@ struct _Map {
         curr;                                                                          \
     })
 
-AOCDEF void _map_dump(struct _Map *restrict m, rc *restrict buff, const int indent, const int depth);
-AOCDEF struct _Map *null _map_prepare(Arena *restrict arena, struct _Map *restrict map, const Slice slice);
+AOCDEF void
+_map_dump(struct _Map *restrict m, rc *restrict buff, const int indent, const int depth);
+AOCDEF struct _Map *null _map_prepare(Arena *restrict arena,
+                                      struct _Map *restrict map,
+                                      const Slice slice);
 AOCDEF struct _Map *null _map_find(struct _Map *map, const Slice slice);
 AOCDEF
 int map_binary_search(struct _Map *map, const unsigned char k);
