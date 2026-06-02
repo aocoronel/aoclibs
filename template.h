@@ -79,6 +79,8 @@
 
 #include "./include/printfc.h"
 
+#include "./include/io.h"
+
 // Dynamic Arrays
 #include "./include/da.h"
 #include "./include/rc.h"
