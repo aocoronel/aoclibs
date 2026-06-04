@@ -31,7 +31,10 @@ void _map_dump(struct _Map *restrict m, rc *restrict buff, const int indent, con
     }
 }
 
-struct _Map *_map_prepare(Arena *restrict arena, struct _Map *restrict map, const Slice slice) {
+struct _Map *_map_prepare(Arena *restrict arena,
+                          struct _Map *restrict map,
+                          const Slice slice,
+                          const size_t sizeof_value) {
     ASSERT_NONNULL(arena);
     ASSERT_NONNULL(map);
     struct _Map *curr = map;
@@ -48,7 +51,7 @@ struct _Map *_map_prepare(Arena *restrict arena, struct _Map *restrict map, cons
             continue;
         }
 
-        dar_reserve(arena, curr, curr->len + 1);
+        _dar_reserve(arena, curr, curr->len + 1, sizeof_value);
 
         memmove(&curr->data[pos + 1], &curr->data[pos], (curr->len - pos) * sizeof(curr->data[0]));
 
@@ -64,7 +67,7 @@ struct _Map *_map_prepare(Arena *restrict arena, struct _Map *restrict map, cons
     return curr;
 }
 
-struct _Map *_map_find(struct _Map *map, const Slice slice) {
+struct _Map *_map_get(struct _Map *map, const Slice slice) {
     ASSERT_NONNULL(map);
     struct _Map *result = map;
     size_t cursor = 0;
@@ -102,7 +105,7 @@ TEST(map_test) {
 
     map_insert(&arena, &map, slice("hello"), 20);
 
-    TUnitMap *m = map_find(&map, slice("hello"));
+    TUnitMap *m = map_get(&map, slice("hello"));
     TASSERT(m->value == 20, "wrong value");
 
     map_set(&map, slice("hello"), 23);

@@ -104,7 +104,9 @@ AOCDEF void arena_trim(Arena *a);
 #define AOCLIBS_ARENA_DA_CAPACITY 256
 #endif
 
-#define dar_reserve(a, da, new_cap)                                                              \
+#define dar_reserve(a, da, new_cap) _dar_reserve(a, da, new_cap, sizeof(*(da)->data))
+
+#define _dar_reserve(a, da, new_cap, sizeof_da)                                                  \
     do {                                                                                         \
         if (UNLIKELY((da)->len >= (da)->cap)) {                                                  \
             size_t new_capacity =                                                                \
@@ -112,10 +114,8 @@ AOCDEF void arena_trim(Arena *a);
             while ((new_cap) > new_capacity) {                                                   \
                 new_capacity *= 2;                                                               \
             }                                                                                    \
-            (da)->data = arena_realloc((a),                                                      \
-                                       (da)->data,                                               \
-                                       (da)->cap * sizeof(*(da)->data),                          \
-                                       new_capacity * sizeof(*(da)->data));                      \
+            (da)->data = arena_realloc(                                                          \
+                    (a), (da)->data, (da)->cap * (sizeof_da), new_capacity * (sizeof_da));       \
             ASSERT((da)->data, "out of memory while reserving memory for arena dynamic array");  \
             (da)->cap = new_capacity;                                                            \
         }                                                                                        \
