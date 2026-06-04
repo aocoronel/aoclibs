@@ -1,3 +1,5 @@
+#ifndef RAPIDHASH_H_
+#define RAPIDHASH_H_
 /*
  * rapidhash V3 - Very fast, high quality, platform-independent hashing algorithm.
  *
@@ -572,3 +574,4 @@ RAPIDHASH_INLINE_CONSTEXPR uint64_t rapidhashMicro(const void *key, size_t len) 
 RAPIDHASH_INLINE_CONSTEXPR uint64_t rapidhashNano(const void *key, size_t len) RAPIDHASH_NOEXCEPT {
   return rapidhashNano_withSeed(key, len, 0);
 }
+#endif // RAPIDHASH_H_
