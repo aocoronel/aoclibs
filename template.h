@@ -91,6 +91,7 @@
 #include "./include/file.h"
 #include "./include/fork.h"
 #include "./include/map.h"
+#include "./include/hmap.h"
 
 // Libraries
 #include "./libs/heap_trace.h" // HEAP_DEBUG

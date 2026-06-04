@@ -219,3 +219,48 @@ _HashEntry *_hmap_insert_from_hash(_HashMap *map, const Slice key, const uint64_
     }
     UNREACHABLE;
 }
+
+#ifdef TUNIT
+typedef struct HashEntry {
+    Slice key;
+    uint64_t hash;
+    uint32_t meta;
+    float value;
+} HashEntry;
+
+typedef struct HashMap {
+    size_t cap;
+    size_t len;
+    _HashEntry *entries;
+} HashMap;
+
+TEST(hashmap_test) {
+    HashMap map = { 0 };
+    // Optional, AOCLIBS_HASHMAP_INITIAL_CAPACITY will be used if this step isn't done
+    if (!hmap_init(&map, 10)) {
+        TASSERT(0, "out of memory");
+    }
+    size_t count = 0;
+    size_t index = 0;
+
+    Slice hello = { .data = "hello", .len = strlen("hello") };
+    Slice world = { .data = "world", .len = strlen("world") };
+    Slice world2 = { .data = "world2", .len = strlen("world2") };
+    Slice world3 = { .data = "world3", .len = strlen("world3") };
+
+    hmap_insert(&map, hello, 123);
+    hmap_insert(&map, world, 456);
+    hmap_insert(&map, world2, 456);
+    hmap_insert(&map, world3, 456);
+
+    TASSERT(hmap_get(&map, hello) == 123, "values don't match");
+    TASSERT(hmap_get(&map, world) == 456, "values don't match");
+    TASSERT(hmap_get(&map, world2) == 456, "values don't match");
+    TASSERT(hmap_get(&map, world3) == 456, "values don't match");
+
+    hmap_remove(&map, hello);
+    TASSERT(hmap_get_entry(&map, hello) == NULL, "value was supposed to be removed");
+
+    hmap_free(&map);
+}
+#endif
