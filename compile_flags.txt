@@ -3,6 +3,7 @@
 -Iinclude
 -Isrc
 -Ilibs
+-Ivendor
 
 -DAOCLIBS_IMPLEMENTATION
 -DAOCLIBS_INI
