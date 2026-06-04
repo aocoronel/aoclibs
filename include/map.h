@@ -84,7 +84,7 @@ struct _Map {
 #define map_get(map, slice) (__typeof__(map))_map_get((struct _Map *)(map), (slice))
 
 #define map_prepare(arena, map, slice) \
-    (__typeof__(map))_map_prepare((arena), (struct _Map *)(map), (slice), sizeof((val)))
+    (__typeof__(map))_map_prepare((arena), (struct _Map *)(map), (slice), sizeof((map)->value))
 
 #define map_insert(arena, map, slice, val)                              \
     ({                                                                  \
