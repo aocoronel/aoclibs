@@ -68,6 +68,9 @@
 #include "./include/libc.h"
 #include "./include/base.h"
 
+// Vendor
+#include "./vendor/rapidhash.h"
+
 // Standalones
 #include "./include/colors.h"
 #include "./include/arena.h"
