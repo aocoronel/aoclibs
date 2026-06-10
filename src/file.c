@@ -76,7 +76,7 @@ bool read_by_lines(Slice *out, char **restrict buff, size_t *restrict size, FILE
         ASSERT(p[len - 1] == '\0');
     }
 
-    *out = (Slice){ .data = p + 1, .len = len - 1 };
+    *out = (Slice){ .data = p, .len = len - 1 };
     return true;
 }
 
