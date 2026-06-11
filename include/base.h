@@ -107,4 +107,40 @@
 #define range(init, end, it) for (size_t it = (init); it < (end); it++)
 #define range_invert(init, end, it) for (size_t it = (end); it < (init); it++)
 
+// Sanitizers
+
+#if defined(__SANITIZE_ADDRESS__)
+#include <sanitizer/asan_interface.h>
+#define _ASAN_POISON_MEMORY_REGION(region, size) ASAN_POISON_MEMORY_REGION((region), (size));
+#define _ASAN_UNPOISON_MEMORY_REGION(region, size) ASAN_UNPOISON_MEMORY_REGION((region), (size));
+#else
+#define _ASAN_POISON_MEMORY_REGION(region, size)
+#define _ASAN_UNPOISON_MEMORY_REGION(region, size)
+#endif
+
+#if defined(__SANITIZE_MEMORY__)
+#include <sanitizer/msan_interface.h>
+#define __MSAN_POISON(region, size) __msan_poison((region), (size))
+#define __MSAN_UNPOISON(region, size) __msan_unpoison((region), (size))
+#else
+#define __MSAN_POISON(region, size)
+#define __MSAN_UNPOISON(region, size)
+#endif
+
+#if defined(__SANITIZE_MEMORY__) || defined(__SANITIZE_ADDRESS__)
+#define HAVE_SANITIZER
+#endif
+
+#define sanitizer_poison_memory(region, size)     \
+    do {                                          \
+        _ASAN_POISON_MEMORY_REGION(region, size); \
+        __MSAN_POISON(region, size);              \
+    } while (0)
+
+#define sanitizer_unpoison_memory(region, size)     \
+    do {                                            \
+        _ASAN_UNPOISON_MEMORY_REGION(region, size); \
+        __MSAN_UNPOISON(region, size);              \
+    } while (0)
+
 #endif // AOCLIBS_BASE_H_
