@@ -15,6 +15,8 @@
 FILE *output = NULL;
 const char *file_to_open = NULL;
 
+char *C_COMPILER = "gcc";
+
 void read_source_files(FileType ft, struct stat *st, const char *path);
 
 bool read_file(const char *file, bool ignore_include) {
@@ -177,7 +179,7 @@ int main(int argc, char *argv[]) {
     }
 
     {
-        char *compile_args[] = { "gcc",
+        char *compile_args[] = { C_COMPILER,
                                  "-std=c11",
                                  "-o",
                                  "test",
@@ -216,7 +218,7 @@ int main(int argc, char *argv[]) {
     if (!disable_tunit) fputc('\n', stderr);
 
     if (compile_object) {
-        char *compile_args[] = { "gcc", "-std=c11",  "-c",        "-O2", "-flto", "-fPIC",
+        char *compile_args[] = { C_COMPILER, "-std=c11",  "-c",        "-O2", "-flto", "-fPIC",
                                  "-o",  "aoclibs.o", "aoclibs.c", "-lm", NULL };
         CmdResult output = { 0 };
         int status = run_cmd(compile_args, NULL, &output, .out = false, .err = true);
