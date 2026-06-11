@@ -11,6 +11,8 @@ AOCDEF Region *arena_new_region(const size_t capacity) {
     Region *r = (Region *)malloc(size_bytes);
     if (!r) return NULL;
 
+    sanitizer_poison_memory(r->data, capacity);
+
     r->next = NULL;
     r->len = 0;
     r->cap = capacity;
@@ -85,6 +87,17 @@ AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
         if (a->end->next == NULL) return NULL;
         a->end = a->end->next;
     }
+
+#ifdef HAVE_SANITIZER
+    {
+        size_t rounded =
+                ((size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t)) * sizeof(uintptr_t);
+        void *ptr = &a->end->data[a->end->len];
+        sanitizer_unpoison_memory(ptr, size_bytes);
+        if (rounded > size_bytes)
+            sanitizer_poison_memory((char *)ptr + size_bytes, rounded - size_bytes);
+    }
+#endif
 
     void *result = &a->end->data[a->end->len];
     a->end->len += size;
