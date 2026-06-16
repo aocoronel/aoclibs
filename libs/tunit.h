@@ -350,7 +350,7 @@ static inline void __tunit_log(const char *msg) {
 	strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", t);
 
 	fprintf(TUNIT_LOG_FILE,
-			"===============================================\n=== %s - %s ===\n===============================================\n",
+			"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    %s - %s\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
 			msg,
 			buffer);
 	fflush(TUNIT_LOG_FILE);
