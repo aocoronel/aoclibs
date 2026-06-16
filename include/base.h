@@ -111,7 +111,6 @@
 #define catch(expr) if (UNLIKELY(expr))
 
 #define range(init, end, it) for (size_t it = (init); it < (end); it++)
-#define range_invert(init, end, it) for (size_t it = (end); it < (init); it++)
 
 // Sanitizers
 
