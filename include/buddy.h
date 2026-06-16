@@ -13,27 +13,27 @@
 #define BUDDY_MAX_ORDERS 32
 
 typedef struct buddy_block {
-    struct buddy_block *next;
+	struct buddy_block *next;
 } buddy_block_t;
 
 typedef struct buddy_page {
-    struct buddy_page *next;
-    uint8_t *base;
-    uint8_t *split_map;
-    uint8_t *free_map;
-    buddy_block_t *free_lists[BUDDY_MAX_ORDERS];
-    unsigned max_order;
-    size_t total_size;
+	struct buddy_page *next;
+	uint8_t *base;
+	uint8_t *split_map;
+	uint8_t *free_map;
+	buddy_block_t *free_lists[BUDDY_MAX_ORDERS];
+	unsigned max_order;
+	size_t total_size;
 } buddy_page_t;
 
 typedef struct {
-    buddy_page_t *page;
-    unsigned order;
+	buddy_page_t *page;
+	unsigned order;
 } buddy_header_t;
 
 typedef struct {
-    buddy_page_t *begin;
-    buddy_page_t *end;
+	buddy_page_t *begin;
+	buddy_page_t *end;
 } Buddy;
 
 buddy_block_t *_buddy_freelist_pop(buddy_block_t **head);

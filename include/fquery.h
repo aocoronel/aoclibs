@@ -16,15 +16,15 @@
 // fquery(query, "00adasd")
 
 #define new_fquery(...)   \
-    (fquery_t[]) {        \
-        __VA_ARGS__, NULL \
-    }
+	(fquery_t[]) {        \
+		__VA_ARGS__, NULL \
+	}
 
 typedef const char *(*fquery_fn)(const char *null, const void *);
 
 typedef struct {
-    fquery_fn fn;
-    const void *arg;
+	fquery_fn fn;
+	const void *arg;
 } fquery_t;
 
 // *p == c

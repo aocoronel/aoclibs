@@ -9,11 +9,11 @@
 #define AOC_MAX_PATH 4096
 
 typedef enum FileType {
-    F_NULL, // Doesn't exist
-    F_REG, // Regular file
-    F_DIR, // Directory
-    F_LNK, // Symbolic Link
-    F_FAIL, // Failed to stat
+	F_NULL, // Doesn't exist
+	F_REG, // Regular file
+	F_DIR, // Directory
+	F_LNK, // Symbolic Link
+	F_FAIL, // Failed to stat
 } FileType;
 
 typedef void (*null dw_fn)(FileType, struct stat *, const char *);
@@ -21,11 +21,11 @@ typedef void (*null dw_fn)(FileType, struct stat *, const char *);
 typedef struct DirWalker DirWalker;
 
 struct DirWalker {
-    void (*null isdir)(FileType, DirWalker *);
-    dw_fn islnk;
-    dw_fn isnull;
-    dw_fn isreg;
-    void (*null isempty)(const char *path);
+	void (*null isdir)(FileType, DirWalker *);
+	dw_fn islnk;
+	dw_fn isnull;
+	dw_fn isreg;
+	void (*null isempty)(const char *path);
 };
 
 // dir_walk("test.md", .islnk = my_fn);
@@ -56,9 +56,9 @@ AOCDEF FileType get_filetype(struct stat *restrict st, const char *restrict path
 // SIZE_MAX :: failed to allocate
 // SIZE_MAX :: EOF
 AOCDEF size_t read_by_delim(char **restrict buff,
-                            size_t *restrict size,
-                            const char delim,
-                            FILE *restrict fd);
+							size_t *restrict size,
+							const char delim,
+							FILE *restrict fd);
 
 // Reads stream by lines.
 // The slice is null terminated.
@@ -98,9 +98,9 @@ AOCDEF size_t dismantle_path(Slice **restrict out, const char *restrict path, si
 //
 // NULL :: path doesn't fit in "size"
 AOCDEF char *null make_path(char *restrict out,
-                            const size_t size,
-                            const Slice *restrict dirs,
-                            const size_t dir_count);
+							const size_t size,
+							const Slice *restrict dirs,
+							const size_t dir_count);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "file.c"

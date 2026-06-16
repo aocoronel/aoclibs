@@ -11,20 +11,20 @@ AOCDEF void cstr_to_upper(char *s);
 AOCDEF void cstrn_to_upper(char *s, const size_t len);
 
 AOCDEF bool cstr_begins_with(const char *restrict s,
-                             const size_t s_len,
-                             const char *restrict pattern,
-                             const size_t pattern_len);
+							 const size_t s_len,
+							 const char *restrict pattern,
+							 const size_t pattern_len);
 AOCDEF bool cstr_ends_with(const char *restrict s,
-                           const size_t s_len,
-                           const char *restrict pattern,
-                           const size_t pattern_len);
+						   const size_t s_len,
+						   const char *restrict pattern,
+						   const size_t pattern_len);
 
 #define cstr_eq(s, pattern) cstrn_eq((s), strlen((s)), (pattern), strlen((pattern)))
 // Compares "s" to "pattern".
 AOCDEF bool cstrn_eq(const char *restrict s,
-                     const size_t s_len,
-                     const char *restrict pattern,
-                     const size_t pattern_len);
+					 const size_t s_len,
+					 const char *restrict pattern,
+					 const size_t pattern_len);
 
 #define cstr_eq_case(s, pattern) cstrn_eq_case((s), strlen((s)), (pattern), strlen((pattern)))
 // Compares "s" to "pattern" ignoring case.
@@ -36,21 +36,21 @@ AOCDEF bool cstrn_eq(const char *restrict s,
 // 1 :: Match
 // -1 :: Out of memory
 AOCDEF char cstrn_eq_case(const char *restrict s,
-                          const size_t s_len,
-                          const char *restrict pattern,
-                          const size_t pattern_len);
+						  const size_t s_len,
+						  const char *restrict pattern,
+						  const size_t pattern_len);
 
 // Finds if "s" has "pattern" in it.
 AOCDEF bool cstr_has(const char *restrict s,
-                     const size_t s_len,
-                     const char *restrict pattern,
-                     const size_t pattern_len);
+					 const size_t s_len,
+					 const char *restrict pattern,
+					 const size_t pattern_len);
 
 // Finds if "s" has "pattern" in it, and returns the index, where pattern starts.
 AOCDEF size_t cstr_has_at(const char *restrict s,
-                          const size_t s_len,
-                          const char *restrict pattern,
-                          const size_t pattern_len);
+						  const size_t s_len,
+						  const char *restrict pattern,
+						  const size_t pattern_len);
 
 // Finds if "s" has "delim" in it, and returns the index, where delim is found.
 AOCDEF size_t index_of(const char *s, const char delim, const size_t size);
@@ -72,29 +72,29 @@ AOCDEF long cstr_to_long(const char *s, const long _default);
 #define VSLICE(r) ((int)(r)->len), ((r)->data)
 
 typedef struct {
-    size_t len;
-    const char *data;
+	size_t len;
+	const char *data;
 } Slice;
 
 #define slice_eq(cs1, cs2) cstrn_eq((cs1)->data, (cs1)->len, (cs2)->data, (cs2)->len)
 
 #define slice_eq_case(cs1, cs2, offset) \
-    cstrn_eq_case((cs1)->data + (offset), (cs1)->len, (cs2)->data, (cs2)->len)
+	cstrn_eq_case((cs1)->data + (offset), (cs1)->len, (cs2)->data, (cs2)->len)
 
 #define slice_begins_with(cs, begin, begin_len) \
-    cstr_begins_with((cs)->data, (cs)->len, (begin), (begin_len))
+	cstr_begins_with((cs)->data, (cs)->len, (begin), (begin_len))
 #define slice_ends_with(cs, end, end_len) cstr_ends_with((cs)->data, (cs)->len, (end), (end_len))
 
 #define cstr_to_slice(s, start, end)                  \
-    (Slice) {                                         \
-        .data = (s) + (start), .len = (end) - (start) \
-    }
+	(Slice) {                                         \
+		.data = (s) + (start), .len = (end) - (start) \
+	}
 
 // Slice myslice = slice("hello, world!");
 #define slice(s)                           \
-    (Slice) {                              \
-        .data = "" s "", .len = STRLEN(s), \
-    }
+	(Slice) {                              \
+		.data = "" s "", .len = STRLEN(s), \
+	}
 
 // while (begin < end) {
 //     cursor = while_extract_next_word(s, &begin, end);
@@ -102,9 +102,9 @@ typedef struct {
 // }
 AOCDEF Slice while_next_word(const char *restrict s, size_t *restrict begin, size_t end);
 AOCDEF Slice while_next_word_and(const char *restrict s,
-                                 size_t *restrict begin,
-                                 size_t end,
-                                 char delim);
+								 size_t *restrict begin,
+								 size_t end,
+								 char delim);
 
 AOCDEF bool while_token(Slice *cursor, int *remaining_len, Slice *out);
 

@@ -9,35 +9,35 @@
 #include <string.h>
 
 typedef struct {
-    const char *key;
-    const char *value;
+	const char *key;
+	const char *value;
 
-    rc key_string;
-    rc value_string;
+	rc key_string;
+	rc value_string;
 } IniKey;
 
 typedef struct {
-    FILE *fd;
-    char *pos;
-    size_t size;
+	FILE *fd;
+	char *pos;
+	size_t size;
 } IniIterator;
 
 typedef struct {
-    const char *message;
-    size_t line;
-    size_t column;
+	const char *message;
+	size_t line;
+	size_t column;
 
-    const char *pos;
-    size_t len;
+	const char *pos;
+	size_t len;
 } IniError;
 
 typedef struct {
-    IniIterator iterator;
-    IniError error;
-    rc section;
+	IniIterator iterator;
+	IniError error;
+	rc section;
 
-    Slice key;
-    Slice value;
+	Slice key;
+	Slice value;
 } Ini;
 
 #ifdef DEBUG
@@ -65,10 +65,10 @@ AOCDEF void ini_deinit(Ini *ini);
 
 // fp should be opened to read and closed by the caller.
 bool ini_init(Ini *output, FILE *fp) {
-    ASSERT_NONNULL(output);
-    ASSERT_NONNULL(fp);
+	ASSERT_NONNULL(output);
+	ASSERT_NONNULL(fp);
 
-    *output = (Ini) {
+	*output = (Ini) {
         .iterator = {
             .pos = NULL,
             .size = 0,
@@ -78,11 +78,11 @@ bool ini_init(Ini *output, FILE *fp) {
         .section = { 0 },
     };
 
-    output->section.len = STRLEN("DEFAULT");
-    da_add(&output->section, "DEFAULT", STRLEN("DEFAULT"), 0);
-    da_add_null(&output->section);
+	output->section.len = STRLEN("DEFAULT");
+	da_add(&output->section, "DEFAULT", STRLEN("DEFAULT"), 0);
+	da_add_null(&output->section);
 
-    return true;
+	return true;
 }
 
 #ifdef DEBUG
@@ -92,121 +92,121 @@ bool ini_init(Ini *output, FILE *fp) {
 #endif
 
 bool ini_next_line(Ini *ini) {
-    ASSERT_NONNULL(ini);
-    IniIterator *it = &ini->iterator;
-    IniError *error = &ini->error;
+	ASSERT_NONNULL(ini);
+	IniIterator *it = &ini->iterator;
+	IniError *error = &ini->error;
 
-    while (true) {
-        size_t newline = read_by_delim(&it->pos, &it->size, '\n', it->fd);
-        if (newline == SIZE_MAX) return false;
+	while (true) {
+		size_t newline = read_by_delim(&it->pos, &it->size, '\n', it->fd);
+		if (newline == SIZE_MAX) return false;
 
-        error->line++;
+		error->line++;
 
-        if (newline == 0) continue;
+		if (newline == 0) continue;
 
-        if (it->pos[0] == ';' || it->pos[0] == '#') continue;
+		if (it->pos[0] == ';' || it->pos[0] == '#') continue;
 
-        error->column = 1;
-        error->pos = it->pos;
-        error->len = newline;
+		error->column = 1;
+		error->pos = it->pos;
+		error->len = newline;
 
-        return true;
-    }
+		return true;
+	}
 }
 
 bool ini_has_error(Ini *ini) {
-    ASSERT_NONNULL(ini);
-    if (ini->error.message) {
-        return true;
-    } else {
-        return false;
-    }
+	ASSERT_NONNULL(ini);
+	if (ini->error.message) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 bool ini_parse(Ini *ini) {
-    ASSERT_NONNULL(ini);
-    if (!ini_next_line(ini)) return false;
+	ASSERT_NONNULL(ini);
+	if (!ini_next_line(ini)) return false;
 
-    IniIterator *it = &ini->iterator;
-    IniError *error = &ini->error;
+	IniIterator *it = &ini->iterator;
+	IniError *error = &ini->error;
 
-    size_t new_line = error->len;
+	size_t new_line = error->len;
 
-    error->message = NULL;
+	error->message = NULL;
 
-    const char *pos = it->pos;
+	const char *pos = it->pos;
 
-    if (*pos == '[') {
-        // skip '['
-        {
-            pos++;
-            new_line--;
-        }
+	if (*pos == '[') {
+		// skip '['
+		{
+			pos++;
+			new_line--;
+		}
 
-        const char *close_bracket = memchr(pos, ']', new_line);
-        if (!close_bracket) {
-            error->message = "could not find ending ']'";
-            return false;
-        }
+		const char *close_bracket = memchr(pos, ']', new_line);
+		if (!close_bracket) {
+			error->message = "could not find ending ']'";
+			return false;
+		}
 
-        Slice section = { .data = pos, .len = (size_t)(close_bracket - (pos)) };
-        slice_trim(&section);
+		Slice section = { .data = pos, .len = (size_t)(close_bracket - (pos)) };
+		slice_trim(&section);
 
-        ini->section.len = section.len;
-        da_add(&ini->section, section.data, section.len, 0);
-        da_add_null(&ini->section);
+		ini->section.len = section.len;
+		da_add(&ini->section, section.data, section.len, 0);
+		da_add_null(&ini->section);
 
-        return ini_parse(ini);
-    } else {
-        bool key_is_array = false;
-        const char *equal = memchr(pos, '=', new_line);
-        if (!equal) {
-            error->message = "expected 'key=value' pair";
-            return false;
-        }
+		return ini_parse(ini);
+	} else {
+		bool key_is_array = false;
+		const char *equal = memchr(pos, '=', new_line);
+		if (!equal) {
+			error->message = "expected 'key=value' pair";
+			return false;
+		}
 
-        if ((equal - pos) == new_line) {
-            error->message = "value not set";
-            return false;
-        }
+		if ((equal - pos) == new_line) {
+			error->message = "value not set";
+			return false;
+		}
 
-        {
-            Slice key = { .data = pos, .len = (size_t)(equal - pos) };
-            slice_trim(&key);
-            ini->key = key;
-        }
+		{
+			Slice key = { .data = pos, .len = (size_t)(equal - pos) };
+			slice_trim(&key);
+			ini->key = key;
+		}
 
-        {
-            Slice value = { .data = equal + 1, .len = (size_t)((pos + new_line) - (equal + 1)) };
-            slice_trim(&value);
+		{
+			Slice value = { .data = equal + 1, .len = (size_t)((pos + new_line) - (equal + 1)) };
+			slice_trim(&value);
 
-            value = slice_extract_from_substring(&value);
+			value = slice_extract_from_substring(&value);
 
-            slice_chop_right_by(&value, ';');
-            slice_chop_right_by(&value, '#');
+			slice_chop_right_by(&value, ';');
+			slice_chop_right_by(&value, '#');
 
-            ini->value = value;
-        }
+			ini->value = value;
+		}
 
-        return true;
-    }
+		return true;
+	}
 }
 
 void ini_print_error(Ini *ini, const char *file) {
-    ASSERT_NONNULL(ini);
-    ASSERT_NONNULL(file);
-    fprintf(stderr,
-            "%s:%zu:%zu: error: %s\n",
-            file,
-            ini->error.line,
-            ini->error.column,
-            ini->error.message);
+	ASSERT_NONNULL(ini);
+	ASSERT_NONNULL(file);
+	fprintf(stderr,
+			"%s:%zu:%zu: error: %s\n",
+			file,
+			ini->error.line,
+			ini->error.column,
+			ini->error.message);
 }
 
 void ini_deinit(Ini *ini) {
-    ASSERT_NONNULL(ini);
-    free(ini->iterator.pos);
-    da_free(&ini->section);
+	ASSERT_NONNULL(ini);
+	free(ini->iterator.pos);
+	da_free(&ini->section);
 }
 #endif
 

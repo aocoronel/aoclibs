@@ -18,9 +18,9 @@
 // Memory allocated using pfill is asserted to never be NULL.
 
 typedef struct {
-    size_t cap;
-    size_t len;
-    void **data;
+	size_t cap;
+	size_t len;
+	void **data;
 } PPool;
 
 // Allocates 'size' bytes using malloc and stores pointer to pool

@@ -4,10 +4,10 @@
 #include "base.h"
 
 typedef struct {
-    void *base_alloc;
-    void *buff;
-    size_t used_size;
-    size_t size;
+	void *base_alloc;
+	void *buff;
+	size_t used_size;
+	size_t size;
 } Stack;
 
 #define stack_new(s, type) stack_alloc((s), sizeof(type))
@@ -20,10 +20,10 @@ void *stack_mark(Stack *s);
 void stack_free(Stack *s);
 
 #define stack_deinit(s)        \
-    do {                       \
-        free((s)->base_alloc); \
-        (s) = NULL;            \
-    } while (0)
+	do {                       \
+		free((s)->base_alloc); \
+		(s) = NULL;            \
+	} while (0)
 
 #endif
 

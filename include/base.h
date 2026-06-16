@@ -57,10 +57,10 @@
 // === Debugging ===
 
 #define AOCLIBS_ABORT(msg, ...)                                    \
-    (fprintf(stderr, "%s: %s:%u: ", __func__, __FILE__, __LINE__), \
-     fprintf(stderr, msg " " __VA_ARGS__),                         \
-     fputc('\n', stderr),                                          \
-     abort())
+	(fprintf(stderr, "%s: %s:%u: ", __func__, __FILE__, __LINE__), \
+	 fprintf(stderr, msg " " __VA_ARGS__),                         \
+	 fputc('\n', stderr),                                          \
+	 abort())
 
 // Used to panic, when an unreachable code is ran
 #define UNREACHABLE AOCLIBS_ABORT("Panicked: ", "unreachable code")
@@ -75,7 +75,7 @@
 #define ASSERT(...)
 #else
 #define ASSERT(expr, ...) \
-    ((expr) ? (void)0 : AOCLIBS_ABORT("Assertion failed: " #expr, __VA_ARGS__))
+	((expr) ? (void)0 : AOCLIBS_ABORT("Assertion failed: " #expr, __VA_ARGS__))
 #endif
 
 // Convenience assert messages
@@ -93,11 +93,11 @@
 #define MSTRINGIFY(x) STRINGIFY(x)
 
 #define swap(x, z)           \
-    do {                     \
-        __typeof__(x) t = x; \
-        x = z;               \
-        z = t;               \
-    } while (0)
+	do {                     \
+		__typeof__(x) t = x; \
+		x = z;               \
+		z = t;               \
+	} while (0)
 
 // This is only applicable to stack allocated
 #define ARRAY_LEN(a) sizeof((a)) / sizeof((a[0]))
@@ -139,15 +139,15 @@
 #endif
 
 #define sanitizer_poison_memory(region, size)     \
-    do {                                          \
-        _ASAN_POISON_MEMORY_REGION(region, size); \
-        __MSAN_POISON(region, size);              \
-    } while (0)
+	do {                                          \
+		_ASAN_POISON_MEMORY_REGION(region, size); \
+		__MSAN_POISON(region, size);              \
+	} while (0)
 
 #define sanitizer_unpoison_memory(region, size)     \
-    do {                                            \
-        _ASAN_UNPOISON_MEMORY_REGION(region, size); \
-        __MSAN_UNPOISON(region, size);              \
-    } while (0)
+	do {                                            \
+		_ASAN_UNPOISON_MEMORY_REGION(region, size); \
+		__MSAN_UNPOISON(region, size);              \
+	} while (0)
 
 #endif // AOCLIBS_BASE_H_

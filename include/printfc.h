@@ -27,7 +27,7 @@
 #endif // NDEBUG
 
 #define printfc(color, level, ...) \
-    (fprintf(stderr, "%s%s:%s ", color, level, COLOR_RESET), fprintf(stderr, __VA_ARGS__))
+	(fprintf(stderr, "%s%s:%s ", color, level, COLOR_RESET), fprintf(stderr, __VA_ARGS__))
 #define printfc_fatal(...) printfc(COLOR_RED, "fatal", __VA_ARGS__)
 #define printfc_error(...) printfc(COLOR_RED, "error", __VA_ARGS__)
 #define printfc_warn(...) printfc(COLOR_YELLOW, "warning", __VA_ARGS__)
@@ -46,11 +46,11 @@
 #define tprintfc_trace(istty, ...) tprintfc(istty, COLOR_MAGENTA, "trace", __VA_ARGS__)
 #endif // NDEBUG
 
-#define tprintfc(istty, color, level, ...)                                         \
-    do {                                                                           \
-        (istty) ? printfc(color, level, __VA_ARGS__) :                             \
-                  (fprintf(stderr, "%s: ", level), fprintf(stderr, __VA_ARGS__)); \
-    } while (0)
+#define tprintfc(istty, color, level, ...)                                        \
+	do {                                                                          \
+		(istty) ? printfc(color, level, __VA_ARGS__) :                            \
+				  (fprintf(stderr, "%s: ", level), fprintf(stderr, __VA_ARGS__)); \
+	} while (0)
 #define tprintfc_fatal(istty, ...) tprintfc(istty, COLOR_RED, "fatal", __VA_ARGS__)
 #define tprintfc_error(istty, ...) tprintfc(istty, COLOR_RED, "error", __VA_ARGS__)
 #define tprintfc_warn(istty, ...) tprintfc(istty, COLOR_YELLOW, "warning", __VA_ARGS__)

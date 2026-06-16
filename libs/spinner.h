@@ -16,11 +16,11 @@ const char *get_spinner(void);
 
 #ifdef SPINNER_IMPLEMENTATION
 AOCDEF const char *get_spinner(void) {
-    static const char *SYMBOLS[] = { "⠁", "⠈", "⠐", "⠠", "⢀", "⡀", "⠄", "⠂" };
-    static int_fast8_t counter = 0;
-    const char *RESULT = SYMBOLS[counter];
-    counter = (counter + 1) % SPINNER_NUM_SYMBOLS;
-    return RESULT;
+	static const char *SYMBOLS[] = { "⠁", "⠈", "⠐", "⠠", "⢀", "⡀", "⠄", "⠂" };
+	static int_fast8_t counter = 0;
+	const char *RESULT = SYMBOLS[counter];
+	counter = (counter + 1) % SPINNER_NUM_SYMBOLS;
+	return RESULT;
 }
 #endif
 

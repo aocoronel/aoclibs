@@ -92,7 +92,7 @@ Macros may be `SCREAMING_SNAKE_CASE` when a macro works with compile-time expres
 
 Take advantage of `.clang-format` to keep code consistency across all libraries. Some notable formatting style include:
 
-- 4 character indent
+- Tab indentation
 - No brace wrapping (Allman style)
 - 100 character column limit
 - Inline, when possible
