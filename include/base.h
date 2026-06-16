@@ -105,7 +105,7 @@
 #define eprintf(...) fprintf(stderr, __VA_ARGS__)
 
 // void foo() {
-//     void *p = malloc(20 >> 1);
+//     void *p = malloc(1 << 20);
 //     catch (!p) abort();
 // }
 #define catch(expr) if (UNLIKELY(expr))
