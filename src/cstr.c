@@ -7,10 +7,11 @@
 char *cstr_dup(const char *s, const size_t len) {
     ASSERT_NONNULL(s != NULL);
 
-    char *d = malloc(len);
+    char *d = (char *)malloc(len);
     if (!d) return NULL;
 
-    return memcpy(d, s, len);
+    memcpy(d, s, len);
+    return d;
 }
 
 void cstr_to_lower(char *s) {
@@ -70,7 +71,7 @@ char cstrn_eq_case(const char *s,
     ASSERT_NONNULL(pattern);
     if (pattern_len == 0 || pattern_len > s_len) return false;
 
-    void *ptr = malloc(sizeof(char) * s_len + pattern_len);
+    char *ptr = (char *)malloc(sizeof(char) * s_len + pattern_len);
     if (!ptr) return -1;
 
     char *s_tmp = ptr;
@@ -138,7 +139,7 @@ cstr_has_at(const char *s, const size_t s_len, const char *pattern, const size_t
 size_t index_of(const char *s, char delim, size_t size) {
     ASSERT_NONNULL(s != NULL);
 
-    const char *ptr = memchr(s, delim, size);
+    const char *ptr = (const char *)memchr(s, delim, size);
     if (ptr == NULL) return SIZE_MAX;
 
     return ptr - s;
@@ -295,7 +296,7 @@ void slice_trim(Slice *s) {
 
 void slice_chop_right_by(Slice *s, char delim) {
     ASSERT_NONNULL(s);
-    const char *ptr = memchr(s->data, delim, s->len);
+    const char *ptr = (const char *)memchr(s->data, delim, s->len);
     if (!ptr) return;
 
     s->len = (size_t)(ptr - s->data);

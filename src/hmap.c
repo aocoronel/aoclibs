@@ -171,7 +171,7 @@ _HashEntry *_hmap_insert(_HashMap *map, const Slice key, const size_t sizeof_ent
         return existing;
     }
 
-    if (map->len >= map->cap) return false;
+    if (map->len >= map->cap) return NULL;
 
     if (map->len * 4 >= map->cap * 3) {
         if (!hmap_resize(map, map->cap * 2) && map->len + 1 >= map->cap) return NULL;

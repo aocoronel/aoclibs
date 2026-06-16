@@ -30,7 +30,7 @@ AOCDEF const char *null fquery_skip_to_int(const char *null p, const void *c) {
     ASSERT_NONNULL(c);
 
     int _c = *(int *)c;
-    return memchr(p, _c, 1);
+    return (const char *)memchr(p, _c, 1);
 }
 
 AOCDEF const char *null fquery_optional(const char *null p, const void *c) {

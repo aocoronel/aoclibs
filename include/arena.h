@@ -114,7 +114,7 @@ AOCDEF void arena_trim(Arena *a);
             while ((new_cap) > new_capacity) {                                                   \
                 new_capacity *= 2;                                                               \
             }                                                                                    \
-            (da)->data = arena_realloc(                                                          \
+            (da)->data = (__typeof__((da)->data))arena_realloc(                                  \
                     (a), (da)->data, (da)->cap * (sizeof_da), new_capacity * (sizeof_da));       \
             ASSERT((da)->data, "out of memory while reserving memory for arena dynamic array");  \
             (da)->cap = new_capacity;                                                            \

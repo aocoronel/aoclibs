@@ -1038,21 +1038,21 @@ AOCDEF void crown_dump(FILE *fp) {
     crown_indent_completion(2);
     fprintf(fp, ".usage = \"%s\",\n", Program->usage);
 
-    if (Program->subcmd > 0) {
+    if (Program->subcmd && Program->subcmd->len > 0) {
         crown_dump_cmd(fp, Program->subcmd, 4);
     } else {
         crown_indent_completion(2);
         fprintf(fp, ".subcmd = NULL,\n");
     }
 
-    if (Program->flags > 0) {
+    if (Program->flags && Program->flags->len > 0) {
         crown_dump_opt(fp, Program->flags, 4);
     } else {
         crown_indent_completion(2);
         fprintf(fp, ".flags = NULL,\n");
     }
 
-    if (Program->args > 0) {
+    if (Program->args && Program->args->len > 0) {
         crown_dump_args(fp, Program->args, 4);
     } else {
         crown_indent_completion(2);

@@ -38,7 +38,7 @@ buddy_page_t *_buddy_new_page(unsigned page_order) {
                             map_bytes + /* free_map */
                             total_size; /* base */
 
-    uint8_t *buff = calloc(1, allocated_size);
+    uint8_t *buff = (uint8_t *)calloc(1, allocated_size);
     if (!buff) return NULL;
 
     buddy_page_t *p = (buddy_page_t *)buff;

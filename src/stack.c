@@ -5,7 +5,7 @@
 Stack *stack_init(size_t size) {
     size_t total = sizeof(Stack) + sizeof(size_t) + size;
 
-    char *base = malloc(total);
+    char *base = (char *)malloc(total);
     if (!base) return NULL;
 
     Stack *s = (Stack *)base;

@@ -100,4 +100,4 @@ Take advantage of `.clang-format` to keep code consistency across all libraries.
 
 ## C++
 
-If you want C++ compatibility, you have to fork this project.
+`aoclibs` can currently be commpiled with C++ with `-nostdinc++` without code modifications.

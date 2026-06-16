@@ -21,7 +21,7 @@ read_by_delim(char **restrict buff, size_t *restrict size, const char delim, FIL
 
     if (*buff == NULL || *size == 0) {
         *size = 128;
-        *buff = malloc(*size);
+        *buff = (char *)malloc(*size);
         if (!*buff) return SIZE_MAX;
     }
 
@@ -37,7 +37,7 @@ read_by_delim(char **restrict buff, size_t *restrict size, const char delim, FIL
 
         if (pos + 1 >= *size) {
             size_t new_size = *size * 2;
-            char *new_ptr = realloc(*buff, new_size);
+            char *new_ptr = (char *)realloc(*buff, new_size);
             if (!new_ptr) return SIZE_MAX;
 
             *buff = new_ptr;

@@ -46,18 +46,19 @@
 //
 // DynamicArray my_da = { 0 };
 // da_reserve(&my_da, (&my_da)->len + 1); // Needs to allocate one value
-#define da_reserve(da, new_cap)                                                           \
-    do {                                                                                  \
-        if (UNLIKELY((new_cap) > (da)->cap)) {                                            \
-            if ((da)->cap < AOCLIBS_DA_INITIAL_CAPACITY) {                                \
-                (da)->cap = AOCLIBS_DA_INITIAL_CAPACITY;                                  \
-            }                                                                             \
-            while ((new_cap) > (da)->cap) {                                               \
-                (da)->cap *= 2;                                                           \
-            }                                                                             \
-            (da)->data = realloc((da)->data, (da)->cap * sizeof(*(da)->data));            \
-            ASSERT((da)->data, "out of memory while reserving memory for dynamic array"); \
-        }                                                                                 \
+#define da_reserve(da, new_cap)                                                                    \
+    do {                                                                                           \
+        if (UNLIKELY((new_cap) > (da)->cap)) {                                                     \
+            if ((da)->cap < AOCLIBS_DA_INITIAL_CAPACITY) {                                         \
+                (da)->cap = AOCLIBS_DA_INITIAL_CAPACITY;                                           \
+            }                                                                                      \
+            while ((new_cap) > (da)->cap) {                                                        \
+                (da)->cap *= 2;                                                                    \
+            }                                                                                      \
+            (da)->data =                                                                           \
+                    (__typeof__((da)->data))realloc((da)->data, (da)->cap * sizeof(*(da)->data)); \
+            ASSERT((da)->data, "out of memory while reserving memory for dynamic array");          \
+        }                                                                                          \
     } while (0)
 
 #define da_free(da)                                \

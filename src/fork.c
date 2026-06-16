@@ -1,6 +1,6 @@
 #pragma once
 
-#define _GNU_SOURCE
+#include <sys/types.h>
 #include "base.h"
 #include "fork.h"
 #include "file.h"
@@ -13,7 +13,7 @@
 ssize_t write_fd(int fd, const void *buf, size_t count) {
     ASSERT_NONNULL(buf);
 
-    const char *p = buf;
+    const char *p = (const char *)buf;
     size_t left = count;
 
     while (left > 0) {
@@ -36,6 +36,8 @@ void close_fd(int fd) {
 
 fork_cmd_t fork_cmd(char **argv, const char *input, ForkOptions opt) {
     ASSERT_NONNULL(argv);
+    int stdin_fd, stdout_fd, stderr_fd;
+    pid_t pid;
 
     int in_pipe[2] = { -1, -1 };
     int out_pipe[2] = { -1, -1 };
@@ -45,7 +47,7 @@ fork_cmd_t fork_cmd(char **argv, const char *input, ForkOptions opt) {
     if (opt.out && pipe(out_pipe) == -1) goto err;
     if (opt.err && pipe(err_pipe) == -1) goto err;
 
-    pid_t pid = fork();
+    pid = fork();
     if (pid == -1) goto err;
 
     if (pid == 0) { // child
@@ -76,9 +78,9 @@ fork_cmd_t fork_cmd(char **argv, const char *input, ForkOptions opt) {
     if (opt.out) close(out_pipe[1]);
     if (opt.err) close(err_pipe[1]);
 
-    int stdin_fd = input ? in_pipe[1] : -1;
-    int stdout_fd = opt.out ? out_pipe[0] : -1;
-    int stderr_fd = opt.err ? err_pipe[0] : -1;
+    stdin_fd = input ? in_pipe[1] : -1;
+    stdout_fd = opt.out ? out_pipe[0] : -1;
+    stderr_fd = opt.err ? err_pipe[0] : -1;
 
     if (input) {
         if (stdin_fd == -1) goto err_stdin;
