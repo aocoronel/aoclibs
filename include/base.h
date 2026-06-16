@@ -20,6 +20,8 @@
 // "null" tells the pointer can be NULL
 #define null
 
+#define restrict __restrict
+
 // === Allocations ===
 
 // All allocations are assumed to be made by malloc(), realloc() and freed by free()
