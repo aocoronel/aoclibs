@@ -3,7 +3,8 @@
 
 #include "base.h"
 
-AOCDEF size_t coerce_to_pow2(size_t x);
+// Turns 'x' into the next power of two
+AOCDEF const size_t coerce_to_pow2(const size_t x);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "calculus.c"
