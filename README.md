@@ -29,28 +29,25 @@ c++ @build++ && ./merge
 
 ### Base libraries
 
-| Library    | Description                       |
-|------------|-----------------------------------|
-| arena.h    | Linked-list arena *               |
-| base.h     | Handful aliases and macros        |
-| buddy.h    | Buddy allocator                   |
-| calculus.h | Math                              |
-| colors.h   | Terminal colors                   |
-| cstr.h     | C String operations and slices    |
-| da.h       | Heap/stack-based dynamic arrays * |
-| libc.h     | Most included libc libraries      |
-| file.h     | File operations                   |
-| fork.h     | Fork high-level wrappers          |
-| fquery.h   | "Regex"-like based on functions   |
-| hmap.h     | Unordered hashmap                 |
-| io.h       | Input/output simple functions     |
-| map.h      | Ordered map                       |
-| pp.h       | Pointer Pool                      |
-| printfc.h  | printf() with colors              |
-| rc.h       | String type powered by da.h       |
-| stack.h    | Stack allocator                   |
-
-\* Based on [Tsoding](https://github.com/tsoding) code. The arena implementation is MIT licensed.
+| Library    | Description                     |
+|------------|---------------------------------|
+| base.h     | Handful aliases and macros      |
+| buddy.h    | Buddy allocator                 |
+| calculus.h | Math                            |
+| colors.h   | Terminal colors                 |
+| cstr.h     | C String operations and slices  |
+| da.h       | Heap/stack-based dynamic arrays |
+| libc.h     | Most included libc libraries    |
+| file.h     | File operations                 |
+| fork.h     | Fork high-level wrappers        |
+| fquery.h   | "Regex"-like based on functions |
+| hmap.h     | Unordered hashmap               |
+| io.h       | Input/output simple functions   |
+| map.h      | Ordered map                     |
+| pp.h       | Pointer Pool                    |
+| printfc.h  | printf() with colors            |
+| rc.h       | String type powered by da.h     |
+| stack.h    | Stack allocator                 |
 
 ### Libraries
 
@@ -67,6 +64,7 @@ c++ @build++ && ./merge
 
 | Library                                            | Description                   | License |
 |----------------------------------------------------|-------------------------------|---------|
+| [arena.h](https://github.com/tsoding/arena)        | Linked-list arena             | MIT     |
 | [rapidhash](https://github.com/Nicoshev/rapidhash) | General purpose hash function | MIT     |
 
 ## AI Disclosure

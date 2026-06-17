@@ -70,11 +70,11 @@
 
 // Vendor
 #include "./vendor/rapidhash.h"
+#include "./vendor/arena.h"
 
 // Standalones
 #include "./include/calculus.h"
 #include "./include/colors.h"
-#include "./include/arena.h"
 #include "./include/buddy.h"
 #include "./include/stack.h"
 #include "./include/pp.h"
