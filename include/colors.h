@@ -1,10 +1,13 @@
 #ifndef AOCLIBS_COLORS_H_
 #define AOCLIBS_COLORS_H_
 
-/*
- * TTY Colors
-*/
-#ifdef FEATURE_DISABLE_COLORS
+#ifndef CONFIG_TTY_COLORS
+#define CONFIG_TTY_COLORS 1
+#endif // CONFIG_TTY_COLORS
+
+// TTY Colors
+
+#if CONFIG_TTY_COLORS == 0
 #define COLOR_RESET ""
 
 #define COLOR_BOLD ""
@@ -28,7 +31,7 @@
 #define COLOR_MAGENTA_BRIGHT ""
 #define COLOR_CYAN_BRIGHT ""
 #define COLOR_WHITE_BRIGHT ""
-#else
+#elif CONFIG_TTY_COLORS == 1
 #define COLOR_RESET "\x1b[0m"
 
 #define COLOR_BOLD "\x1b[1m"
@@ -52,6 +55,6 @@
 #define COLOR_MAGENTA_BRIGHT "\x1b[95m"
 #define COLOR_CYAN_BRIGHT "\x1b[96m"
 #define COLOR_WHITE_BRIGHT "\x1b[97m"
-#endif
+#endif // CONFIG_TTY_COLORS
 
 #endif // AOCLIBS_COLORS_H_
