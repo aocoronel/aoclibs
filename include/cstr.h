@@ -72,8 +72,8 @@ AOCDEF long cstr_to_long(const char *s, const long _default);
 #define VSLICE(r) ((int)(r)->len), ((r)->data)
 
 typedef struct {
-	size_t len;
 	const char *data;
+	size_t len;
 } Slice;
 
 #define slice_eq(cs1, cs2) cstrn_eq((cs1)->data, (cs1)->len, (cs2)->data, (cs2)->len)

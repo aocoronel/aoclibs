@@ -72,6 +72,7 @@
 #include "./vendor/rapidhash.h"
 
 // Standalones
+#include "./include/calculus.h"
 #include "./include/colors.h"
 #include "./include/arena.h"
 #include "./include/buddy.h"

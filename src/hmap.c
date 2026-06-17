@@ -213,7 +213,7 @@ _HashEntry *_hmap_insert_from_hash(_HashMap *map, const Slice key, const uint64_
 
 		if (existing_distance < distance) {
 			_HMAP_SET_DISTANCE(&incoming, distance);
-			swap(*e, incoming);
+			SWAP(*e, incoming);
 			distance = existing_distance;
 		}
 	}

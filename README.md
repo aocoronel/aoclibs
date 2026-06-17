@@ -12,7 +12,7 @@ The goal is to make writing programs in C more enjoyable, and decrease the amoun
 
 This library is only tested in x86_64 and aarch64 Linux and x86_64 FreeBSD. If you work on Windows this library will certainly not work, not even with MinGW. It might work on MacOS (I can't test it), and I may add support to other operational systems (NetBSD, OpenBSD, Haiku, DragonflyBSD) at some point.
 
-`aoclibs` can currently be compiled with C++ with `-nostdinc++`. Some changes are necessary to omit this flag, but generally the library supports C++ without `extern "C"`.
+`aoclibs` can currently be compiled with C++ without `extern "C"`.
 
 ## How to use
 

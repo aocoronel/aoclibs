@@ -92,7 +92,7 @@
 // MSTRINGIFY(hello) -> "0"
 #define MSTRINGIFY(x) STRINGIFY(x)
 
-#define swap(x, z)           \
+#define SWAP(x, z)           \
 	do {                     \
 		__typeof__(x) t = x; \
 		x = z;               \
@@ -108,9 +108,9 @@
 
 // void foo() {
 //     void *p = malloc(1 << 20);
-//     catch (!p) abort();
+//     unless (!p) abort();
 // }
-#define catch(expr) if (UNLIKELY(expr))
+#define unless(expr) if (UNLIKELY(expr))
 
 #define range(init, end, it) for (size_t it = (init); it < (end); it++)
 
