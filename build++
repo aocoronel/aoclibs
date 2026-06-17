@@ -1,0 +1,7 @@
+-std=c++11
+-Isrc
+-Iinclude
+-Ilibs
+-o merge
+merge.c
+-Wno-write-strings
