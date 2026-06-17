@@ -73,4 +73,4 @@ For transparency, this project is assisted by AI chatbots. The implied definitio
 
 ## License
 
-This repository is licensed under the MIT or Unlicense licenses, at your will, otherwise explicitly stated.
+This repository is licensed under the MIT License, allowing for extensive use, modification, copying, and distribution.
