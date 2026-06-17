@@ -1,0 +1,6 @@
+-std=c11
+-Isrc
+-Iinclude
+-Ilibs
+-o merge
+merge.c
