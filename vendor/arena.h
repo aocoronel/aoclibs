@@ -27,9 +27,17 @@
 #define AOCLIBS_ARENA_BACKEND_LIBC_MALLOC 0
 #define AOCLIBS_ARENA_BACKEND_VIRTUAL_ALLOC 1
 
-#ifndef AOCLIBS_ARENA_BACKEND
-#define AOCLIBS_ARENA_BACKEND AOCLIBS_ARENA_BACKEND_LIBC_MALLOC
+#ifndef CONFIG_ARENA_BACKEND
+#define CONFIG_ARENA_BACKEND AOCLIBS_ARENA_BACKEND_LIBC_MALLOC
 #endif // AOCLIBS_ARENA_BACKEND
+
+#ifndef CONFIG_ARENA_DEFAULT_CAPACITY
+#define CONFIG_ARENA_DEFAULT_CAPACITY (1 << 12) // 8196 bytes
+#endif // CONFIG_ARENA_DEFAULT_CAPACITY
+
+#ifndef CONFIG_ARENA_DA_DEFAULT_CAPACITY
+#define CONFIG_ARENA_DA_DEFAULT_CAPACITY (1 << 8) // 256 entries
+#endif
 
 typedef struct Region Region;
 
@@ -43,10 +51,6 @@ struct Region {
 typedef struct {
 	Region *null begin, *null end;
 } Arena;
-
-#ifndef AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY
-#define AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY (8 * 1024)
-#endif // AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY
 
 // Allocates a new region in the heap with given "capacity".
 //
@@ -93,32 +97,24 @@ AOCDEF void arena_reset(Arena *a);
 // Frees the Arena memory. Doesn't allow reuse.
 AOCDEF void arena_destroy(Arena *a);
 
-// Frees the Arena memory. Allows reuse.
-AOCDEF void arena_trim(Arena *a);
-
-/*
- * Dynamic Arena
-*/
-
-#ifndef AOCLIBS_ARENA_DA_CAPACITY
-#define AOCLIBS_ARENA_DA_CAPACITY 256
-#endif
+// Dynamic Arena
 
 #define dar_reserve(a, da, new_cap) _dar_reserve(a, da, new_cap, sizeof(*(da)->data))
 
-#define _dar_reserve(a, da, new_cap, sizeof_da)                                                  \
-	do {                                                                                         \
-		if (UNLIKELY((da)->len >= (da)->cap)) {                                                  \
-			size_t new_capacity =                                                                \
-					(da)->cap < AOCLIBS_ARENA_DA_CAPACITY ? AOCLIBS_ARENA_DA_CAPACITY : new_cap; \
-			while ((new_cap) > new_capacity) {                                                   \
-				new_capacity *= 2;                                                               \
-			}                                                                                    \
-			(da)->data = (__typeof__((da)->data))arena_realloc(                                  \
-					(a), (da)->data, (da)->cap * (sizeof_da), new_capacity * (sizeof_da));       \
-			ASSERT((da)->data, "out of memory while reserving memory for arena dynamic array");  \
-			(da)->cap = new_capacity;                                                            \
-		}                                                                                        \
+#define _dar_reserve(a, da, new_cap, sizeof_da)                                                 \
+	do {                                                                                        \
+		if (UNLIKELY((da)->len >= (da)->cap)) {                                                 \
+			size_t new_capacity = (da)->cap < CONFIG_ARENA_DA_DEFAULT_CAPACITY ?                \
+										  CONFIG_ARENA_DA_DEFAULT_CAPACITY :                    \
+										  new_cap;                                              \
+			while ((new_cap) > new_capacity) {                                                  \
+				new_capacity *= 2;                                                              \
+			}                                                                                   \
+			(da)->data = (__typeof__((da)->data))arena_realloc(                                 \
+					(a), (da)->data, (da)->cap * (sizeof_da), new_capacity * (sizeof_da));      \
+			ASSERT((da)->data, "out of memory while reserving memory for arena dynamic array"); \
+			(da)->cap = new_capacity;                                                           \
+		}                                                                                       \
 	} while (0)
 
 #define dar_insert(a, da, item)            \
@@ -198,6 +194,7 @@ AOCDEF Region *arena_new_region(const size_t capacity) {
 	Region *r = (Region *)malloc(size_bytes);
 	if (!r) return NULL;
 
+	// Properly allocated memory will slowly releasing this
 	sanitizer_poison_memory(r->data, capacity);
 
 	r->next = NULL;
@@ -253,7 +250,7 @@ AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
 
 	if (a->end == NULL) {
 		ASSERT(a->begin == NULL);
-		size_t capacity = AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY;
+		size_t capacity = CONFIG_ARENA_DEFAULT_CAPACITY;
 		if (capacity < size) capacity = size;
 
 		a->end = arena_new_region(capacity);
@@ -268,7 +265,7 @@ AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
 
 	if (a->end->len + size > a->end->cap) {
 		ASSERT(a->end->next == NULL);
-		size_t capacity = AOCLIBS_ARENA_REGION_DEFAULT_CAPACITY;
+		size_t capacity = CONFIG_ARENA_DEFAULT_CAPACITY;
 		if (capacity < size) capacity = size;
 		a->end->next = arena_new_region(capacity);
 		if (a->end->next == NULL) return NULL;
@@ -376,17 +373,6 @@ AOCDEF void arena_destroy(Arena *a) {
 	}
 	a->begin = NULL;
 	a->end = NULL;
-}
-
-AOCDEF void arena_trim(Arena *a) {
-	ASSERT_NONNULL(a != NULL);
-	Region *r = a->end->next;
-	while (r) {
-		Region *r0 = r;
-		r = r->next;
-		arena_free_region(r0);
-	}
-	a->end->next = NULL;
 }
 #endif // AOCLIBS_IMPLEMENTATION
 
