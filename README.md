@@ -19,6 +19,8 @@ This library is only tested in x86_64 and aarch64 Linux and x86_64 FreeBSD. If y
 ```shell
 # Generate a single header with all the libraries
 cc @build && ./merge
+# Generate with C++
+c++ @build++ && ./merge
 ```
 
 ## Explore

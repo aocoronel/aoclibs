@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
 
 	if (!output) {
 		fprintf(stderr, "Failed to open file %s. %s\n", OUTPUT_FILE, strerror(errno));
-		return false;
+		return 1;
 	}
 
 	fputs("#ifndef AOCLIBS_H\n", output);
@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
 								 "-lm",
 								 // "-DTUNIT_SUBPROCESS",
 								 "-DHEAP_TRACE",
-								 disable_tunit ? NULL : "-DTUNIT",
+								 disable_tunit ? NULL : (char *)"-DTUNIT",
 								 NULL };
 		CmdResult output = { 0 };
 		int status = run_cmd(compile_args, NULL, &output, .out = false, .err = true);

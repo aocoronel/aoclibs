@@ -29,7 +29,11 @@ struct DirWalker {
 };
 
 // dir_walk("test.md", .islnk = my_fn);
-#define dir_walk(path, ...) dir_walker(path, &(DirWalker){ __VA_ARGS__ })
+#define dir_walk(path, ...)                           \
+	do {                                              \
+		DirWalker _walk = (DirWalker){ __VA_ARGS__ }; \
+		dir_walker(path, &_walk);                     \
+	} while (0)
 // dir_walk can run four user provided functions based on each filetype:
 // reg, directory, lnk and null.
 //
