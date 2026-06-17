@@ -97,7 +97,3 @@ Take advantage of `.clang-format` to keep code consistency across all libraries.
 - 100 character column limit
 - Inline, when possible
 - Consistent spacing
-
-## C++
-
-`aoclibs` can currently be commpiled with C++ with `-nostdinc++` without code modifications.
