@@ -27,31 +27,45 @@ cc @build && ./merge
 
 ### Base libraries
 
-- `arena.h` :: Linked-list arena *
-- `base.h` :: Handful aliases and macros
-- `buddy.h` :: Buddy allocator
-- `colors.h` :: Terminal colors
-- `cstr.h` :: C String operations and slices
-- `da.h` :: Heap/stack-based dynamic arrays *
-- `file.h` :: File operations
-- `fork.h` :: Fork high-level wrappers
-- `fquery.h` :: "Regex" simple approach based on functions
-- `io.h` :: Input/output simple functions
-- `map.h` :: Key-value pairs
-- `pp.h` :: Pointer Pool
-- `printfc.h` :: `printf` with colors
-- `rc.h` :: String type powered by `da.h`
-- `stack.h` :: Stack allocator
+| Library    | Description                       |
+|------------|-----------------------------------|
+| arena.h    | Linked-list arena *               |
+| base.h     | Handful aliases and macros        |
+| buddy.h    | Buddy allocator                   |
+| calculus.h | Math                              |
+| colors.h   | Terminal colors                   |
+| cstr.h     | C String operations and slices    |
+| da.h       | Heap/stack-based dynamic arrays * |
+| libc.h     | Most included libc libraries      |
+| file.h     | File operations                   |
+| fork.h     | Fork high-level wrappers          |
+| fquery.h   | "Regex"-like based on functions   |
+| hmap.h     | Unordered hashmap                 |
+| io.h       | Input/output simple functions     |
+| map.h      | Ordered map                       |
+| pp.h       | Pointer Pool                      |
+| printfc.h  | printf() with colors              |
+| rc.h       | String type powered by da.h       |
+| stack.h    | Stack allocator                   |
 
-\* Based on [Tsoding](https://github.com/tsoding) code.
+\* Based on [Tsoding](https://github.com/tsoding) code. The arena implementation is MIT licensed.
 
 ### Libraries
 
-- [crown.h](./docs/crown.md) :: Full-blown CLI suite
-- [tunit.h](./docs/tunit.md) :: Test Unit
-- `heap_trace.h` :: Simple drop-in replacement for malloc/calloc/realloc to catch leaks
-- `ini.h` :: INI parser
-- `spinner.h` :: Simple spinner without allocations
+| Library                    | Description                        |
+|----------------------------|------------------------------------|
+| [crown.h](./docs/crown.md) | Full-blown CLI suite               |
+| debug.h                    | Simple signal handler              |
+| heap_trace.h               | Catch malloc/calloc/realloc leaks  |
+| ini.h                      | INI parser                         |
+| spinner.h                  | Simple spinner without allocations |
+| [tunit.h](./docs/tunit.md) | Test Unit                          |
+
+### Vendored
+
+| Library                                            | Description                   | License |
+|----------------------------------------------------|-------------------------------|---------|
+| [rapidhash](https://github.com/Nicoshev/rapidhash) | General purpose hash function | MIT     |
 
 ## AI Disclosure
 
