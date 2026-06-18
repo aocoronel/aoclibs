@@ -28,35 +28,35 @@ typedef struct {
 } fquery_t;
 
 // *p == c
-AOCDEF const char *null fquery_eq_int(const char *null p, const void *c) ATTR_PURE;
+AOCDEF const char *null fquery_eq_int(const char *null p, const void *c);
 
 // regex: "*.c"
-AOCDEF const char *null fquery_skip_to_int(const char *null p, const void *c) ATTR_PURE;
-AOCDEF const char *null fquery_skip_to_fn(const char *null p, const void *c) ATTR_PURE;
+AOCDEF const char *null fquery_skip_to_int(const char *null p, const void *c);
+AOCDEF const char *null fquery_skip_to_fn(const char *null p, const void *c);
 
 // regex: "?"
-AOCDEF const char *null fquery_optional(const char *null p, const void *c) ATTR_PURE;
+AOCDEF const char *null fquery_optional(const char *null p, const void *c);
 
 // regex: "."
-AOCDEF const char *null fquery_any(const char *null p, const void *c) ATTR_PURE;
+AOCDEF const char *null fquery_any(const char *null p, const void *c);
 
 // Wrappers to ctype.h
-AOCDEF const char *null fquery_isalnum(const char *null p, const void *c) ATTR_PURE;
-AOCDEF const char *null fquery_isalpha(const char *null p, const void *c) ATTR_PURE;
-AOCDEF const char *null fquery_iscntrl(const char *null p, const void *c) ATTR_PURE;
-AOCDEF const char *null fquery_isdigit(const char *null p, const void *c) ATTR_PURE;
-AOCDEF const char *null fquery_isgraph(const char *null p, const void *c) ATTR_PURE;
-AOCDEF const char *null fquery_islower(const char *null p, const void *c) ATTR_PURE;
-AOCDEF const char *null fquery_isprint(const char *null p, const void *c) ATTR_PURE;
-AOCDEF const char *null fquery_ispunct(const char *null p, const void *c) ATTR_PURE;
-AOCDEF const char *null fquery_isspace(const char *null p, const void *c) ATTR_PURE;
-AOCDEF const char *null fquery_isupper(const char *null p, const void *c) ATTR_PURE;
-AOCDEF const char *null fquery_isxdigit(const char *null p, const void *c) ATTR_PURE;
+AOCDEF const char *null fquery_isalnum(const char *null p, const void *c);
+AOCDEF const char *null fquery_isalpha(const char *null p, const void *c);
+AOCDEF const char *null fquery_iscntrl(const char *null p, const void *c);
+AOCDEF const char *null fquery_isdigit(const char *null p, const void *c);
+AOCDEF const char *null fquery_isgraph(const char *null p, const void *c);
+AOCDEF const char *null fquery_islower(const char *null p, const void *c);
+AOCDEF const char *null fquery_isprint(const char *null p, const void *c);
+AOCDEF const char *null fquery_ispunct(const char *null p, const void *c);
+AOCDEF const char *null fquery_isspace(const char *null p, const void *c);
+AOCDEF const char *null fquery_isupper(const char *null p, const void *c);
+AOCDEF const char *null fquery_isxdigit(const char *null p, const void *c);
 
-AOCDEF bool fquery(const fquery_t *qms, const char *pattern) ATTR_PURE;
+AOCDEF bool fquery(const fquery_t *qms, const char *pattern);
 
 // === Internal ===
-AOCDEF bool _fquery(const fquery_t *qms, const char *null p) ATTR_PURE;
+AOCDEF bool _fquery(const fquery_t *qms, const char *null p);
 
 #ifdef AOCLIBS_IMPLEMENTATION
 #include "fquery.c"
