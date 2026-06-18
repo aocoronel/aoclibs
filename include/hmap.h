@@ -32,6 +32,9 @@ AOCDEF void _hmap_free(_HashMap *map);
 #define hmap_clear _hmap_clear((_HashMap *)map)
 AOCDEF void _hmap_clear(_HashMap *map);
 
+#define hmap_reset _hmap_reset((_HashMap *)map)
+AOCDEF void _hmap_reset(_HashMap *map);
+
 #define hmap_insert(map, slice, val)                                             \
 	({                                                                           \
 		bool ok = false;                                                         \

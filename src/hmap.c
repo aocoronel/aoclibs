@@ -49,7 +49,6 @@ bool _hmap_resize(_HashMap *map, size_t new_capacity) {
 void _hmap_free(_HashMap *map) {
 	ASSERT_NONNULL(map);
 	ASSERT_NONNULL(map->entries);
-	if (!map || !map->entries) return;
 	free(map->entries);
 	map->entries = NULL;
 	map->cap = 0;
@@ -61,6 +60,11 @@ void _hmap_clear(_HashMap *map) {
 	ASSERT_NONNULL(map->entries);
 	if (map->len == 0) return;
 	memset(map->entries, 0, map->cap * sizeof(_HashEntry));
+	map->len = 0;
+}
+
+void _hmap_reset(_HashMap *map) {
+	ASSERT_NONNULL(map);
 	map->len = 0;
 }
 
