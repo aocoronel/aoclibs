@@ -41,6 +41,7 @@ AOCDEF char cstrn_eq_case(const char *restrict s,
 						  const size_t pattern_len);
 
 // Finds if "s" has "pattern" in it.
+// If pattern_len is 1, opt to use index_of instead
 AOCDEF bool cstr_has(const char *restrict s,
 					 const size_t s_len,
 					 const char *restrict pattern,
