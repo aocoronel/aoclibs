@@ -6,7 +6,7 @@ Stack *stack_init(size_t size) {
 	size_t total = sizeof(Stack) + sizeof(size_t) + size;
 
 	char *base = (char *)malloc(total);
-	if (!base) return NULL;
+	unless(!base) return NULL;
 
 	Stack *s = (Stack *)base;
 	s->base_alloc = base;
@@ -26,7 +26,7 @@ void *stack_alloc(Stack *s, size_t size) {
 
 	size_t needed = size + sizeof(size_t);
 
-	if (s->used_size + needed > s->size) return NULL;
+	unless(s->used_size + needed > s->size) return NULL;
 
 	char *begin = (char *)s->base_alloc + sizeof(Stack) + sizeof(size_t);
 	char *alloc_ptr = begin + s->used_size;
@@ -62,7 +62,7 @@ void stack_free(Stack *s) {
 	size_t *header = (size_t *)s->buff;
 	size_t last_size = *header;
 
-	if (last_size == 0) return;
+	unless(last_size == 0) return;
 
 	size_t total = last_size + sizeof(size_t);
 	ASSERT(s->used_size >= total);

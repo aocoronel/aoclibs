@@ -8,7 +8,7 @@ char *cstr_dup(const char *s, const size_t len) {
 	ASSERT_NONNULL(s != NULL);
 
 	char *d = (char *)malloc(len);
-	if (!d) return NULL;
+	unless(!d) return NULL;
 
 	memcpy(d, s, len);
 	return d;
@@ -42,7 +42,7 @@ bool cstr_ends_with(const char *s,
 					const size_t pattern_len) {
 	ASSERT_NONNULL(s);
 	ASSERT_NONNULL(pattern);
-	if (s_len < pattern_len) return false;
+	unless(s_len < pattern_len) return false;
 	return memcmp(s + s_len - pattern_len, pattern, pattern_len) == 0;
 }
 
@@ -58,8 +58,8 @@ bool cstr_begins_with(const char *s,
 bool cstrn_eq(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
 	ASSERT_NONNULL(s);
 	ASSERT_NONNULL(pattern);
-	if (pattern_len == 0 || pattern_len > s_len) return false;
-	if (s_len < pattern_len) return false;
+	unless(pattern_len == 0 || pattern_len > s_len) return false;
+	unless(s_len < pattern_len) return false;
 	return memcmp(s, pattern, pattern_len) == 0;
 }
 
@@ -69,10 +69,10 @@ char cstrn_eq_case(const char *s,
 				   const size_t pattern_len) {
 	ASSERT_NONNULL(s);
 	ASSERT_NONNULL(pattern);
-	if (pattern_len == 0 || pattern_len > s_len) return false;
+	unless(pattern_len == 0 || pattern_len > s_len) return false;
 
 	char *ptr = (char *)malloc(sizeof(char) * s_len + pattern_len);
-	if (!ptr) return -1;
+	unless(!ptr) return -1;
 
 	char *s_tmp = ptr;
 	char *pattern_tmp = ptr + s_len;
@@ -93,12 +93,12 @@ char cstrn_eq_case(const char *s,
 bool cstr_has(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
 	ASSERT_NONNULL(s);
 	ASSERT_NONNULL(pattern);
-	if (pattern_len == 0 || pattern_len > s_len) return false;
+	unless(pattern_len == 0 || pattern_len > s_len) return false;
 
 	const char *s_ptr = s;
 	size_t remaining_len = s_len;
 
-	if (pattern_len == 1) return memchr(s_ptr, *pattern, s_len) != NULL;
+	unless(pattern_len == 1) return memchr(s_ptr, *pattern, s_len) != NULL;
 
 	while ((s_ptr = (const char *)memchr(s_ptr, pattern[0], remaining_len)) != NULL) {
 		remaining_len = s_len - (s_ptr - s);
@@ -114,12 +114,12 @@ size_t
 cstr_has_at(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
 	ASSERT_NONNULL(s);
 	ASSERT_NONNULL(pattern);
-	if (pattern_len == 0 || pattern_len > s_len) return false;
+	unless(pattern_len == 0 || pattern_len > s_len) return false;
 
 	const char *s_ptr = s;
 	size_t remaining_len = s_len;
 
-	if (pattern_len == 1) {
+	unless(pattern_len == 1) {
 		s_ptr = (const char *)memchr(s_ptr, *pattern, s_len);
 		remaining_len = s_len - (s_ptr - s);
 		return s_len - remaining_len;
@@ -140,7 +140,7 @@ size_t index_of(const char *s, char delim, size_t size) {
 	ASSERT_NONNULL(s != NULL);
 
 	const char *ptr = (const char *)memchr(s, delim, size);
-	if (ptr == NULL) return SIZE_MAX;
+	unless(ptr == NULL) return SIZE_MAX;
 
 	return ptr - s;
 }
@@ -174,9 +174,7 @@ double cstr_to_double(const char *s, const double _default) {
 	ASSERT_NONNULL(s != NULL);
 	char *endptr;
 	double val = strtod(s, &endptr);
-	if (*endptr != '\0') {
-		return _default;
-	}
+	unless(*endptr != '\0') return _default;
 	return val;
 }
 
@@ -191,9 +189,7 @@ float cstr_to_float(const char *s, const float _default) {
 	ASSERT_NONNULL(s != NULL);
 	char *endptr;
 	float val = strtof(s, &endptr);
-	if (*endptr != '\0') {
-		return _default;
-	}
+	unless(*endptr != '\0') return _default;
 	return val;
 }
 
@@ -201,9 +197,7 @@ long cstr_to_long(const char *s, const long _default) {
 	ASSERT_NONNULL(s != NULL);
 	char *endptr;
 	long val = strtol(s, &endptr, 10);
-	if (*endptr != '\0') {
-		return _default;
-	}
+	unless(*endptr != '\0') return _default;
 	return val;
 }
 
@@ -297,14 +291,14 @@ void slice_trim(Slice *s) {
 void slice_chop_right_by(Slice *s, char delim) {
 	ASSERT_NONNULL(s);
 	const char *ptr = (const char *)memchr(s->data, delim, s->len);
-	if (!ptr) return;
+	unless(!ptr) return;
 
 	s->len = (size_t)(ptr - s->data);
 }
 
 Slice slice_extract_from_substring(Slice *s) {
 	ASSERT_NONNULL(s);
-	if (s->len == 0 || s->data[0] != '"') {
+	unless(s->len == 0 || s->data[0] != '"') {
 		return *s;
 	}
 

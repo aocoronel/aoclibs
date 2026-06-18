@@ -39,7 +39,7 @@ buddy_page_t *_buddy_new_page(unsigned page_order) {
 							total_size; /* base */
 
 	uint8_t *buff = (uint8_t *)calloc(1, allocated_size);
-	if (!buff) return NULL;
+	unless(!buff) return NULL;
 
 	buddy_page_t *p = (buddy_page_t *)buff;
 	buff += sizeof(buddy_page_t);
@@ -120,14 +120,14 @@ void *_buddy_alloc_page(buddy_page_t *p, size_t bytes) {
 	while (order < p->max_order && _buddy_order_size(order) < needed)
 		order++;
 
-	if (order > p->max_order) return NULL;
+	unless(order > p->max_order) return NULL;
 
 	unsigned current = order;
 
 	while (current <= p->max_order && !p->free_lists[current])
 		current++;
 
-	if (current > p->max_order) return NULL;
+	unless(current > p->max_order) return NULL;
 
 	buddy_block_t *blk = _buddy_freelist_pop(&p->free_lists[current]);
 
@@ -164,7 +164,8 @@ void *_buddy_alloc_page(buddy_page_t *p, size_t bytes) {
 void *buddy_alloc(Buddy *a, size_t size_bytes) {
 	ASSERT_NONNULL(a);
 
-	if (size_bytes == 0) return NULL;
+	// Should we assert this instead?
+	unless(size_bytes == 0) return NULL;
 
 	buddy_page_t *p = a->begin;
 
@@ -182,7 +183,7 @@ void *buddy_alloc(Buddy *a, size_t size_bytes) {
 	if (needed_order > page_order) page_order = needed_order;
 
 	buddy_page_t *newp = _buddy_new_page(page_order);
-	if (!newp) return NULL;
+	unless(!newp) return NULL;
 
 	if (a->end)
 		a->end->next = newp;

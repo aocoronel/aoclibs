@@ -8,7 +8,7 @@ void *pfill(PPool *pool, const size_t size) {
 	ASSERT_NONNULL(pool);
 
 	void *tmp = malloc(size);
-	if (!tmp) return NULL;
+	unless(!tmp) return NULL;
 
 	da_insert(pool, tmp);
 	return tmp;
@@ -18,7 +18,7 @@ void *pfillc(PPool *pool, const size_t size) {
 	ASSERT_NONNULL(pool);
 
 	void *tmp = malloc(size);
-	if (!tmp) return NULL;
+	unless(!tmp) return NULL;
 
 	memset(tmp, '\0', size);
 	da_insert(pool, tmp);
@@ -29,7 +29,7 @@ void *prefresh(PPool *pool, size_t idx, const size_t size) {
 	ASSERT_NONNULL(pool);
 
 	void *tmp = realloc(pool->data[idx], size);
-	if (!tmp) return NULL;
+	unless(!tmp) return NULL;
 
 	pool->data[idx] = tmp;
 

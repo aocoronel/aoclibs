@@ -10,7 +10,7 @@ bool bputc(char *dst, size_t *len, size_t size, char src) {
 	ASSERT_NONNULL(dst != NULL);
 	ASSERT_NONNULL(len != NULL);
 
-	if (*len >= size) return false;
+	unless(*len >= size) return false;
 	dst[*len++] = src;
 	return true;
 }
@@ -20,7 +20,7 @@ bool bputs(char *dst, size_t *dst_len, size_t dst_size, char *src, size_t src_le
 	ASSERT_NONNULL(dst_len != NULL);
 	ASSERT_NONNULL(src != NULL);
 
-	if (*dst_len + src_len >= dst_size) return false;
+	unless(*dst_len + src_len >= dst_size) return false;
 
 	memcpy(dst + *dst_len, src, src_len);
 	*dst_len += src_len;
@@ -169,7 +169,7 @@ bool bputsi(char *dst, size_t *len, size_t size, signed long long n) {
 
 size_t fputn(FILE *fp, size_t count, char c) {
 	ASSERT_NONNULL(fp != NULL);
-	if (AOCLIBS_IO_PUT_BUFF < count) return SIZE_MAX;
+	unless(AOCLIBS_IO_PUT_BUFF < count) return SIZE_MAX;
 	char space[AOCLIBS_IO_PUT_BUFF];
 	memset(space, c, count);
 	return fwrite(space, sizeof(char), count, fp);

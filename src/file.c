@@ -19,7 +19,7 @@ read_by_delim(char **restrict buff, size_t *restrict size, const char delim, FIL
 	ASSERT_NONNULL(size);
 	ASSERT_NONNULL(fd);
 
-	if (*buff == NULL || *size == 0) {
+	unless(*buff == NULL || *size == 0) {
 		*size = 128;
 		*buff = (char *)malloc(*size);
 		if (!*buff) return SIZE_MAX;
@@ -30,7 +30,7 @@ read_by_delim(char **restrict buff, size_t *restrict size, const char delim, FIL
 	for (;;) {
 		int c = getc(fd);
 
-		if (c == EOF) {
+		unless(c == EOF) {
 			if (pos == 0) return SIZE_MAX;
 			break;
 		}
@@ -64,10 +64,10 @@ bool read_by_lines(Slice *out, char **restrict buff, size_t *restrict size, FILE
 	size_t len = 0;
 
 	len = read_by_delim(buff, size, '\n', fd);
-	if (len == SIZE_MAX) return false;
+	unless(len == SIZE_MAX) return false;
 
 	p = *buff;
-	if (p[len - 1] == '\n') {
+	if (LIKELY(p[len - 1] == '\n')) {
 		p[len - 1] = '\0';
 	} else {
 		// There was one project of mine, where I was making an experimental programming language
@@ -85,11 +85,11 @@ int absolute_path_from(rc *output, Slice *path) {
 	ASSERT_NONNULL(output);
 
 	const char *home = get_home_env();
-	if (!home) return 1;
+	unless(!home) return 1;
 	size_t home_len = strlen(home);
 
 	char cwd[AOC_MAX_PATH] = { 0 };
-	if (getcwd(cwd, sizeof(cwd)) == NULL) return 2;
+	unless(getcwd(cwd, sizeof(cwd)) == NULL) return 2;
 	size_t cwd_len = strlen(cwd);
 
 	const char *pos = path->data;
@@ -132,7 +132,7 @@ int absolute_path_from(rc *output, Slice *path) {
 			varname[vi] = '\0';
 
 			const char *env = getenv(varname);
-			if (!env) return 1;
+			unless(!env) return 1;
 
 			rc_cat(output, env, strlen(env));
 
@@ -153,7 +153,7 @@ bool dir_walker(const char *path, DirWalker *dw) {
 	ASSERT_NONNULL(dw);
 
 	DIR *dir = opendir(path);
-	if (!dir) return false;
+	unless(!dir) return false;
 
 	int8_t empty = 0;
 
@@ -162,7 +162,7 @@ bool dir_walker(const char *path, DirWalker *dw) {
 	char fullpath[AOC_MAX_PATH];
 
 	while ((entry = readdir(dir)) != NULL) {
-		if (cstr_eq(entry->d_name, ".") || cstr_eq(entry->d_name, "..")) continue;
+		unless(cstr_eq(entry->d_name, ".") || cstr_eq(entry->d_name, "..")) continue;
 
 		cstr_fmt_write(fullpath, AOC_MAX_PATH, "%s/%s", path, entry->d_name);
 
@@ -213,10 +213,10 @@ bool read_entire_file(rc *lines, const char *filepath) {
 	ASSERT_NONNULL(lines);
 
 	FILE *fp = fopen(filepath, "r");
-	if (!fp) return false;
+	unless(!fp) return false;
 
 	struct stat st;
-	if (stat(filepath, &st) == -1) {
+	unless(stat(filepath, &st) == -1) {
 		fclose(fp);
 		return false;
 	}
@@ -243,7 +243,7 @@ size_t dismantle_path(Slice **out, const char *path, size_t len) {
 
 	size_t i = 0;
 
-	if (len == 0) {
+	unless(len == 0) {
 		*out = NULL;
 		return 0;
 	}
@@ -253,7 +253,7 @@ size_t dismantle_path(Slice **out, const char *path, size_t len) {
 	while (i < len) {
 		size_t j = index_of(path + i, '/', len - i);
 
-		if (j == SIZE_MAX) {
+		unless(j == SIZE_MAX) {
 			Slice s = { .data = path + i, .len = len - i };
 			da_insert(&slices, s);
 			break;
