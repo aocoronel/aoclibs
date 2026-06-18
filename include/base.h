@@ -91,7 +91,7 @@
 #define TODO(...) AOCLIBS_ABORT("TODO: ", __VA_ARGS__)
 
 // int foo() { UNIMPLEMENTED; }
-#define UNIMPLEMENTED AOCLIBS_ABORT("Unimplemented function: ", __func__)
+#define UNIMPLEMENTED AOCLIBS_ABORT("Unimplemented function: ", "%s", __func__)
 
 // Asserts an expression, and prints an optional formatted message
 #ifdef NDEBUG
