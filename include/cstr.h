@@ -107,8 +107,6 @@ AOCDEF Slice while_next_word_and(const char *restrict s,
 								 size_t end,
 								 char delim);
 
-AOCDEF bool while_token(Slice *cursor, int *remaining_len, Slice *out);
-
 AOCDEF size_t cstr_skip_whitespace_forward(const char *pos, size_t len);
 AOCDEF size_t cstr_skip_whitespace_backward(const char *pos, size_t len);
 AOCDEF void slice_skip_whitespace_backward(Slice *s);
