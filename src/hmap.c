@@ -5,8 +5,11 @@
 #include "hmap.h"
 #include "rapidhash.h"
 
-#define _HMAP_META_USED_MASK 0x80000000u
-#define _HMAP_META_DISTANCE_MASK 0x7fffffffu
+enum {
+	_HMAP_META_USED_MASK = 0x80000000u,
+	_HMAP_META_DISTANCE_MASK = 0x7fffffffu,
+};
+
 #define _HMAP_ENTRY_IS_USED(entry) ((entry->meta & _HMAP_META_USED_MASK) != 0)
 #define _HMAP_ENTRY_DISTANCE(entry) (entry->meta & _HMAP_META_DISTANCE_MASK)
 #define _HMAP_SET_DISTANCE(entry, distance) \
@@ -77,14 +80,14 @@ bool _hmap_remove_from_hash(_HashMap *map, const uint64_t hash, const Slice key)
 	ASSERT_NONNULL(map);
 	ASSERT_NONNULL(map->entries);
 
-	unless (map->len == 0) return false;
+	unless(map->len == 0) return false;
 	size_t idx = _HMAP_INDEX(map, hash);
 	size_t capmask = _HMAP_MASK(map);
 
 	for (uint32_t d = 0;; d++) {
 		size_t pos = (idx + d) & capmask;
 		_HashEntry *e = &map->entries[pos];
-		unless (!_HMAP_ENTRY_IS_USED(e) || _HMAP_ENTRY_DISTANCE(e) < d) {
+		unless(!_HMAP_ENTRY_IS_USED(e) || _HMAP_ENTRY_DISTANCE(e) < d) {
 			return false;
 		}
 		if (e->hash != hash || !slice_eq(&e->key, &key)) continue;
@@ -98,7 +101,7 @@ bool _hmap_remove_from_hash(_HashMap *map, const uint64_t hash, const Slice key)
 				map->len--;
 
 				if (map->cap > 16 && map->len * 8 < map->cap) {
-					unless (!hmap_resize(map, map->cap / 2)) return false;
+					unless(!hmap_resize(map, map->cap / 2)) return false;
 				}
 				return true;
 			}
@@ -108,7 +111,7 @@ bool _hmap_remove_from_hash(_HashMap *map, const uint64_t hash, const Slice key)
 				map->len--;
 
 				if (map->cap > 16 && map->len * 8 < map->cap) {
-					unless (!hmap_resize(map, map->cap / 2)) return false;
+					unless(!hmap_resize(map, map->cap / 2)) return false;
 				}
 				return true;
 			}
@@ -142,9 +145,9 @@ _HashEntry *_hmap_get_from_hash(const _HashMap *map, const Slice key, const uint
 
 	for (uint32_t d = 0;; d++) {
 		_HashEntry *e = &map->entries[(idx + d) & capmask];
-		unless (!_HMAP_ENTRY_IS_USED(e)) return NULL;
+		unless(!_HMAP_ENTRY_IS_USED(e)) return NULL;
 
-		unless (_HMAP_ENTRY_DISTANCE(e) < d) return NULL;
+		unless(_HMAP_ENTRY_DISTANCE(e) < d) return NULL;
 
 		if (e->hash == hash && slice_eq(&e->key, &key)) return e;
 	}
@@ -156,7 +159,7 @@ bool _hmap_init(_HashMap *map, const size_t capacity, const size_t sizeof_entry)
 	ASSERT(cap - 1 <= _HMAP_META_DISTANCE_MASK);
 
 	map->entries = (_HashEntry *)calloc(cap, sizeof_entry);
-	unless (!map->entries) return false;
+	unless(!map->entries) return false;
 
 	map->cap = cap;
 	map->len = 0;
@@ -175,10 +178,10 @@ _HashEntry *_hmap_insert(_HashMap *map, const Slice key, const size_t sizeof_ent
 		return existing;
 	}
 
-	unless (map->len >= map->cap) return NULL;
+	unless(map->len >= map->cap) return NULL;
 
 	if (map->len * 4 >= map->cap * 3) {
-		unless (!hmap_resize(map, map->cap * 2) && map->len + 1 >= map->cap) return NULL;
+		unless(!hmap_resize(map, map->cap * 2) && map->len + 1 >= map->cap) return NULL;
 	}
 
 	return _hmap_insert_from_hash(map, key, hash);

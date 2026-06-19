@@ -8,9 +8,11 @@
 // This works similarly to the Arena allocator. Whenever the backing buffer the buddy allocator uses
 // is out of space, we just create a new page.
 
-#define BUDDY_MIN_ORDER 3 // 2^3 = 8 bytes
-#define BUDDY_DEFAULT_PAGE_ORDER 15 // 2^15 = 32768 bytes
-#define BUDDY_MAX_ORDERS 32
+enum {
+	BUDDY_MIN_ORDER = 3, // 2^3 = 8 bytes
+	BUDDY_DEFAULT_PAGE_ORDER = 15, // 2^15 = 32768 bytes
+	BUDDY_MAX_ORDERS = 32,
+};
 
 typedef struct buddy_block {
 	struct buddy_block *next;
