@@ -22,7 +22,19 @@
 //         void *data; // must be a pointer!
 // } DynamicArray;
 
-#define AOCLIBS_DA_INITIAL_CAPACITY 256 // size in bytes allocated in the heap
+// For clarity, it's rather let the user create the struct, than make a macro that does it for them
+#define DYNAMIC_ARRAY(type) \
+	size_t cap;             \
+	size_t len;             \
+	type *data
+
+// typedef struct {
+//    DYNAMIC_ARRAY(void);
+// } MyDynamicArray;
+
+#ifndef CONFIG_DA_DEFAULT_CAPACITY
+#define CONFIG_DA_DEFAULT_CAPACITY 256 // size in bytes allocated in the heap
+#endif // CONFIG_DA_DEFAULT_CAPACITY
 
 // Convenient assertions to prevent access out of bounds
 #define _assert_da_index_is_valid(da, index)                              \
@@ -46,20 +58,14 @@
 //
 // DynamicArray my_da = { 0 };
 // da_reserve(&my_da, (&my_da)->len + 1); // Needs to allocate one value
-#define da_reserve(da, new_cap)                                                                   \
-	do {                                                                                          \
-		if (UNLIKELY((new_cap) > (da)->cap)) {                                                    \
-			if ((da)->cap < AOCLIBS_DA_INITIAL_CAPACITY) {                                        \
-				(da)->cap = AOCLIBS_DA_INITIAL_CAPACITY;                                          \
-			}                                                                                     \
-			while ((new_cap) > (da)->cap) {                                                       \
-				(da)->cap *= 2;                                                                   \
-			}                                                                                     \
-			(da)->data =                                                                          \
-					(__typeof__((da)->data))realloc((da)->data, (da)->cap * sizeof(*(da)->data)); \
-			ASSERT((da)->data, "out of memory while reserving memory for dynamic array");         \
-		}                                                                                         \
+#define da_reserve(da, new_cap)                                                          \
+	do {                                                                                 \
+		void *ptr = _da_reserve((da)->data, &(da)->cap, (new_cap), sizeof(*(da)->data)); \
+		ASSERT(new_data, "out of memory while reserving memory for dynamic array");      \
+		(da)->data = (typeof(da))ptr;                                                                \
 	} while (0)
+
+AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t sizeof_da);
 
 #define da_free(da)                                \
 	do {                                           \
@@ -149,5 +155,23 @@
 #define da_sort(da, fn) qsort((da)->data, (da)->len, sizeof((da)->data[0]), fn)
 
 #define da_is_null(da) !(da) || !(da)->data
+
+#ifdef AOCLIBS_IMPLEMENTATION
+void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t type_size) {
+	size_t local_cap = *cap;
+	if (UNLIKELY((new_cap) > local_cap)) {
+		if (local_cap < CONFIG_DA_DEFAULT_CAPACITY) {
+			local_cap = CONFIG_DA_DEFAULT_CAPACITY;
+		}
+		while ((new_cap) > local_cap) {
+			local_cap *= 2;
+		}
+		void *new_data = realloc(data, local_cap * type_size);
+		*cap = local_cap;
+		return new_data;
+	}
+	return data;
+}
+#endif
 
 #endif
