@@ -34,6 +34,10 @@
 #define NORETURN __attribute__((noreturn))
 #define DEPRECATED(fn_to_use_instead) __attribute_deprecated_msg__(fn_to_use_instead)
 #define MUST_USE __attribute__((warn_unused_result))
+#define MALLOC __attribute__((__malloc__))
+#define PRINTF(x, y) __attribute__((__format__(printf, x, y)))
+
+#define inline __attribute__((__gnu_inline__)) inline
 
 // The following macros are used to clarify intentions
 #define DISCARD(variable) (void)variable
