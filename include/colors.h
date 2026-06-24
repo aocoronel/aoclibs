@@ -1,9 +1,7 @@
 #ifndef AOCLIBS_COLORS_H_
 #define AOCLIBS_COLORS_H_
 
-#ifndef CONFIG_TTY_COLORS
-#define CONFIG_TTY_COLORS 1
-#endif // CONFIG_TTY_COLORS
+#include "cfg.h"
 
 // TTY Colors
 

@@ -7,6 +7,7 @@
 
 // Most used LibC libraries
 #include "libc.h"
+#include "cfg.h"
 
 // AOCDEF can modify prefixes in all functions. Example:
 //  #define AOCDEF static inline

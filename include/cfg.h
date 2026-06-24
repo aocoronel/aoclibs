@@ -1,0 +1,41 @@
+#ifndef AOCLIBS_CFG_H_
+#define AOCLIBS_CFG_H_
+
+// 1 :: enable tty colors
+// 0 :: disable tty colors
+#ifndef CONFIG_TTY_COLORS
+#define CONFIG_TTY_COLORS 1
+#endif // CONFIG_TTY_COLORS
+
+// N of items by default. Not bytes.
+#ifndef CONFIG_DA_DEFAULT_CAPACITY
+#define CONFIG_DA_DEFAULT_CAPACITY (1 << 8) // 256 entries
+#endif // CONFIG_DA_DEFAULT_CAPACITY
+
+// Max path size
+#ifndef AOC_MAX_PATH
+#define AOC_MAX_PATH 4096
+#endif // AOC_MAX_PATH
+
+#ifndef AOCLIBS_HASHMAP_INITIAL_CAPACITY
+#define AOCLIBS_HASHMAP_INITIAL_CAPACITY 1024
+#endif // AOCLIBS_HASHMAP_INITIAL_CAPACITY
+
+#define AOCLIBS_ARENA_BACKEND_LIBC_MALLOC 0
+#define AOCLIBS_ARENA_BACKEND_VIRTUAL_ALLOC 1
+
+#ifndef CONFIG_ARENA_BACKEND
+#define CONFIG_ARENA_BACKEND AOCLIBS_ARENA_BACKEND_LIBC_MALLOC
+#endif // AOCLIBS_ARENA_BACKEND
+
+// Size of regions
+#ifndef CONFIG_ARENA_DEFAULT_CAPACITY
+#define CONFIG_ARENA_DEFAULT_CAPACITY (1 << 12) // 8196 bytes
+#endif // CONFIG_ARENA_DEFAULT_CAPACITY
+
+// N of items by default. Not bytes.
+#ifndef CONFIG_ARENA_DA_DEFAULT_CAPACITY
+#define CONFIG_ARENA_DA_DEFAULT_CAPACITY (1 << 8) // 256 entries
+#endif
+
+#endif // AOCLIBS_CFG_H_

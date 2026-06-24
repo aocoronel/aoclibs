@@ -4,8 +4,6 @@
 #include "base.h"
 #include "cstr.h"
 
-#define AOCLIBS_HASHMAP_INITIAL_CAPACITY 1024
-
 typedef struct _HashEntry {
 	Slice key;
 	uint64_t hash;

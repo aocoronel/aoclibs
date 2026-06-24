@@ -32,10 +32,6 @@
 //    DYNAMIC_ARRAY(void);
 // } MyDynamicArray;
 
-#ifndef CONFIG_DA_DEFAULT_CAPACITY
-#define CONFIG_DA_DEFAULT_CAPACITY 256 // size in bytes allocated in the heap
-#endif // CONFIG_DA_DEFAULT_CAPACITY
-
 // Convenient assertions to prevent access out of bounds
 #define _assert_da_index_is_valid(da, index)                              \
 	(ASSERT((da)->len > 0 && (da)->len < (da)->cap,                       \

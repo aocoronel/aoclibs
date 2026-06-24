@@ -6,8 +6,6 @@
 #include "cstr.h"
 #include <sys/stat.h>
 
-#define AOC_MAX_PATH 4096
-
 typedef enum FileType {
 	F_NULL, // Doesn't exist
 	F_REG, // Regular file
