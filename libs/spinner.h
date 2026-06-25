@@ -12,14 +12,12 @@
 */
 const char *get_spinner(void);
 
-#define SPINNER_NUM_SYMBOLS (sizeof(SYMBOLS) / sizeof(SYMBOLS[0]))
-
 #ifdef SPINNER_IMPLEMENTATION
 AOCDEF const char *get_spinner(void) {
 	static const char *SYMBOLS[] = { "⠁", "⠈", "⠐", "⠠", "⢀", "⡀", "⠄", "⠂" };
 	static int_fast8_t counter = 0;
 	const char *RESULT = SYMBOLS[counter];
-	counter = (counter + 1) % SPINNER_NUM_SYMBOLS;
+	counter = (counter + 1) % (sizeof(SYMBOLS) / sizeof(SYMBOLS[0]));
 	return RESULT;
 }
 #endif
