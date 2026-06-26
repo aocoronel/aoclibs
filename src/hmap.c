@@ -90,7 +90,7 @@ bool _hmap_remove_from_hash(_HashMap *map, const uint64_t hash, const Slice key)
 		$catch(!_HMAP_ENTRY_IS_USED(e) || _HMAP_ENTRY_DISTANCE(e) < d) {
 			return false;
 		}
-		if (e->hash != hash || !slice_eq(&e->key, &key)) continue;
+		if (e->hash != hash || !slice_eq(e->key, key)) continue;
 
 		size_t cur = pos;
 		for (;;) {
@@ -149,7 +149,7 @@ _HashEntry *_hmap_get_from_hash(const _HashMap *map, const Slice key, const uint
 
 		$catch(_HMAP_ENTRY_DISTANCE(e) < d) return NULL;
 
-		if (e->hash == hash && slice_eq(&e->key, &key)) return e;
+		if (e->hash == hash && slice_eq(e->key, key)) return e;
 	}
 }
 
@@ -210,7 +210,7 @@ _HashEntry *_hmap_insert_from_hash(_HashMap *map, const Slice key, const uint64_
 			return e;
 		}
 
-		if (e->hash == hash && slice_eq(&e->key, &key)) {
+		if (e->hash == hash && slice_eq(e->key, key)) {
 			e->value = incoming.value;
 			e->key = incoming.key;
 			return e;

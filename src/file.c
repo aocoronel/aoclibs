@@ -298,7 +298,7 @@ char *make_path(char *restrict out,
 
 #ifdef TUNIT
 TEST(make_path) {
-	Slice dirs[] = { slice("home"), slice("user"), slice(".cache") };
+	Slice dirs[] = { $slice("home"), $slice("user"), $slice(".cache") };
 	char out[256];
 
 	if (!make_path(out, 256, dirs, $array_len(dirs))) {
@@ -317,11 +317,11 @@ TEST(dismantle_path) {
 	if ((n = dismantle_path(&slice, "/home/aoc/.cache", $strlen("/home/aoc/.cache"))) == 0) {
 		eprintf("Failed to dismantle path\n");
 	}
-	$tassert(slice_eq(&slice[0], &slice("home")), "slices are different");
-	$tassert(slice_eq(&slice[1], &slice("aoc")), "slices are different");
-	$tassert(slice_eq(&slice[2], &slice(".cache")), "slices are different");
-	slice[0] = slice("usr");
-	$tassert(slice_eq(&slice[0], &slice("usr")), "slices are different");
+	$tassert(slice_eq(slice[0], $slice("home")), "slices are different");
+	$tassert(slice_eq(slice[1], $slice("aoc")), "slices are different");
+	$tassert(slice_eq(slice[2], $slice(".cache")), "slices are different");
+	slice[0] = $slice("usr");
+	$tassert(slice_eq(slice[0], $slice("usr")), "slices are different");
 
 	free(slice);
 }
