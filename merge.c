@@ -15,7 +15,11 @@
 FILE *output = NULL;
 const char *file_to_open = NULL;
 
+#ifdef __cplusplus__
+char *C_COMPILER = "g++";
+#else
 char *C_COMPILER = "gcc";
+#endif
 
 void read_source_files(FileType ft, struct stat *st, const char *path);
 
