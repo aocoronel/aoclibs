@@ -39,7 +39,6 @@
 // mimalloc, dmalloc, rpmalloc...
 
 // Compiler specific
-#define NORETURN __attribute__((noreturn))
 #define $likely(expr) __builtin_expect(!!(expr), 1)
 #define $unlikely(expr) __builtin_expect(!!(expr), 0)
 #define $deprecated(fn_to_use_instead) __attribute_deprecated_msg__(fn_to_use_instead)
