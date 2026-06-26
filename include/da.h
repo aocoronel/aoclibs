@@ -58,7 +58,7 @@
 	do {                                                                                 \
 		void *ptr = _da_reserve((da)->data, &(da)->cap, (new_cap), sizeof(*(da)->data)); \
 		ASSERT(ptr, "out of memory while reserving memory for dynamic array");           \
-		(da)->data = (typeof(da))ptr;                                                    \
+		(da)->data = (typeof((da)->data))ptr;                                            \
 	} while (0)
 
 AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t sizeof_da);
