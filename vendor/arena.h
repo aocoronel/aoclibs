@@ -88,16 +88,16 @@ AOCDEF void arena_destroy(Arena *a);
 
 #define _dar_reserve(a, da, new_cap, sizeof_da)                                                 \
 	do {                                                                                        \
-		if (UNLIKELY((da)->len >= (da)->cap)) {                                                 \
+		if ($unlikely((da)->len >= (da)->cap)) {                                                 \
 			size_t new_capacity = (da)->cap < CONFIG_ARENA_DA_DEFAULT_CAPACITY ?                \
 										  CONFIG_ARENA_DA_DEFAULT_CAPACITY :                    \
 										  new_cap;                                              \
 			while ((new_cap) > new_capacity) {                                                  \
 				new_capacity *= 2;                                                              \
 			}                                                                                   \
-			(da)->data = (__typeof__((da)->data))arena_realloc(                                 \
+			(da)->data = (typeof((da)->data))arena_realloc(                                 \
 					(a), (da)->data, (da)->cap * (sizeof_da), new_capacity * (sizeof_da));      \
-			ASSERT((da)->data, "out of memory while reserving memory for arena dynamic array"); \
+			$assert((da)->data, "out of memory while reserving memory for arena dynamic array"); \
 			(da)->cap = new_capacity;                                                           \
 		}                                                                                       \
 	} while (0)
@@ -119,10 +119,10 @@ AOCDEF void arena_destroy(Arena *a);
 
 #define dar_add_null(a, da) dar_append(a, da, "\0", 1)
 
-#define arc_lcat(a, rc, cstr) dar_append(a, rc, cstr, STRLEN(cstr))
+#define arc_lcat(a, rc, cstr) dar_append(a, rc, cstr, $strlen(cstr))
 #define arc_cat(a, rc, cstr, len) dar_append(a, rc, cstr, len)
 
-#define arc_lappend(a, rc, items_buff) arc_append(a, rc, items_buff, STRLEN(items_buff))
+#define arc_lappend(a, rc, items_buff) arc_append(a, rc, items_buff, $strlen(items_buff))
 #define arc_append(a, rc, items_buff, items_size)                                         \
 	do {                                                                                  \
 		dar_reserve(a, (rc), 1 + (rc)->len + (items_size));                               \
@@ -157,10 +157,10 @@ AOCDEF void arena_destroy(Arena *a);
 		(da)->len += (items_size);                                                       \
 	} while (0)
 
-#define arc_lcat_fast(a, rc, cstr) dar_append_fast(a, rc, cstr, STRLEN(cstr))
+#define arc_lcat_fast(a, rc, cstr) dar_append_fast(a, rc, cstr, $strlen(cstr))
 #define arc_cat_fast(a, rc, cstr, len) dar_append_fast(a, rc, cstr, len)
 
-#define arc_lappend_fast(a, rc, items_buff) arc_append(a, rc, items_buff, STRLEN(items_buff))
+#define arc_lappend_fast(a, rc, items_buff) arc_append(a, rc, items_buff, $strlen(items_buff))
 #define arc_append_fast(a, rc, items_buff, items_size)                                    \
 	do {                                                                                  \
 		(rc)->data[(rc)->len++] = ' ';                                                    \
@@ -180,7 +180,7 @@ AOCDEF Region *arena_new_region(const size_t capacity) {
 	if (!r) return NULL;
 
 	// Properly allocated memory will slowly releasing this
-	sanitizer_poison_memory(r->data, capacity);
+	$sanitizer_poison_memory(r->data, capacity);
 
 	r->next = NULL;
 	r->len = 0;
@@ -189,7 +189,7 @@ AOCDEF Region *arena_new_region(const size_t capacity) {
 }
 
 AOCDEF void arena_free_region(Region *r) {
-	ASSERT_NONNULL(r);
+	$assert_nonnull(r);
 	free(r);
 }
 
@@ -211,7 +211,7 @@ AOCDEF Region *arena_new_region(const size_t capacity) {
 }
 
 AOCDEF void arena_free_region(Region *r) {
-	ASSERT_NONNULL(r);
+	$assert_nonnull(r);
 	const size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * r->cap;
 	int ret = munmap(r, size_bytes);
 
@@ -220,7 +220,7 @@ AOCDEF void arena_free_region(Region *r) {
 	//  is set to indicate the error (probably to EINVAL)."
 	//
 	// For consistency, we assume the user always provide a valid address
-	ASSERT(ret == 0, "%s", strerror(errno));
+	$assert(ret == 0, "%s", strerror(errno));
 }
 
 #else
@@ -230,11 +230,11 @@ AOCDEF void arena_free_region(Region *r) {
 #endif
 
 AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
-	ASSERT_NONNULL(a != NULL);
+	$assert_nonnull(a != NULL);
 	const size_t size = (size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t);
 
 	if (a->end == NULL) {
-		ASSERT(a->begin == NULL);
+		$assert(a->begin == NULL);
 		size_t capacity = CONFIG_ARENA_DEFAULT_CAPACITY;
 		if (capacity < size) capacity = size;
 
@@ -249,7 +249,7 @@ AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
 	}
 
 	if (a->end->len + size > a->end->cap) {
-		ASSERT(a->end->next == NULL);
+		$assert(a->end->next == NULL);
 		size_t capacity = CONFIG_ARENA_DEFAULT_CAPACITY;
 		if (capacity < size) capacity = size;
 		a->end->next = arena_new_region(capacity);
@@ -262,9 +262,9 @@ AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
 		size_t rounded =
 				((size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t)) * sizeof(uintptr_t);
 		void *ptr = &a->end->data[a->end->len];
-		sanitizer_unpoison_memory(ptr, size_bytes);
+		$sanitizer_unpoison_memory(ptr, size_bytes);
 		if (rounded > size_bytes)
-			sanitizer_poison_memory((char *)ptr + size_bytes, rounded - size_bytes);
+			$sanitizer_poison_memory((char *)ptr + size_bytes, rounded - size_bytes);
 	}
 #endif
 
@@ -274,7 +274,7 @@ AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
 }
 
 AOCDEF void *arena_calloc(Arena *a, const size_t size_bytes) {
-	ASSERT_NONNULL(a);
+	$assert_nonnull(a);
 
 	void *ptr = arena_alloc(a, size_bytes);
 	if (!ptr) return NULL;
@@ -284,7 +284,7 @@ AOCDEF void *arena_calloc(Arena *a, const size_t size_bytes) {
 }
 
 AOCDEF void *arena_realloc(Arena *a, void *oldptr, const size_t oldsz, const size_t newsz) {
-	ASSERT_NONNULL(a != NULL);
+	$assert_nonnull(a != NULL);
 	if (newsz <= oldsz) return oldptr;
 
 	void *newptr = arena_alloc(a, newsz);
@@ -297,8 +297,8 @@ AOCDEF void *arena_realloc(Arena *a, void *oldptr, const size_t oldsz, const siz
 }
 
 AOCDEF void *arena_memdup(Arena *a, void *data, const size_t size) {
-	ASSERT_NONNULL(a != NULL);
-	ASSERT_NONNULL(data != NULL);
+	$assert_nonnull(a != NULL);
+	$assert_nonnull(data != NULL);
 
 	void *p = arena_alloc(a, size);
 	if (!p) return NULL;
@@ -309,15 +309,15 @@ AOCDEF void *arena_memdup(Arena *a, void *data, const size_t size) {
 }
 
 AOCDEF char *arena_vsprintf(Arena *a, const char *format, va_list args) {
-	ASSERT_NONNULL(a != NULL);
-	ASSERT_NONNULL(format);
+	$assert_nonnull(a != NULL);
+	$assert_nonnull(format);
 
 	va_list args_copy;
 	va_copy(args_copy, args);
 	int n = vsnprintf(NULL, 0, format, args_copy);
 	va_end(args_copy);
 
-	ASSERT(n >= 0);
+	$assert(n >= 0);
 
 	char *result = (char *)arena_alloc(a, n + 1);
 	if (!result) return NULL;
@@ -328,8 +328,8 @@ AOCDEF char *arena_vsprintf(Arena *a, const char *format, va_list args) {
 }
 
 AOCDEF char *arena_sprintf(Arena *a, const char *format, ...) {
-	ASSERT_NONNULL(a != NULL);
-	ASSERT_NONNULL(format);
+	$assert_nonnull(a != NULL);
+	$assert_nonnull(format);
 
 	va_list args;
 	va_start(args, format);
@@ -340,7 +340,7 @@ AOCDEF char *arena_sprintf(Arena *a, const char *format, ...) {
 }
 
 AOCDEF void arena_reset(Arena *a) {
-	ASSERT_NONNULL(a != NULL);
+	$assert_nonnull(a != NULL);
 	for (Region *r = a->begin; r != NULL; r = r->next) {
 		r->len = 0;
 	}
@@ -349,7 +349,7 @@ AOCDEF void arena_reset(Arena *a) {
 }
 
 AOCDEF void arena_destroy(Arena *a) {
-	ASSERT_NONNULL(a != NULL);
+	$assert_nonnull(a != NULL);
 	Region *r = a->begin;
 	while (r) {
 		Region *r0 = r;

@@ -3,6 +3,7 @@
 
 #include "arena.h"
 #include "base.h"
+#include "io.h"
 #include "cstr.c"
 #include <assert.h>
 #include <stdbool.h>
@@ -146,7 +147,7 @@ AOCDEF void crown_deinit(void);
 #define crown_new_subopt(key, ...)                                                \
 	size_t key##_id = last_cmd->flags->len;                                       \
 	do {                                                                          \
-		ASSERT(last_cmd != NULL, "No command defined");                           \
+		$assert(last_cmd != NULL, "No command defined");                           \
 		crown_append(CrownOption, last_cmd->flags, (CrownOption){ __VA_ARGS__ }); \
 	} while (0);                                                                  \
 	CrownOption *key = &last_cmd->flags->data[key##_id];
@@ -154,7 +155,7 @@ AOCDEF void crown_deinit(void);
 #define crown_new_subcmd(key, ...)                                                                 \
 	size_t key##_id = last_cmd->subcmd->len;                                                       \
 	do {                                                                                           \
-		ASSERT(last_cmd != NULL, "No command defined");                                            \
+		$assert(last_cmd != NULL, "No command defined");                                            \
 		crown_append(CrownCommand, last_cmd->subcmd, (CrownCommand){ __VA_ARGS__ });               \
 		last_cmd->subcmd->data[key##_id].subcmd = arena_calloc(&Program_Arena, sizeof(CrownCmds)); \
 		last_cmd->subcmd->data[key##_id].flags = arena_calloc(&Program_Arena, sizeof(CrownOpts));  \
@@ -290,9 +291,9 @@ AOCDEF void crown_bashgen_case_prev_close(int indent) {
 // Helper function
 AOCDEF void crown_bashgen_options(CrownOpts *cmds, int indent) {
 	CrownOpts *curr_cmd = cmds == NULL ? Program->flags : cmds;
-	ASSERT(curr_cmd != NULL);
+	$assert(curr_cmd != NULL);
 
-	range(0, curr_cmd->len, i) {
+	$range(0, curr_cmd->len, i) {
 		char ARG[CROWN_BUFFER];
 		CrownOption flags = curr_cmd->data[i];
 		CrownArgument arg = Program->args->data[flags.args];
@@ -300,7 +301,7 @@ AOCDEF void crown_bashgen_options(CrownOpts *cmds, int indent) {
 		const char *SHORT_FLAG = flags.short_opt;
 		const char *LONG_FLAG = flags.long_opt;
 
-		ASSERT(LONG_FLAG || SHORT_FLAG, "Option doesn't has a short or long flag");
+		$assert(LONG_FLAG || SHORT_FLAG, "Option doesn't has a short or long flag");
 
 		crown_indent_completion(indent);
 		if (LONG_FLAG && SHORT_FLAG)
@@ -324,7 +325,7 @@ AOCDEF void crown_bashgen_options(CrownOpts *cmds, int indent) {
 void crown_print_subcmd_completion(CrownCommand cmd, int indent) {
 	crown_indent_completion(indent);
 	CROWN_PUTS("    comp=(\n");
-	range(0, cmd.subcmd->len, j) {
+	$range(0, cmd.subcmd->len, j) {
 		CrownCommand completion_cmd = cmd.subcmd->data[j];
 		bool has_desc = completion_cmd.desc != NULL ? true : false;
 		crown_indent_completion(indent);
@@ -333,7 +334,7 @@ void crown_print_subcmd_completion(CrownCommand cmd, int indent) {
 		else
 			CROWN_PRINTF("      \"%s\"\n", completion_cmd.name);
 	}
-	range(0, cmd.flags->len, j) {
+	$range(0, cmd.flags->len, j) {
 		CrownOption completion_opt = cmd.flags->data[j];
 		bool has_desc = completion_opt.desc != NULL ? true : false;
 		if (completion_opt.short_opt) {
@@ -364,9 +365,9 @@ void crown_print_subcmd_completion(CrownCommand cmd, int indent) {
 // Helper function
 AOCDEF void crown_bashgen_subcommand(CrownCmds *cmds, int indent, int level) {
 	CrownCmds *curr_cmd = cmds == NULL ? Program->subcmd : cmds;
-	ASSERT(curr_cmd != NULL);
+	$assert(curr_cmd != NULL);
 
-	range(0, curr_cmd->len, i) {
+	$range(0, curr_cmd->len, i) {
 		char ARG[CROWN_BUFFER];
 		CrownCommand cmd = curr_cmd->data[i];
 		CrownArgument arg = Program->args->data[cmd.args];
@@ -382,10 +383,10 @@ AOCDEF void crown_bashgen_subcommand(CrownCmds *cmds, int indent, int level) {
 		if (cmd.subcmd && cmd.subcmd->data || cmd.flags && cmd.flags->data) {
 			crown_indent_completion(indent + 4);
 			crown_bashgen_case_prev_open(level + 1);
-			range(0, cmd.subcmd->len, j) {
+			$range(0, cmd.subcmd->len, j) {
 				crown_bashgen_subcommand(cmd.subcmd, indent + 6, level + 1);
 			}
-			range(0, cmd.flags->len, j) {
+			$range(0, cmd.flags->len, j) {
 				crown_bashgen_options(cmd.flags, indent + 6);
 			}
 			crown_bashgen_case_prev_close(indent + 4);
@@ -416,13 +417,13 @@ AOCDEF void crown_bashgen_subcommand(CrownCmds *cmds, int indent, int level) {
 
 AOCDEF void crown_bashgen_env_vars(const CrownEnv *env, size_t envc) {
 	if (env == NULL || envc == 0) return;
-	ASSERT(envc <= Program->args->len);
+	$assert(envc <= Program->args->len);
 	for (size_t j = 0; j < envc; j++) {
 		if (env[j].opt == NULL || env[j].opt->args == 0) continue;
 
 		const char *arg_name = Program->args->data[env->opt->args].name;
 
-		ASSERT(arg_name != NULL);
+		$assert(arg_name != NULL);
 		if (!cstr_eq(arg_name, env->name)) continue;
 
 		CROWN_PUTS("  for ((i = 0; i < ${#words[@]}; i++)); do\n");
@@ -461,7 +462,7 @@ void crown_generate_completion(const CrownEnv *env, int envc, int default_level)
 			   "  local level=${#words[@]}\n"
 			   "\n");
 	CROWN_PUTS("  local global_commands=(\n");
-	range(0, Program->subcmd->len, i) {
+	$range(0, Program->subcmd->len, i) {
 		CrownCommand completion_cmd = Program->subcmd->data[i];
 		const char *completion_desc = completion_cmd.desc;
 
@@ -477,7 +478,7 @@ void crown_generate_completion(const CrownEnv *env, int envc, int default_level)
 	}
 	CROWN_PUTS("  )\n");
 	CROWN_PUTS("  local global_flags=(\n");
-	range(0, Program->flags->len, i) {
+	$range(0, Program->flags->len, i) {
 		CrownOption completion_flag = Program->flags->data[i];
 		const char *completion_desc = completion_flag.desc;
 
@@ -719,9 +720,9 @@ AOCDEF bool crown_has_commands(CrownCommand *cmds) {
 	if (cmd == NULL) return false;
 	if (cmd->len == 0) return false;
 #ifndef NDEBUG
-	ASSERT(cmd->data != NULL, "No command is defined, but length is %zu\n", cmd->len);
+	$assert(cmd->data != NULL, "No command is defined, but length is %zu\n", cmd->len);
 	for (size_t i = 0; i < cmd->len; i++)
-		ASSERT(cmd->data[i].name != NULL, "Found a subcommand without name in %s", cmds->name);
+		$assert(cmd->data[i].name != NULL, "Found a subcommand without name in %s", cmds->name);
 #endif
 	return true;
 }
@@ -732,9 +733,9 @@ AOCDEF bool crown_has_options(CrownCommand *cmds) {
 	if (opt == NULL) return false;
 	if (opt->len == 0) return false;
 #ifndef NDEBUG
-	ASSERT(opt->data != NULL, "No option is defined, but length is %zu\n", opt->len);
+	$assert(opt->data != NULL, "No option is defined, but length is %zu\n", opt->len);
 	for (size_t i = 0; i < opt->len; i++)
-		ASSERT(opt->data[i].short_opt != NULL || opt->data[i].long_opt != NULL,
+		$assert(opt->data[i].short_opt != NULL || opt->data[i].long_opt != NULL,
 			   "Found a option without a least one short/long flag in %s",
 			   cmds->name);
 #endif
@@ -885,7 +886,7 @@ AOCDEF void crown_dump_args(FILE *fp, CrownArgs *args, size_t indent) {
 	crown_indent_completion(indent);
 	if (args->len > 0) {
 		fprintf(fp, ".data = (CrownArgument[]) {\n");
-		range(0, args->len, i) {
+		$range(0, args->len, i) {
 			CrownArgument arg = args->data[i];
 
 			crown_indent_completion(indent + 2);
@@ -941,7 +942,7 @@ AOCDEF void crown_dump_opt(FILE *fp, CrownOpts *opts, size_t indent) {
 	fprintf(fp, ".len = %zu,\n", opts->len);
 	crown_indent_completion(indent);
 	fprintf(fp, ".data = (CrownOption[]) {\n");
-	range(0, opts->len, i) {
+	$range(0, opts->len, i) {
 		CrownOption opt = opts->data[i];
 
 		crown_indent_completion(indent + 2);
@@ -989,7 +990,7 @@ AOCDEF void crown_dump_cmd(FILE *fp, CrownCmds *cmds, size_t indent) {
 	fprintf(fp, ".len = %zu,\n", cmds->len);
 	crown_indent_completion(indent);
 	fprintf(fp, ".data = (CrownCommand[]) {\n");
-	range(0, cmds->len, i) {
+	$range(0, cmds->len, i) {
 		CrownCommand cmd = cmds->data[i];
 
 		crown_indent_completion(indent + 2);
@@ -1028,7 +1029,7 @@ AOCDEF void crown_dump_cmd(FILE *fp, CrownCmds *cmds, size_t indent) {
 }
 
 AOCDEF void crown_dump(FILE *fp) {
-	ASSERT_NONNULL(fp);
+	$assert_nonnull(fp);
 
 	fprintf(fp, "(CrownProgram) {\n");
 	crown_indent_completion(2);
@@ -1189,7 +1190,7 @@ TEST(crown_normalize_name) {
 	do {                                                                \
 		char funcname[64];                                              \
 		crown_normalize_name(funcname, "" string "", sizeof(funcname)); \
-		TASSERT(cstr_eq("" match "", funcname), "strings don't match"); \
+		$tassert(cstr_eq("" match "", funcname), "strings don't match"); \
 	} while (0)
 
 	crown_normalize_name_test("id|url|tag", "id_url_tag");

@@ -15,12 +15,12 @@ size_t _buddy_node_index(unsigned max_order, unsigned order, size_t block_idx) {
 }
 
 int _buddy_get_bit(uint8_t *map, size_t idx) {
-	ASSERT_NONNULL(map);
+	$assert_nonnull(map);
 	return (map[idx >> 3] >> (idx & 7)) & 1;
 }
 
 void _buddy_set_bit(uint8_t *map, size_t idx, int value) {
-	ASSERT_NONNULL(map);
+	$assert_nonnull(map);
 	if (value)
 		map[idx >> 3] |= (1u << (idx & 7));
 	else
@@ -39,7 +39,7 @@ buddy_page_t *_buddy_new_page(unsigned page_order) {
 							total_size; /* base */
 
 	uint8_t *buff = (uint8_t *)calloc(1, allocated_size);
-	unless(!buff) return NULL;
+	$catch(!buff) return NULL;
 
 	buddy_page_t *p = (buddy_page_t *)buff;
 	buff += sizeof(buddy_page_t);
@@ -73,27 +73,27 @@ buddy_page_t *_buddy_new_page(unsigned page_order) {
 }
 
 void _buddy_free(buddy_page_t *p) {
-	ASSERT_NONNULL(p);
+	$assert_nonnull(p);
 	free(p);
 }
 
 void _buddy_freelist_push(buddy_block_t **head, buddy_block_t *blk) {
-	ASSERT_NONNULL(head);
-	ASSERT_NONNULL(blk);
+	$assert_nonnull(head);
+	$assert_nonnull(blk);
 	blk->next = *head;
 	*head = blk;
 }
 
 buddy_block_t *_buddy_freelist_pop(buddy_block_t **head) {
-	ASSERT_NONNULL(head);
+	$assert_nonnull(head);
 	buddy_block_t *r = *head;
 	if (r) *head = r->next;
 	return r;
 }
 
 int _buddy_freelist_remove(buddy_block_t **head, buddy_block_t *target) {
-	ASSERT_NONNULL(head);
-	ASSERT_NONNULL(target);
+	$assert_nonnull(head);
+	$assert_nonnull(target);
 	buddy_block_t *prev = NULL;
 	buddy_block_t *cur = *head;
 
@@ -113,21 +113,21 @@ int _buddy_freelist_remove(buddy_block_t **head, buddy_block_t *target) {
 }
 
 void *_buddy_alloc_page(buddy_page_t *p, size_t bytes) {
-	ASSERT_NONNULL(p);
+	$assert_nonnull(p);
 	size_t needed = bytes + sizeof(buddy_header_t);
 
 	unsigned order = BUDDY_MIN_ORDER;
 	while (order < p->max_order && _buddy_order_size(order) < needed)
 		order++;
 
-	unless(order > p->max_order) return NULL;
+	$catch(order > p->max_order) return NULL;
 
 	unsigned current = order;
 
 	while (current <= p->max_order && !p->free_lists[current])
 		current++;
 
-	unless(current > p->max_order) return NULL;
+	$catch(current > p->max_order) return NULL;
 
 	buddy_block_t *blk = _buddy_freelist_pop(&p->free_lists[current]);
 
@@ -162,10 +162,10 @@ void *_buddy_alloc_page(buddy_page_t *p, size_t bytes) {
 }
 
 void *buddy_alloc(Buddy *a, size_t size_bytes) {
-	ASSERT_NONNULL(a);
+	$assert_nonnull(a);
 
 	// Should we assert this instead?
-	unless(size_bytes == 0) return NULL;
+	$catch(size_bytes == 0) return NULL;
 
 	buddy_page_t *p = a->begin;
 
@@ -183,7 +183,7 @@ void *buddy_alloc(Buddy *a, size_t size_bytes) {
 	if (needed_order > page_order) page_order = needed_order;
 
 	buddy_page_t *newp = _buddy_new_page(page_order);
-	unless(!newp) return NULL;
+	$catch(!newp) return NULL;
 
 	if (a->end)
 		a->end->next = newp;
@@ -196,8 +196,8 @@ void *buddy_alloc(Buddy *a, size_t size_bytes) {
 }
 
 void _buddy_free_page(buddy_page_t *p, void *ptr, unsigned order) {
-	ASSERT_NONNULL(p);
-	ASSERT_NONNULL(ptr);
+	$assert_nonnull(p);
+	$assert_nonnull(ptr);
 	uint8_t *blk = (uint8_t *)ptr;
 
 	size_t blk_idx = ((uintptr_t)(blk - p->base)) >> order;
@@ -234,7 +234,7 @@ void _buddy_free_page(buddy_page_t *p, void *ptr, unsigned order) {
 }
 
 void buddy_dealloc(void *ptr) {
-	ASSERT_NONNULL(ptr);
+	$assert_nonnull(ptr);
 
 	buddy_header_t *hdr = ((buddy_header_t *)ptr) - 1;
 
@@ -242,7 +242,7 @@ void buddy_dealloc(void *ptr) {
 }
 
 void buddy_free(Buddy *a) {
-	ASSERT_NONNULL(a);
+	$assert_nonnull(a);
 
 	buddy_page_t *p = a->begin;
 

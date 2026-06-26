@@ -6,21 +6,47 @@
 
 #define AOCLIBS_IO_PUT_BUFF 64
 
-bool bputc(char *dst, size_t *len, size_t size, char src) {
-	ASSERT_NONNULL(dst != NULL);
-	ASSERT_NONNULL(len != NULL);
+int eprintf(const char *fmt, ...) {
+	va_list ap;
+	va_start(ap, fmt);
+	int ret = vfprintf(stderr, fmt, ap);
+	va_end(ap);
+	return ret;
+}
 
-	unless(*len >= size) return false;
+int eprintfln(const char *fmt, ...) {
+	va_list ap;
+	va_start(ap, fmt);
+	int ret = vfprintf(stderr, fmt, ap);
+    fputc('\n', stderr);
+	va_end(ap);
+	return ret;
+}
+
+int printfln(const char *fmt, ...) {
+	va_list ap;
+	va_start(ap, fmt);
+	int ret = vfprintf(stdout, fmt, ap);
+    fputc('\n', stdout);
+	va_end(ap);
+	return ret;
+}
+
+bool bputc(char *dst, size_t *len, size_t size, char src) {
+	$assert_nonnull(dst != NULL);
+	$assert_nonnull(len != NULL);
+
+	$catch(*len >= size) return false;
 	dst[*len++] = src;
 	return true;
 }
 
 bool bputs(char *dst, size_t *dst_len, size_t dst_size, char *src, size_t src_len) {
-	ASSERT_NONNULL(dst != NULL);
-	ASSERT_NONNULL(dst_len != NULL);
-	ASSERT_NONNULL(src != NULL);
+	$assert_nonnull(dst != NULL);
+	$assert_nonnull(dst_len != NULL);
+	$assert_nonnull(src != NULL);
 
-	unless(*dst_len + src_len >= dst_size) return false;
+	$catch(*dst_len + src_len >= dst_size) return false;
 
 	memcpy(dst + *dst_len, src, src_len);
 	*dst_len += src_len;
@@ -28,8 +54,8 @@ bool bputs(char *dst, size_t *dst_len, size_t dst_size, char *src, size_t src_le
 }
 
 bool bputn(char *dst, size_t *len, size_t size, size_t count, char c) {
-	ASSERT_NONNULL(dst != NULL);
-	ASSERT_NONNULL(len != NULL);
+	$assert_nonnull(dst != NULL);
+	$assert_nonnull(len != NULL);
 
 	char space[AOCLIBS_IO_PUT_BUFF];
 	memset(space, c, count);
@@ -37,15 +63,15 @@ bool bputn(char *dst, size_t *len, size_t size, size_t count, char c) {
 }
 
 bool bputw(char *dst, size_t *len, size_t size, size_t count) {
-	ASSERT_NONNULL(dst != NULL);
-	ASSERT_NONNULL(len != NULL);
+	$assert_nonnull(dst != NULL);
+	$assert_nonnull(len != NULL);
 
 	return bputn(dst, len, size, ' ', count);
 }
 
 bool bputf(char *dst, size_t *len, size_t size, int decimals, double f) {
-	ASSERT_NONNULL(dst != NULL);
-	ASSERT_NONNULL(len != NULL);
+	$assert_nonnull(dst != NULL);
+	$assert_nonnull(len != NULL);
 
 	if (f == 0.0f) {
 		bool ret = bputc(dst, len, size, '0');
@@ -101,8 +127,8 @@ bool bputf(char *dst, size_t *len, size_t size, int decimals, double f) {
 }
 
 bool bputui(char *dst, size_t *len, size_t size, unsigned long long n) {
-	ASSERT_NONNULL(dst != NULL);
-	ASSERT_NONNULL(len != NULL);
+	$assert_nonnull(dst != NULL);
+	$assert_nonnull(len != NULL);
 
 	if (n == 0) {
 		return bputc(dst, len, size, '0');
@@ -131,8 +157,8 @@ bool bputui(char *dst, size_t *len, size_t size, unsigned long long n) {
 }
 
 bool bputsi(char *dst, size_t *len, size_t size, signed long long n) {
-	ASSERT_NONNULL(dst != NULL);
-	ASSERT_NONNULL(len != NULL);
+	$assert_nonnull(dst != NULL);
+	$assert_nonnull(len != NULL);
 
 	if (n == 0) {
 		return bputc(dst, len, size, '0');
@@ -168,20 +194,20 @@ bool bputsi(char *dst, size_t *len, size_t size, signed long long n) {
 }
 
 size_t fputn(FILE *fp, size_t count, char c) {
-	ASSERT_NONNULL(fp != NULL);
-	unless(AOCLIBS_IO_PUT_BUFF < count) return SIZE_MAX;
+	$assert_nonnull(fp != NULL);
+	$catch(AOCLIBS_IO_PUT_BUFF < count) return SIZE_MAX;
 	char space[AOCLIBS_IO_PUT_BUFF];
 	memset(space, c, count);
 	return fwrite(space, sizeof(char), count, fp);
 }
 
 size_t fputw(FILE *fp, size_t count) {
-	ASSERT_NONNULL(fp != NULL);
+	$assert_nonnull(fp != NULL);
 	return fputn(fp, count, ' ');
 }
 
 void fputf(FILE *fp, double f, int decimals) {
-	ASSERT_NONNULL(fp != NULL);
+	$assert_nonnull(fp != NULL);
 
 	if (f == 0.0f) {
 		fputc('0', fp);
@@ -236,7 +262,7 @@ void fputf(FILE *fp, double f, int decimals) {
 }
 
 void fputui(FILE *fp, unsigned long long n) {
-	ASSERT_NONNULL(fp != NULL);
+	$assert_nonnull(fp != NULL);
 
 	if (n == 0) {
 		fputc('0', fp);
@@ -266,7 +292,7 @@ void fputui(FILE *fp, unsigned long long n) {
 }
 
 void fputsi(FILE *fp, signed long long n) {
-	ASSERT_NONNULL(fp != NULL);
+	$assert_nonnull(fp != NULL);
 
 	if (n == 0) {
 		fputc('0', fp);

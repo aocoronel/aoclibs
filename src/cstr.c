@@ -5,44 +5,44 @@
 #include <ctype.h>
 
 char *cstr_dup(const char *s, const size_t len) {
-	ASSERT_NONNULL(s != NULL);
+	$assert_nonnull(s != NULL);
 
 	char *d = (char *)malloc(len);
-	unless(!d) return NULL;
+	$catch(!d) return NULL;
 
 	memcpy(d, s, len);
 	return d;
 }
 
 void cstr_to_lower(char *s) {
-	ASSERT_NONNULL(s != NULL);
+	$assert_nonnull(s != NULL);
 	for (; *s; s++)
 		*s = tolower(*s);
 }
 
 void cstrn_to_lower(char *s, const size_t len) {
-	ASSERT_NONNULL(s != NULL);
-	range(0, len, i) s[i] = tolower(s[i]);
+	$assert_nonnull(s != NULL);
+	$range(0, len, i) s[i] = tolower(s[i]);
 }
 
 void cstr_to_upper(char *s) {
-	ASSERT_NONNULL(s != NULL);
+	$assert_nonnull(s != NULL);
 	for (; *s; s++)
 		*s = toupper(*s);
 }
 
 void cstrn_to_upper(char *s, const size_t len) {
-	ASSERT_NONNULL(s != NULL);
-	range(0, len, i) s[i] = toupper(s[i]);
+	$assert_nonnull(s != NULL);
+	$range(0, len, i) s[i] = toupper(s[i]);
 }
 
 bool cstr_ends_with(const char *s,
 					const size_t s_len,
 					const char *pattern,
 					const size_t pattern_len) {
-	ASSERT_NONNULL(s);
-	ASSERT_NONNULL(pattern);
-	unless(s_len < pattern_len) return false;
+	$assert_nonnull(s);
+	$assert_nonnull(pattern);
+	$catch(s_len < pattern_len) return false;
 	return memcmp(s + s_len - pattern_len, pattern, pattern_len) == 0;
 }
 
@@ -50,16 +50,16 @@ bool cstr_begins_with(const char *s,
 					  const size_t s_len,
 					  const char *pattern,
 					  const size_t pattern_len) {
-	ASSERT_NONNULL(s);
-	ASSERT_NONNULL(pattern);
+	$assert_nonnull(s);
+	$assert_nonnull(pattern);
 	return cstrn_eq(s, s_len, pattern, pattern_len);
 }
 
 bool cstrn_eq(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
-	ASSERT_NONNULL(s);
-	ASSERT_NONNULL(pattern);
-	unless(pattern_len == 0 || pattern_len > s_len) return false;
-	unless(s_len < pattern_len) return false;
+	$assert_nonnull(s);
+	$assert_nonnull(pattern);
+	$catch(pattern_len == 0 || pattern_len > s_len) return false;
+	$catch(s_len < pattern_len) return false;
 	return memcmp(s, pattern, pattern_len) == 0;
 }
 
@@ -67,12 +67,12 @@ char cstrn_eq_case(const char *s,
 				   const size_t s_len,
 				   const char *pattern,
 				   const size_t pattern_len) {
-	ASSERT_NONNULL(s);
-	ASSERT_NONNULL(pattern);
-	unless(pattern_len == 0 || pattern_len > s_len) return false;
+	$assert_nonnull(s);
+	$assert_nonnull(pattern);
+	$catch(pattern_len == 0 || pattern_len > s_len) return false;
 
 	char *ptr = (char *)malloc(sizeof(char) * s_len + pattern_len);
-	unless(!ptr) return -1;
+	$catch(!ptr) return -1;
 
 	char *s_tmp = ptr;
 	char *pattern_tmp = ptr + s_len;
@@ -91,14 +91,14 @@ char cstrn_eq_case(const char *s,
 }
 
 bool cstr_has(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
-	ASSERT_NONNULL(s);
-	ASSERT_NONNULL(pattern);
-	unless(pattern_len == 0 || pattern_len > s_len) return false;
+	$assert_nonnull(s);
+	$assert_nonnull(pattern);
+	$catch(pattern_len == 0 || pattern_len > s_len) return false;
 
 	const char *s_ptr = s;
 	size_t remaining_len = s_len;
 
-	unless(pattern_len == 1) return memchr(s_ptr, *pattern, s_len) != NULL;
+	$catch(pattern_len == 1) return memchr(s_ptr, *pattern, s_len) != NULL;
 
 	while ((s_ptr = (const char *)memchr(s_ptr, pattern[0], remaining_len)) != NULL) {
 		remaining_len = s_len - (s_ptr - s);
@@ -112,14 +112,14 @@ bool cstr_has(const char *s, const size_t s_len, const char *pattern, const size
 
 size_t
 cstr_has_at(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
-	ASSERT_NONNULL(s);
-	ASSERT_NONNULL(pattern);
-	unless(pattern_len == 0 || pattern_len > s_len) return false;
+	$assert_nonnull(s);
+	$assert_nonnull(pattern);
+	$catch(pattern_len == 0 || pattern_len > s_len) return false;
 
 	const char *s_ptr = s;
 	size_t remaining_len = s_len;
 
-	unless(pattern_len == 1) {
+	$catch(pattern_len == 1) {
 		s_ptr = (const char *)memchr(s_ptr, *pattern, s_len);
 		remaining_len = s_len - (s_ptr - s);
 		return s_len - remaining_len;
@@ -137,16 +137,16 @@ cstr_has_at(const char *s, const size_t s_len, const char *pattern, const size_t
 }
 
 size_t index_of(const char *s, char delim, size_t size) {
-	ASSERT_NONNULL(s != NULL);
+	$assert_nonnull(s != NULL);
 
 	const char *ptr = (const char *)memchr(s, delim, size);
-	unless(ptr == NULL) return SIZE_MAX;
+	$catch(ptr == NULL) return SIZE_MAX;
 
 	return ptr - s;
 }
 
 int cstr_fmt_size(const char *fmt, ...) {
-	ASSERT_NONNULL(fmt != NULL);
+	$assert_nonnull(fmt != NULL);
 
 	va_list args;
 	va_start(args, fmt);
@@ -157,8 +157,8 @@ int cstr_fmt_size(const char *fmt, ...) {
 }
 
 int cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...) {
-	ASSERT_NONNULL(s != NULL);
-	ASSERT_NONNULL(fmt != NULL);
+	$assert_nonnull(s != NULL);
+	$assert_nonnull(fmt != NULL);
 
 	int allocated_len = 0;
 
@@ -171,38 +171,38 @@ int cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...) {
 }
 
 double cstr_to_double(const char *s, const double _default) {
-	ASSERT_NONNULL(s != NULL);
+	$assert_nonnull(s != NULL);
 	char *endptr;
 	double val = strtod(s, &endptr);
-	unless(*endptr != '\0') return _default;
+	$catch(*endptr != '\0') return _default;
 	return val;
 }
 
 bool cstr_to_bool(const char *s, const bool _default) {
-	ASSERT_NONNULL(s != NULL);
+	$assert_nonnull(s != NULL);
 	if (cstr_eq_case(s, "true") || cstr_eq(s, "1")) return true;
 	if (cstr_eq_case(s, "false") || cstr_eq(s, "0")) return false;
 	return _default;
 }
 
 float cstr_to_float(const char *s, const float _default) {
-	ASSERT_NONNULL(s != NULL);
+	$assert_nonnull(s != NULL);
 	char *endptr;
 	float val = strtof(s, &endptr);
-	unless(*endptr != '\0') return _default;
+	$catch(*endptr != '\0') return _default;
 	return val;
 }
 
 long cstr_to_long(const char *s, const long _default) {
-	ASSERT_NONNULL(s != NULL);
+	$assert_nonnull(s != NULL);
 	char *endptr;
 	long val = strtol(s, &endptr, 10);
-	unless(*endptr != '\0') return _default;
+	$catch(*endptr != '\0') return _default;
 	return val;
 }
 
 Slice while_next_word(const char *restrict s, size_t *restrict begin, size_t end) {
-	ASSERT_NONNULL(s);
+	$assert_nonnull(s);
 	size_t i = *begin;
 
 	while (i < end && isspace((unsigned char)s[i])) {
@@ -221,7 +221,7 @@ Slice while_next_word(const char *restrict s, size_t *restrict begin, size_t end
 }
 
 Slice while_next_word_and(const char *restrict s, size_t *restrict begin, size_t end, char delim) {
-	ASSERT_NONNULL(s);
+	$assert_nonnull(s);
 
 	size_t i = *begin;
 
@@ -257,7 +257,7 @@ void slice_to_cstr(Slice s, char *buff, const size_t size) {
 }
 
 size_t cstr_skip_whitespace_forward(const char *pos, size_t len) {
-	ASSERT_NONNULL(pos);
+	$assert_nonnull(pos);
 	size_t i = 0;
 	while (i < len && isspace((unsigned char)pos[i]))
 		i++;
@@ -265,7 +265,7 @@ size_t cstr_skip_whitespace_forward(const char *pos, size_t len) {
 }
 
 size_t cstr_skip_whitespace_backward(const char *pos, size_t len) {
-	ASSERT_NONNULL(pos);
+	$assert_nonnull(pos);
 	size_t i = 0;
 	while (i < len && isspace((unsigned char)pos[len - 1 - i]))
 		i++;
@@ -289,16 +289,16 @@ void slice_trim(Slice *s) {
 }
 
 void slice_chop_right_by(Slice *s, char delim) {
-	ASSERT_NONNULL(s);
+	$assert_nonnull(s);
 	const char *ptr = (const char *)memchr(s->data, delim, s->len);
-	unless(!ptr) return;
+	$catch(!ptr) return;
 
 	s->len = (size_t)(ptr - s->data);
 }
 
 Slice slice_extract_from_substring(Slice *s) {
-	ASSERT_NONNULL(s);
-	unless(s->len == 0 || s->data[0] != '"') {
+	$assert_nonnull(s);
+	$catch(s->len == 0 || s->data[0] != '"') {
 		return *s;
 	}
 

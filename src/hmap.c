@@ -19,14 +19,14 @@ enum {
 #define _HMAP_INDEX(map, hash) (size_t)(hash) & _HMAP_MASK((map))
 
 bool _hmap_resize(_HashMap *map, size_t new_capacity) {
-	ASSERT_NONNULL(map);
-	ASSERT_NONNULL(map->entries);
+	$assert_nonnull(map);
+	$assert_nonnull(map->entries);
 
 	size_t cap = coerce_to_pow2(new_capacity);
-	ASSERT(cap - 1 <= _HMAP_META_DISTANCE_MASK);
+	$assert(cap - 1 <= _HMAP_META_DISTANCE_MASK);
 
 	_HashEntry *new_entries = (_HashEntry *)calloc(cap, sizeof(_HashEntry));
-	unless(!new_entries) return false;
+	$catch(!new_entries) return false;
 
 	_HashEntry *old_entries = map->entries;
 	size_t old_capacity = map->cap;
@@ -50,8 +50,8 @@ bool _hmap_resize(_HashMap *map, size_t new_capacity) {
 }
 
 void _hmap_free(_HashMap *map) {
-	ASSERT_NONNULL(map);
-	ASSERT_NONNULL(map->entries);
+	$assert_nonnull(map);
+	$assert_nonnull(map->entries);
 	free(map->entries);
 	map->entries = NULL;
 	map->cap = 0;
@@ -59,15 +59,15 @@ void _hmap_free(_HashMap *map) {
 }
 
 void _hmap_clear(_HashMap *map) {
-	ASSERT_NONNULL(map);
-	ASSERT_NONNULL(map->entries);
+	$assert_nonnull(map);
+	$assert_nonnull(map->entries);
 	if (map->len == 0) return;
 	memset(map->entries, 0, map->cap * sizeof(_HashEntry));
 	map->len = 0;
 }
 
 void _hmap_reset(_HashMap *map) {
-	ASSERT_NONNULL(map);
+	$assert_nonnull(map);
 	map->len = 0;
 }
 
@@ -77,17 +77,17 @@ bool _hmap_remove(_HashMap *map, const Slice key) {
 }
 
 bool _hmap_remove_from_hash(_HashMap *map, const uint64_t hash, const Slice key) {
-	ASSERT_NONNULL(map);
-	ASSERT_NONNULL(map->entries);
+	$assert_nonnull(map);
+	$assert_nonnull(map->entries);
 
-	unless(map->len == 0) return false;
+	$catch(map->len == 0) return false;
 	size_t idx = _HMAP_INDEX(map, hash);
 	size_t capmask = _HMAP_MASK(map);
 
 	for (uint32_t d = 0;; d++) {
 		size_t pos = (idx + d) & capmask;
 		_HashEntry *e = &map->entries[pos];
-		unless(!_HMAP_ENTRY_IS_USED(e) || _HMAP_ENTRY_DISTANCE(e) < d) {
+		$catch(!_HMAP_ENTRY_IS_USED(e) || _HMAP_ENTRY_DISTANCE(e) < d) {
 			return false;
 		}
 		if (e->hash != hash || !slice_eq(&e->key, &key)) continue;
@@ -101,7 +101,7 @@ bool _hmap_remove_from_hash(_HashMap *map, const uint64_t hash, const Slice key)
 				map->len--;
 
 				if (map->cap > 16 && map->len * 8 < map->cap) {
-					unless(!hmap_resize(map, map->cap / 2)) return false;
+					$catch(!hmap_resize(map, map->cap / 2)) return false;
 				}
 				return true;
 			}
@@ -111,7 +111,7 @@ bool _hmap_remove_from_hash(_HashMap *map, const uint64_t hash, const Slice key)
 				map->len--;
 
 				if (map->cap > 16 && map->len * 8 < map->cap) {
-					unless(!hmap_resize(map, map->cap / 2)) return false;
+					$catch(!hmap_resize(map, map->cap / 2)) return false;
 				}
 				return true;
 			}
@@ -126,7 +126,7 @@ bool _hmap_remove_from_hash(_HashMap *map, const uint64_t hash, const Slice key)
 _HashEntry *_hmap_get(const _HashMap *map, const Slice key) {
 	uint64_t hash = _HMAP_HASH(key);
 	_HashEntry *e = _hmap_get_from_hash(map, key, hash);
-	ASSERT(e && "key not found");
+	$assert(e && "key not found");
 	return e;
 }
 
@@ -136,8 +136,8 @@ _HashEntry *_hmap_get_entry(const _HashMap *map, const Slice key) {
 }
 
 _HashEntry *_hmap_get_from_hash(const _HashMap *map, const Slice key, const uint64_t hash) {
-	ASSERT_NONNULL(map);
-	ASSERT_NONNULL(map->entries);
+	$assert_nonnull(map);
+	$assert_nonnull(map->entries);
 	if (map->len == 0) return NULL;
 
 	size_t capmask = _HMAP_MASK(map);
@@ -145,21 +145,21 @@ _HashEntry *_hmap_get_from_hash(const _HashMap *map, const Slice key, const uint
 
 	for (uint32_t d = 0;; d++) {
 		_HashEntry *e = &map->entries[(idx + d) & capmask];
-		unless(!_HMAP_ENTRY_IS_USED(e)) return NULL;
+		$catch(!_HMAP_ENTRY_IS_USED(e)) return NULL;
 
-		unless(_HMAP_ENTRY_DISTANCE(e) < d) return NULL;
+		$catch(_HMAP_ENTRY_DISTANCE(e) < d) return NULL;
 
 		if (e->hash == hash && slice_eq(&e->key, &key)) return e;
 	}
 }
 
 bool _hmap_init(_HashMap *map, const size_t capacity, const size_t sizeof_entry) {
-	ASSERT_NONNULL(map);
+	$assert_nonnull(map);
 	size_t cap = coerce_to_pow2(capacity);
-	ASSERT(cap - 1 <= _HMAP_META_DISTANCE_MASK);
+	$assert(cap - 1 <= _HMAP_META_DISTANCE_MASK);
 
 	map->entries = (_HashEntry *)calloc(cap, sizeof_entry);
-	unless(!map->entries) return false;
+	$catch(!map->entries) return false;
 
 	map->cap = cap;
 	map->len = 0;
@@ -178,18 +178,18 @@ _HashEntry *_hmap_insert(_HashMap *map, const Slice key, const size_t sizeof_ent
 		return existing;
 	}
 
-	unless(map->len >= map->cap) return NULL;
+	$catch(map->len >= map->cap) return NULL;
 
 	if (map->len * 4 >= map->cap * 3) {
-		unless(!hmap_resize(map, map->cap * 2) && map->len + 1 >= map->cap) return NULL;
+		$catch(!hmap_resize(map, map->cap * 2) && map->len + 1 >= map->cap) return NULL;
 	}
 
 	return _hmap_insert_from_hash(map, key, hash);
 }
 
 _HashEntry *_hmap_insert_from_hash(_HashMap *map, const Slice key, const uint64_t hash) {
-	ASSERT_NONNULL(map);
-	ASSERT_NONNULL(map->entries);
+	$assert_nonnull(map);
+	$assert_nonnull(map->entries);
 	size_t idx = _HMAP_INDEX(map, hash);
 	uint32_t distance = 0;
 	size_t capmask = _HMAP_MASK(map);
@@ -220,11 +220,11 @@ _HashEntry *_hmap_insert_from_hash(_HashMap *map, const Slice key, const uint64_
 
 		if (existing_distance < distance) {
 			_HMAP_SET_DISTANCE(&incoming, distance);
-			SWAP(*e, incoming);
+			$swap(*e, incoming);
 			distance = existing_distance;
 		}
 	}
-	UNREACHABLE("Table overflew");
+	$unreachable("Table overflew");
 }
 
 #ifdef TUNIT
@@ -245,7 +245,7 @@ TEST(hashmap_test) {
 	HashMap map = { 0 };
 	// Optional, AOCLIBS_HASHMAP_INITIAL_CAPACITY will be used if this step isn't done
 	if (!hmap_init(&map, 10)) {
-		TASSERT(0, "out of memory");
+		$tassert(0, "out of memory");
 	}
 	size_t count = 0;
 	size_t index = 0;
@@ -260,13 +260,13 @@ TEST(hashmap_test) {
 	hmap_insert(&map, world2, 456);
 	hmap_insert(&map, world3, 456);
 
-	TASSERT(hmap_get(&map, hello) == 123, "values don't match");
-	TASSERT(hmap_get(&map, world) == 456, "values don't match");
-	TASSERT(hmap_get(&map, world2) == 456, "values don't match");
-	TASSERT(hmap_get(&map, world3) == 456, "values don't match");
+	$tassert(hmap_get(&map, hello) == 123, "values don't match");
+	$tassert(hmap_get(&map, world) == 456, "values don't match");
+	$tassert(hmap_get(&map, world2) == 456, "values don't match");
+	$tassert(hmap_get(&map, world3) == 456, "values don't match");
 
 	hmap_remove(&map, hello);
-	TASSERT(hmap_get_entry(&map, hello) == NULL, "value was supposed to be removed");
+	$tassert(hmap_get_entry(&map, hello) == NULL, "value was supposed to be removed");
 
 	hmap_free(&map);
 }

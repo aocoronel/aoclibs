@@ -57,44 +57,44 @@ struct _Map {
 
 #define map_dump(map, buff) _map_dump((struct _Map *)(map), (buff), 0, 0)
 
-#define map_delete(map, slice)                       \
-	({                                               \
-		bool result = true;                          \
-		__typeof__(map) c = map_get((map), (slice)); \
-		if (!c) {                                    \
-			result = false;                          \
-		} else {                                     \
-			(c)->occupied = false;                   \
-		}                                            \
-		result;                                      \
+#define map_delete(map, slice)                   \
+	({                                           \
+		bool result = true;                      \
+		typeof(map) c = map_get((map), (slice)); \
+		if (!c) {                                \
+			result = false;                      \
+		} else {                                 \
+			(c)->occupied = false;               \
+		}                                        \
+		result;                                  \
 	})
 
-#define map_set(map, slice, val)                     \
-	({                                               \
-		bool result = true;                          \
-		__typeof__(map) c = map_get((map), (slice)); \
-		if (!c) {                                    \
-			result = false;                          \
-		} else {                                     \
-			c->value = (val);                        \
-		}                                            \
-		result;                                      \
+#define map_set(map, slice, val)                 \
+	({                                           \
+		bool result = true;                      \
+		typeof(map) c = map_get((map), (slice)); \
+		if (!c) {                                \
+			result = false;                      \
+		} else {                                 \
+			c->value = (val);                    \
+		}                                        \
+		result;                                  \
 	})
 
-#define map_get(map, slice) (__typeof__(map))_map_get((struct _Map *)(map), (slice))
+#define map_get(map, slice) (typeof(map))_map_get((struct _Map *)(map), (slice))
 
 #define map_prepare(arena, map, slice) \
-	(__typeof__(map))_map_prepare((arena), (struct _Map *)(map), (slice), sizeof((map)->value))
+	(typeof(map))_map_prepare((arena), (struct _Map *)(map), (slice), sizeof((map)->value))
 
-#define map_insert(arena, map, slice, val)                              \
-	({                                                                  \
-		__typeof__(map) curr = (__typeof__(map))_map_prepare(           \
-				(arena), (struct _Map *)(map), (slice), sizeof((val))); \
-		if (!curr->occupied) {                                          \
-			curr->occupied = true;                                      \
-			curr->value = (val);                                        \
-		}                                                               \
-		curr;                                                           \
+#define map_insert(arena, map, slice, val)                                                        \
+	({                                                                                            \
+		typeof(map) curr =                                                                        \
+				(typeof(map))_map_prepare((arena), (struct _Map *)(map), (slice), sizeof((val))); \
+		if (!curr->occupied) {                                                                    \
+			curr->occupied = true;                                                                \
+			curr->value = (val);                                                                  \
+		}                                                                                         \
+		curr;                                                                                     \
 	})
 
 AOCDEF void

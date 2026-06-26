@@ -33,13 +33,13 @@
 // } MyDynamicArray;
 
 // Convenient assertions to prevent access out of bounds
-#define _assert_da_index_is_valid(da, index)                              \
-	(ASSERT((da)->len > 0 && (da)->len < (da)->cap,                       \
-			"invalid access to array at index %zu: len = %zu, cap = %zu", \
-			(index),                                                      \
-			(da)->len,                                                    \
-			(da)->cap))
-#define _assert_da_is_not_null(da) (ASSERT((da)->data != NULL, "cannot modify NULL pointer"))
+#define _assert_da_index_is_valid(da, index)                               \
+	($assert((da)->len > 0 && (da)->len < (da)->cap,                       \
+			 "invalid access to array at index %zu: len = %zu, cap = %zu", \
+			 (index),                                                      \
+			 (da)->len,                                                    \
+			 (da)->cap))
+#define _assert_da_is_not_null(da) ($assert((da)->data != NULL, "cannot modify NULL pointer"))
 
 // Zero initialize
 #define da_init(da, new_cap)                               \
@@ -57,19 +57,19 @@
 #define da_reserve(da, new_cap)                                                          \
 	do {                                                                                 \
 		void *ptr = _da_reserve((da)->data, &(da)->cap, (new_cap), sizeof(*(da)->data)); \
-		ASSERT(ptr, "out of memory while reserving memory for dynamic array");           \
+		$assert(ptr, "out of memory while reserving memory for dynamic array");          \
 		(da)->data = (typeof((da)->data))ptr;                                            \
 	} while (0)
 
 AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t sizeof_da);
 
-#define da_free(da)                                \
-	do {                                           \
-		ASSERT(da != NULL, "double free attempt"); \
-		free((da)->data);                          \
-		(da)->data = NULL;                         \
-		(da)->len = 0;                             \
-		(da)->cap = 0;                             \
+#define da_free(da)                                 \
+	do {                                            \
+		$assert(da != NULL, "double free attempt"); \
+		free((da)->data);                           \
+		(da)->data = NULL;                          \
+		(da)->len = 0;                              \
+		(da)->cap = 0;                              \
 	} while (0)
 
 #define da_insert(da, item)               \
@@ -131,7 +131,7 @@ AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t s
 #define da_drop(da, index)                                                                      \
 	do {                                                                                        \
 		_assert_da_is_not_null(da);                                                             \
-		ASSERT((da)->len > (index));                                                            \
+		$assert((da)->len > (index));                                                           \
 		size_t remaining = (da)->len - (index) - 1;                                             \
 		memmove(&(da)->data[index], &(da)->data[(index) + 1], remaining * sizeof(*(da)->data)); \
 		(da)->len--;                                                                            \
@@ -140,7 +140,7 @@ AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t s
 // Faster da_drop
 #define da_unordered_drop(da, i)                     \
 	do {                                             \
-		ASSERT(i < (da)->count);                     \
+		$assert(i < (da)->count);                    \
 		(da)->items[i] = (da)->items[--(da)->count]; \
 	} while (0)
 
@@ -155,7 +155,7 @@ AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t s
 #ifdef AOCLIBS_IMPLEMENTATION
 void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t type_size) {
 	size_t local_cap = *cap;
-	if (UNLIKELY((new_cap) > local_cap)) {
+	if ($unlikely((new_cap) > local_cap)) {
 		if (local_cap < CONFIG_DA_DEFAULT_CAPACITY) {
 			local_cap = CONFIG_DA_DEFAULT_CAPACITY;
 		}

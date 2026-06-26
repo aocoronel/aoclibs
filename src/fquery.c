@@ -5,7 +5,7 @@
 #include <ctype.h>
 
 AOCDEF const char *null fquery_eq_int(const char *null p, const void *c) {
-	ASSERT_NONNULL(c);
+	$assert_nonnull(c);
 
 	int _c = *(int *)c;
 	if (!p || *p != _c) {
@@ -15,7 +15,7 @@ AOCDEF const char *null fquery_eq_int(const char *null p, const void *c) {
 }
 
 AOCDEF const char *null fquery_skip_to_fn(const char *null p, const void *c) {
-	ASSERT_NONNULL(c);
+	$assert_nonnull(c);
 
 	int (*fn)(int) = (int (*)(int))c;
 	const char *tmp = p;
@@ -27,14 +27,14 @@ AOCDEF const char *null fquery_skip_to_fn(const char *null p, const void *c) {
 }
 
 AOCDEF const char *null fquery_skip_to_int(const char *null p, const void *c) {
-	ASSERT_NONNULL(c);
+	$assert_nonnull(c);
 
 	int _c = *(int *)c;
 	return (const char *)memchr(p, _c, 1);
 }
 
 AOCDEF const char *null fquery_optional(const char *null p, const void *c) {
-	ASSERT_NONNULL(c);
+	$assert_nonnull(c);
 	if (!p) return NULL;
 
 	int _c = *(int *)c;
@@ -46,7 +46,7 @@ AOCDEF const char *null fquery_optional(const char *null p, const void *c) {
 
 // regex: "."
 AOCDEF const char *null fquery_any(const char *null p, const void *c) {
-	DISCARD(c);
+	$discard(c);
 
 	if (!p || *p == '\0') {
 		return NULL;
@@ -56,7 +56,7 @@ AOCDEF const char *null fquery_any(const char *null p, const void *c) {
 
 // regex: "[0-9]"
 AOCDEF const char *null fquery_isdigit(const char *null p, const void *c) {
-	DISCARD(c);
+	$discard(c);
 
 	if (!p || !isdigit((unsigned char)*p)) {
 		return NULL;
@@ -65,7 +65,7 @@ AOCDEF const char *null fquery_isdigit(const char *null p, const void *c) {
 }
 
 AOCDEF const char *null fquery_isalnum(const char *null p, const void *c) {
-	DISCARD(c);
+	$discard(c);
 
 	if (!p || !isalnum((unsigned char)*p)) {
 		return NULL;
@@ -74,7 +74,7 @@ AOCDEF const char *null fquery_isalnum(const char *null p, const void *c) {
 }
 
 AOCDEF const char *null fquery_isspace(const char *null p, const void *c) {
-	DISCARD(c);
+	$discard(c);
 
 	if (!p || !isspace((unsigned char)*p)) {
 		return NULL;
@@ -83,7 +83,7 @@ AOCDEF const char *null fquery_isspace(const char *null p, const void *c) {
 }
 
 AOCDEF const char *null fquery_iscntrl(const char *null p, const void *c) {
-	DISCARD(c);
+	$discard(c);
 
 	if (!p || !iscntrl((unsigned char)*p)) {
 		return NULL;
@@ -92,7 +92,7 @@ AOCDEF const char *null fquery_iscntrl(const char *null p, const void *c) {
 }
 
 AOCDEF const char *null fquery_islower(const char *null p, const void *c) {
-	DISCARD(c);
+	$discard(c);
 
 	if (!p || !islower((unsigned char)*p)) {
 		return NULL;
@@ -101,7 +101,7 @@ AOCDEF const char *null fquery_islower(const char *null p, const void *c) {
 }
 
 AOCDEF const char *null fquery_isgraph(const char *null p, const void *c) {
-	DISCARD(c);
+	$discard(c);
 
 	if (!p || !isgraph((unsigned char)*p)) {
 		return NULL;
@@ -110,7 +110,7 @@ AOCDEF const char *null fquery_isgraph(const char *null p, const void *c) {
 }
 
 AOCDEF const char *null fquery_isprint(const char *null p, const void *c) {
-	DISCARD(c);
+	$discard(c);
 
 	if (!p || !isprint((unsigned char)*p)) {
 		return NULL;
@@ -119,7 +119,7 @@ AOCDEF const char *null fquery_isprint(const char *null p, const void *c) {
 }
 
 AOCDEF const char *null fquery_ispunct(const char *null p, const void *c) {
-	DISCARD(c);
+	$discard(c);
 
 	if (!p || !ispunct((unsigned char)*p)) {
 		return NULL;
@@ -128,7 +128,7 @@ AOCDEF const char *null fquery_ispunct(const char *null p, const void *c) {
 }
 
 AOCDEF const char *null fquery_isxdigit(const char *null p, const void *c) {
-	DISCARD(c);
+	$discard(c);
 
 	if (!p || !isxdigit((unsigned char)*p)) {
 		return NULL;
@@ -137,7 +137,7 @@ AOCDEF const char *null fquery_isxdigit(const char *null p, const void *c) {
 }
 
 AOCDEF const char *null fquery_isupper(const char *null p, const void *c) {
-	DISCARD(c);
+	$discard(c);
 
 	if (!p || !isupper((unsigned char)*p)) {
 		return NULL;
@@ -146,7 +146,7 @@ AOCDEF const char *null fquery_isupper(const char *null p, const void *c) {
 }
 
 AOCDEF const char *null fquery_isalpha(const char *null p, const void *c) {
-	DISCARD(c);
+	$discard(c);
 
 	if (!p || !isalpha((unsigned char)*p)) {
 		return NULL;
@@ -168,8 +168,8 @@ AOCDEF bool _fquery(const fquery_t *qms, const char *null p) {
 }
 
 AOCDEF bool fquery(const fquery_t *qms, const char *pattern) {
-	ASSERT_NONNULL(qms);
-	ASSERT_NONNULL(pattern);
+	$assert_nonnull(qms);
+	$assert_nonnull(pattern);
 	return _fquery(qms, pattern);
 }
 

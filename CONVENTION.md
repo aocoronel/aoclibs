@@ -70,9 +70,11 @@ AOCDEF size_t cstrstr_index(const char *restrict s, const char *restrict pattern
 
 ## Macros
 
-Macros may be `SCREAMING_SNAKE_CASE` when a macro works with compile-time expressions (e.g. `STRLEN`) or a define can modify it's behavior (e.g. `ASSERT`). When a macro is used like a new "keyword" or a function, it's `snake_case`.
+Macros may be `SCREAMING_SNAKE_CASE` when a macro works with compile-time expressions (e.g. `$strlen`) or a define can modify it's behavior (e.g. `$assert`). When a macro is used like a new "keyword" or a function, it's `snake_case`.
 
 ## Naming conventions
+
+<!-- TODO: update function-like macro, since they are now $macro() -->
 
 | Element                                            | Convention            |
 | -------------------------------------------------- | --------------------- |

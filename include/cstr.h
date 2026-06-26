@@ -92,9 +92,9 @@ typedef struct {
 	}
 
 // Slice myslice = slice("hello, world!");
-#define slice(s)                           \
-	(Slice) {                              \
-		.data = "" s "", .len = STRLEN(s), \
+#define slice(s)                            \
+	(Slice) {                               \
+		.data = "" s "", .len = $strlen(s), \
 	}
 
 // while (begin < end) {

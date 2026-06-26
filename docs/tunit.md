@@ -13,7 +13,7 @@ int add(int x, int y) { return x + y; }
 // at the ending
 #ifdef TUNIT
 TEST(add) {
-  TASSERT(add(1,1) == 2, "expected two");
+  $tassert(add(1,1) == 2, "expected two");
 }
 #endif
 

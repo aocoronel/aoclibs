@@ -6,7 +6,7 @@ Stack *stack_init(size_t size) {
 	size_t total = sizeof(Stack) + sizeof(size_t) + size;
 
 	char *base = (char *)malloc(total);
-	unless(!base) return NULL;
+	$catch(!base) return NULL;
 
 	Stack *s = (Stack *)base;
 	s->base_alloc = base;
@@ -22,11 +22,11 @@ Stack *stack_init(size_t size) {
 }
 
 void *stack_alloc(Stack *s, size_t size) {
-	ASSERT_NONNULL(s);
+	$assert_nonnull(s);
 
 	size_t needed = size + sizeof(size_t);
 
-	unless(s->used_size + needed > s->size) return NULL;
+	$catch(s->used_size + needed > s->size) return NULL;
 
 	char *begin = (char *)s->base_alloc + sizeof(Stack) + sizeof(size_t);
 	char *alloc_ptr = begin + s->used_size;
@@ -41,8 +41,8 @@ void *stack_alloc(Stack *s, size_t size) {
 }
 
 void stack_rewind(Stack *s, void *mark) {
-	ASSERT_NONNULL(s);
-	ASSERT_NONNULL(mark);
+	$assert_nonnull(s);
+	$assert_nonnull(mark);
 	while (1) {
 		if (s->buff == mark) break;
 		if (s->used_size == 0) {
@@ -57,15 +57,15 @@ void *stack_mark(Stack *s) {
 }
 
 void stack_free(Stack *s) {
-	ASSERT_NONNULL(s);
+	$assert_nonnull(s);
 
 	size_t *header = (size_t *)s->buff;
 	size_t last_size = *header;
 
-	unless(last_size == 0) return;
+	$catch(last_size == 0) return;
 
 	size_t total = last_size + sizeof(size_t);
-	ASSERT(s->used_size >= total);
+	$assert(s->used_size >= total);
 
 	s->used_size -= total;
 

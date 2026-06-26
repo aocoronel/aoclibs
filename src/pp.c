@@ -5,20 +5,20 @@
 #include "da.h"
 
 void *pfill(PPool *pool, const size_t size) {
-	ASSERT_NONNULL(pool);
+	$assert_nonnull(pool);
 
 	void *tmp = malloc(size);
-	unless(!tmp) return NULL;
+	$catch(!tmp) return NULL;
 
 	da_insert(pool, tmp);
 	return tmp;
 }
 
 void *pfillc(PPool *pool, const size_t size) {
-	ASSERT_NONNULL(pool);
+	$assert_nonnull(pool);
 
 	void *tmp = malloc(size);
-	unless(!tmp) return NULL;
+	$catch(!tmp) return NULL;
 
 	memset(tmp, '\0', size);
 	da_insert(pool, tmp);
@@ -26,10 +26,10 @@ void *pfillc(PPool *pool, const size_t size) {
 }
 
 void *prefresh(PPool *pool, size_t idx, const size_t size) {
-	ASSERT_NONNULL(pool);
+	$assert_nonnull(pool);
 
 	void *tmp = realloc(pool->data[idx], size);
-	unless(!tmp) return NULL;
+	$catch(!tmp) return NULL;
 
 	pool->data[idx] = tmp;
 
@@ -37,10 +37,10 @@ void *prefresh(PPool *pool, size_t idx, const size_t size) {
 }
 
 void pdrain(PPool *pool) {
-	ASSERT(pool != NULL, "double free attempt");
+	$assert(pool != NULL, "double free attempt");
 
-	range(0, pool->len, i) {
-		ASSERT_NONNULL(pool->data + i);
+	$range(0, pool->len, i) {
+		$assert_nonnull(pool->data + i);
 		free(pool->data[i]);
 		pool->data[i] = NULL;
 	}

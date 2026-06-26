@@ -3,6 +3,7 @@
 #include "include/cstr.h"
 #include "include/file.h"
 #include "include/fork.h"
+#include "include/io.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdint.h>
@@ -10,7 +11,7 @@
 
 #define OUTPUT_FILE "aoclibs.h"
 #define TEMPLATE_FILE "template.h"
-#define TEMPLATE_FILE_LEN STRLEN(TEMPLATE_FILE)
+#define TEMPLATE_FILE_LEN $strlen(TEMPLATE_FILE)
 
 FILE *output = NULL;
 const char *file_to_open = NULL;
@@ -39,7 +40,7 @@ bool read_file(const char *file, bool ignore_include) {
 	while ((nread = read_by_delim(&buffer, &size, '\n', fp)) != SIZE_MAX) {
 		line_count++;
 
-#define MERGE_MATCH(s) cstr_has_at(buffer, size, s, STRLEN(s))
+#define MERGE_MATCH(s) cstr_has_at(buffer, size, s, $strlen(s))
 
 		size_t pos = 0;
 		if ((pos = MERGE_MATCH("#include")) != SIZE_MAX) {
@@ -47,7 +48,7 @@ bool read_file(const char *file, bool ignore_include) {
 			//        ^ pos
 			assert(buffer[pos] == '#');
 
-			pos += STRLEN("#include");
+			pos += $strlen("#include");
 			for (size_t i = pos; i < size && buffer[i] == ' '; i++) {
 				pos++;
 			}
@@ -112,7 +113,7 @@ void read_source_files(FileType ft, struct stat *st, const char *path) {
 
 // I didn't want to deploy crown, so I made this silly flag parsing
 #define flag(var, string)                     \
-	range(1, argc, i) {                       \
+	$range(1, argc, i) {                       \
 		if (cstr_eq(argv[i], "" string "")) { \
 			var = true;                       \
 			break;                            \
@@ -166,8 +167,8 @@ int main(int argc, char *argv[]) {
 			perror("fopen(test.c, w)");
 			return 1;
 		}
-		disable_tunit ? fwrite(STRING_MAIN, sizeof(char), STRLEN(STRING_MAIN), fp) :
-						fwrite(STRING, sizeof(char), STRLEN(STRING), fp);
+		disable_tunit ? fwrite(STRING_MAIN, sizeof(char), $strlen(STRING_MAIN), fp) :
+						fwrite(STRING, sizeof(char), $strlen(STRING), fp);
 
 		fclose(fp);
 	}
@@ -178,7 +179,7 @@ int main(int argc, char *argv[]) {
 			perror("fopen(aoclibs, w)");
 			return 1;
 		}
-		fwrite(STRING, sizeof(char), STRLEN(STRING), fp);
+		fwrite(STRING, sizeof(char), $strlen(STRING), fp);
 		fclose(fp);
 	}
 

@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
 
         // Crown can generate Bash and Zsh completions. You can do it separatedly, or generate a
         // single completion script compatible with both.
-        crown_completion(envs, ARRAY_LEN(envs), CROWN_COMPLETION_BASH | CROWN_COMPLETION_ZSH);
+        crown_completion(envs, $array_len(envs), CROWN_COMPLETION_BASH | CROWN_COMPLETION_ZSH);
 
         // Command specific help
         //

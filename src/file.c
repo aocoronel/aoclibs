@@ -15,11 +15,11 @@
 // akin to libc getdelim
 size_t
 read_by_delim(char **restrict buff, size_t *restrict size, const char delim, FILE *restrict fd) {
-	ASSERT_NONNULL(buff);
-	ASSERT_NONNULL(size);
-	ASSERT_NONNULL(fd);
+	$assert_nonnull(buff);
+	$assert_nonnull(size);
+	$assert_nonnull(fd);
 
-	unless(*buff == NULL || *size == 0) {
+	$catch(*buff == NULL || *size == 0) {
 		*size = 128;
 		*buff = (char *)malloc(*size);
 		if (!*buff) return SIZE_MAX;
@@ -30,7 +30,7 @@ read_by_delim(char **restrict buff, size_t *restrict size, const char delim, FIL
 	for (;;) {
 		int c = getc(fd);
 
-		unless(c == EOF) {
+		$catch(c == EOF) {
 			if (pos == 0) return SIZE_MAX;
 			break;
 		}
@@ -64,16 +64,16 @@ bool read_by_lines(Slice *out, char **restrict buff, size_t *restrict size, FILE
 	size_t len = 0;
 
 	len = read_by_delim(buff, size, '\n', fd);
-	unless(len == SIZE_MAX) return false;
+	$catch(len == SIZE_MAX) return false;
 
 	p = *buff;
-	if (LIKELY(p[len - 1] == '\n')) {
+	if ($likely(p[len - 1] == '\n')) {
 		p[len - 1] = '\0';
 	} else {
 		// There was one project of mine, where I was making an experimental programming language
 		// I had this problem, where the last newline couldn't be found, hopefully I had an assertion
 		// to catch it
-		ASSERT(p[len - 1] == '\0');
+		$assert(p[len - 1] == '\0');
 	}
 
 	*out = (Slice){ .data = p, .len = len - 1 };
@@ -81,15 +81,15 @@ bool read_by_lines(Slice *out, char **restrict buff, size_t *restrict size, FILE
 }
 
 int absolute_path_from(rc *output, Slice *path) {
-	ASSERT_NONNULL(path);
-	ASSERT_NONNULL(output);
+	$assert_nonnull(path);
+	$assert_nonnull(output);
 
 	const char *home = get_home_env();
-	unless(!home) return 1;
+	$catch(!home) return 1;
 	size_t home_len = strlen(home);
 
 	char cwd[AOC_MAX_PATH] = { 0 };
-	unless(getcwd(cwd, sizeof(cwd)) == NULL) return 2;
+	$catch(getcwd(cwd, sizeof(cwd)) == NULL) return 2;
 	size_t cwd_len = strlen(cwd);
 
 	const char *pos = path->data;
@@ -132,7 +132,7 @@ int absolute_path_from(rc *output, Slice *path) {
 			varname[vi] = '\0';
 
 			const char *env = getenv(varname);
-			unless(!env) return 1;
+			$catch(!env) return 1;
 
 			rc_cat(output, env, strlen(env));
 
@@ -149,11 +149,11 @@ int absolute_path_from(rc *output, Slice *path) {
 }
 
 bool dir_walker(const char *path, DirWalker *dw) {
-	ASSERT_NONNULL(path != NULL);
-	ASSERT_NONNULL(dw);
+	$assert_nonnull(path != NULL);
+	$assert_nonnull(dw);
 
 	DIR *dir = opendir(path);
-	unless(!dir) return false;
+	$catch(!dir) return false;
 
 	int8_t empty = 0;
 
@@ -162,7 +162,7 @@ bool dir_walker(const char *path, DirWalker *dw) {
 	char fullpath[AOC_MAX_PATH];
 
 	while ((entry = readdir(dir)) != NULL) {
-		unless(cstr_eq(entry->d_name, ".") || cstr_eq(entry->d_name, "..")) continue;
+		$catch(cstr_eq(entry->d_name, ".") || cstr_eq(entry->d_name, "..")) continue;
 
 		cstr_fmt_write(fullpath, AOC_MAX_PATH, "%s/%s", path, entry->d_name);
 
@@ -195,7 +195,7 @@ bool dir_walker(const char *path, DirWalker *dw) {
 }
 
 FileType get_filetype(struct stat *restrict st, const char *restrict path) {
-	ASSERT_NONNULL(path != NULL);
+	$assert_nonnull(path != NULL);
 
 	if (lstat(path, st) == -1) return F_FAIL;
 
@@ -210,13 +210,13 @@ FileType get_filetype(struct stat *restrict st, const char *restrict path) {
 }
 
 bool read_entire_file(rc *lines, const char *filepath) {
-	ASSERT_NONNULL(lines);
+	$assert_nonnull(lines);
 
 	FILE *fp = fopen(filepath, "r");
-	unless(!fp) return false;
+	$catch(!fp) return false;
 
 	struct stat st;
-	unless(stat(filepath, &st) == -1) {
+	$catch(stat(filepath, &st) == -1) {
 		fclose(fp);
 		return false;
 	}
@@ -232,8 +232,8 @@ bool read_entire_file(rc *lines, const char *filepath) {
 }
 
 size_t dismantle_path(Slice **out, const char *path, size_t len) {
-	ASSERT_NONNULL(out);
-	ASSERT_NONNULL(path);
+	$assert_nonnull(out);
+	$assert_nonnull(path);
 
 	struct slices_t {
 		size_t len;
@@ -243,7 +243,7 @@ size_t dismantle_path(Slice **out, const char *path, size_t len) {
 
 	size_t i = 0;
 
-	unless(len == 0) {
+	$catch(len == 0) {
 		*out = NULL;
 		return 0;
 	}
@@ -253,7 +253,7 @@ size_t dismantle_path(Slice **out, const char *path, size_t len) {
 	while (i < len) {
 		size_t j = index_of(path + i, '/', len - i);
 
-		unless(j == SIZE_MAX) {
+		$catch(j == SIZE_MAX) {
 			Slice s = { .data = path + i, .len = len - i };
 			da_insert(&slices, s);
 			break;
@@ -277,13 +277,13 @@ char *make_path(char *restrict out,
 				const size_t size,
 				const Slice *restrict dirs,
 				const size_t dir_count) {
-	ASSERT_NONNULL(out);
-	ASSERT_NONNULL(dirs);
+	$assert_nonnull(out);
+	$assert_nonnull(dirs);
 
 	char *ptr = out;
 	char *end = out + size;
 
-	range(0, dir_count, i) {
+	$range(0, dir_count, i) {
 		const Slice *s = &dirs[i];
 		size_t needed = s->len + 1; // '/'
 		if ((size_t)(end - ptr) <= needed) return NULL;
@@ -301,12 +301,12 @@ TEST(make_path) {
 	Slice dirs[] = { slice("home"), slice("user"), slice(".cache") };
 	char out[256];
 
-	if (!make_path(out, 256, dirs, ARRAY_LEN(dirs))) {
-		TASSERT(0, "path should fit");
+	if (!make_path(out, 256, dirs, $array_len(dirs))) {
+		$tassert(0, "path should fit");
 	}
 
-	if (make_path(out, 1, dirs, ARRAY_LEN(dirs))) {
-		TASSERT(1, "path should not fit");
+	if (make_path(out, 1, dirs, $array_len(dirs))) {
+		$tassert(1, "path should not fit");
 	}
 }
 
@@ -314,14 +314,14 @@ TEST(dismantle_path) {
 	Slice *slice = NULL;
 	size_t n = 0;
 
-	if ((n = dismantle_path(&slice, "/home/aoc/.cache", STRLEN("/home/aoc/.cache"))) == 0) {
+	if ((n = dismantle_path(&slice, "/home/aoc/.cache", $strlen("/home/aoc/.cache"))) == 0) {
 		eprintf("Failed to dismantle path\n");
 	}
-	TASSERT(slice_eq(&slice[0], &slice("home")), "slices are different");
-	TASSERT(slice_eq(&slice[1], &slice("aoc")), "slices are different");
-	TASSERT(slice_eq(&slice[2], &slice(".cache")), "slices are different");
+	$tassert(slice_eq(&slice[0], &slice("home")), "slices are different");
+	$tassert(slice_eq(&slice[1], &slice("aoc")), "slices are different");
+	$tassert(slice_eq(&slice[2], &slice(".cache")), "slices are different");
 	slice[0] = slice("usr");
-	TASSERT(slice_eq(&slice[0], &slice("usr")), "slices are different");
+	$tassert(slice_eq(&slice[0], &slice("usr")), "slices are different");
 
 	free(slice);
 }

@@ -3,7 +3,7 @@
 #include "map.h"
 
 int map_binary_search(struct _Map *map, const unsigned char k) {
-	ASSERT_NONNULL(map);
+	$assert_nonnull(map);
 	int left = 0, right = (int)map->len;
 	while (left < right) {
 		int mid = left + (right - left) / 2;
@@ -17,10 +17,10 @@ int map_binary_search(struct _Map *map, const unsigned char k) {
 }
 
 void _map_dump(struct _Map *restrict m, rc *restrict buff, const int indent, const int depth) {
-	ASSERT_NONNULL(m);
-	ASSERT_NONNULL(buff);
+	$assert_nonnull(m);
+	$assert_nonnull(buff);
 	da_reserve(buff, depth + 1);
-	range(0, m->len, i) {
+	$range(0, m->len, i) {
 		buff->data[depth] = m->data[i].key;
 		buff->data[depth + 1] = '\0';
 
@@ -35,8 +35,8 @@ struct _Map *_map_prepare(Arena *restrict arena,
 						  struct _Map *restrict map,
 						  const Slice slice,
 						  const size_t sizeof_value) {
-	ASSERT_NONNULL(arena);
-	ASSERT_NONNULL(map);
+	$assert_nonnull(arena);
+	$assert_nonnull(map);
 	struct _Map *curr = map;
 	size_t cursor = 0;
 
@@ -68,7 +68,7 @@ struct _Map *_map_prepare(Arena *restrict arena,
 }
 
 struct _Map *_map_get(struct _Map *map, const Slice slice) {
-	ASSERT_NONNULL(map);
+	$assert_nonnull(map);
 	struct _Map *result = map;
 	size_t cursor = 0;
 
@@ -106,13 +106,13 @@ TEST(map_test) {
 	map_insert(&arena, &map, slice("hello"), 20);
 
 	TUnitMap *m = map_get(&map, slice("hello"));
-	TASSERT(m->value == 20, "wrong value");
+	$tassert(m->value == 20, "wrong value");
 
 	map_set(&map, slice("hello"), 23);
-	TASSERT(m->value == 23, "wrong value");
+	$tassert(m->value == 23, "wrong value");
 
 	TUnitMap *m2 = map_prepare(&arena, &map, slice("hello2"));
-	TASSERT(m2->occupied == false, "should not be occupied");
+	$tassert(m2->occupied == false, "should not be occupied");
 
 	// rc buff = { 0 };
 	// map_dump(&map, &buff);

@@ -65,8 +65,8 @@ AOCDEF void ini_deinit(Ini *ini);
 
 // fp should be opened to read and closed by the caller.
 bool ini_init(Ini *output, FILE *fp) {
-	ASSERT_NONNULL(output);
-	ASSERT_NONNULL(fp);
+	$assert_nonnull(output);
+	$assert_nonnull(fp);
 
 	*output = (Ini) {
         .iterator = {
@@ -78,8 +78,8 @@ bool ini_init(Ini *output, FILE *fp) {
         .section = { 0 },
     };
 
-	output->section.len = STRLEN("DEFAULT");
-	da_add(&output->section, "DEFAULT", STRLEN("DEFAULT"), 0);
+	output->section.len = $strlen("DEFAULT");
+	da_add(&output->section, "DEFAULT", $strlen("DEFAULT"), 0);
 	da_add_null(&output->section);
 
 	return true;
@@ -92,7 +92,7 @@ bool ini_init(Ini *output, FILE *fp) {
 #endif
 
 bool ini_next_line(Ini *ini) {
-	ASSERT_NONNULL(ini);
+	$assert_nonnull(ini);
 	IniIterator *it = &ini->iterator;
 	IniError *error = &ini->error;
 
@@ -115,7 +115,7 @@ bool ini_next_line(Ini *ini) {
 }
 
 bool ini_has_error(Ini *ini) {
-	ASSERT_NONNULL(ini);
+	$assert_nonnull(ini);
 	if (ini->error.message) {
 		return true;
 	} else {
@@ -124,7 +124,7 @@ bool ini_has_error(Ini *ini) {
 }
 
 bool ini_parse(Ini *ini) {
-	ASSERT_NONNULL(ini);
+	$assert_nonnull(ini);
 	if (!ini_next_line(ini)) return false;
 
 	IniIterator *it = &ini->iterator;
@@ -193,8 +193,8 @@ bool ini_parse(Ini *ini) {
 }
 
 void ini_print_error(Ini *ini, const char *file) {
-	ASSERT_NONNULL(ini);
-	ASSERT_NONNULL(file);
+	$assert_nonnull(ini);
+	$assert_nonnull(file);
 	fprintf(stderr,
 			"%s:%zu:%zu: error: %s\n",
 			file,
@@ -204,7 +204,7 @@ void ini_print_error(Ini *ini, const char *file) {
 }
 
 void ini_deinit(Ini *ini) {
-	ASSERT_NONNULL(ini);
+	$assert_nonnull(ini);
 	free(ini->iterator.pos);
 	da_free(&ini->section);
 }
@@ -229,7 +229,7 @@ void ini_deinit(Ini *ini) {
 //
 //     ini_deinit(&ini);
 //
-//     ASSERT(fp);
+//     $assert(fp);
 //     fclose(fp);
 //
 //     return 0;

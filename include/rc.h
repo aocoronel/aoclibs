@@ -28,10 +28,10 @@ typedef struct {
 	} while (0)
 
 // Heap concat and appending
-#define rc_lcat(rc, items_buff)                                \
-	do {                                                       \
-		da_add(rc, items_buff, STRLEN(items_buff), (rc)->len); \
-		(rc)->len += STRLEN(items_buff);                       \
+#define rc_lcat(rc, items_buff)                                 \
+	do {                                                        \
+		da_add(rc, items_buff, $strlen(items_buff), (rc)->len); \
+		(rc)->len += $strlen(items_buff);                       \
 	} while (0)
 
 #define rc_cat(rc, items_buff, items_len)             \
@@ -40,7 +40,7 @@ typedef struct {
 		(rc)->len += (items_len);                     \
 	} while (0)
 
-#define rc_lappend(rc, items_buff) rc_append(rc, items_buff, STRLEN((items_buff)))
+#define rc_lappend(rc, items_buff) rc_append(rc, items_buff, $strlen((items_buff)))
 #define rc_append(rc, items_buff, items_size)                                             \
 	do {                                                                                  \
 		da_reserve((rc), 1 + (rc)->len + (items_size));                                   \
@@ -66,11 +66,11 @@ typedef struct {
 // =================================
 // These macros skips the reserve step, for faster operations with less checks.
 // Use at own risk.
-#define rc_lcat_fast(rc, items_buff, items_len) rc_cat_fast(rc, items_buff, STRLEN(items_buff))
+#define rc_lcat_fast(rc, items_buff, items_len) rc_cat_fast(rc, items_buff, $strlen(items_buff))
 #define rc_cat_fast(rc, items_buff, items_len) da_add_fast(rc, items_buff, items_len, (rc)->len)
 
 #define rc_lappend_fast(rc, items_buff, items_size) \
-	rc_append_fast(rc, items_buff, STRLEN(items_buff))
+	rc_append_fast(rc, items_buff, $strlen(items_buff))
 #define rc_append_fast(rc, items_buff, items_size)                                        \
 	do {                                                                                  \
 		(rc)->data[(rc)->len++] = ' ';                                                    \

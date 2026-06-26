@@ -25,44 +25,43 @@
 // a design bug.
 #define null
 
-// All allocations are assumed to be made by malloc() and realloc(), and freed by free()
-// Because you can compile the entire library to just a single header file, you can overwrite it
-//  #define malloc(size) custom_malloc((size))
-
-// Compiler specific
-#define LIKELY(expr) __builtin_expect(!!(expr), 1)
-#define UNLIKELY(expr) __builtin_expect(!!(expr), 0)
-#define NORETURN __attribute__((noreturn))
-#define DEPRECATED(fn_to_use_instead) __attribute_deprecated_msg__(fn_to_use_instead)
-#define MUST_USE __attribute__((warn_unused_result))
-#define MALLOC __attribute__((__malloc__))
-#define PRINTF(x, y) __attribute__((__format__(printf, x, y)))
-
-#define inline __attribute__((__gnu_inline__)) inline
-
-// The following macros are used to clarify intentions
-#define DISCARD(variable) (void)variable
-
 // Macros for renaming purposes
+#define inline __attribute__((__gnu_inline__)) inline
 #define restrict __restrict
 #define typeof(type) __typeof__((type))
 // C++ auto in C as a GNU extension: #define auto __auto_type
+// This will only be enabled when TCC support it
 
-// Convenient macros
-#define eprintf(...) fprintf(stderr, __VA_ARGS__)
+// All allocations are assumed to be made by malloc() and realloc(), and freed by free()
+// Because you can compile the entire library to just a single header file, you can overwrite it
+//  #define malloc(size) custom_malloc((size))
+// Note: replacing malloc should only be done if you are provided a malloc-like alternative like
+// mimalloc, dmalloc, rpmalloc...
 
-// CAT(ident, fier) -> identifier
-#define CAT(x, y) CAT_IMPL(x, y)
-#define CAT_IMPL(x, y) x##y
+// Compiler specific
+#define NORETURN __attribute__((noreturn))
+#define $likely(expr) __builtin_expect(!!(expr), 1)
+#define $unlikely(expr) __builtin_expect(!!(expr), 0)
+#define $deprecated(fn_to_use_instead) __attribute_deprecated_msg__(fn_to_use_instead)
+#define $must_use __attribute__((warn_unused_result))
+#define $attr_malloc __attribute__((__malloc__))
+#define $attr_printf(x, y) __attribute__((__format__(printf, x, y)))
 
-// STRINGIFY(identifier) -> "identifier"
-#define STRINGIFY(x) #x
+// The following macros are used to clarify intentions
+#define $discard(variable) (void)variable
+
+// $cat(ident, fier) -> identifier
+#define $cat(x, y) $$cat(x, y)
+#define $$cat(x, y) x##y
+
+// $stringify(identifier) -> "identifier"
+#define $stringify(x) #x
 // #define identifier 0
-// MSTRINGIFY(identifier) -> "0"
-#define MACRO_STRINGIFY(x) STRINGIFY(x)
+// M$stringify(identifier) -> "0"
+#define $macro_stringify(x) $stringify(x)
 
 // Using a third variable for swapping, turns this more generic than Xor
-#define SWAP(x, y)         \
+#define $swap(x, y)        \
 	do {                   \
 		typeof(x) tmp = x; \
 		x = y;             \
@@ -70,48 +69,45 @@
 	} while (0)
 
 // This is only applicable to stack allocated
-#define ARRAY_LEN(array) sizeof((array)) / sizeof((array[0]))
+#define $array_len(array) sizeof((array)) / sizeof((array[0]))
 
 // Compile-time strlen(). This expects a string literal
-#define STRLEN(string) ARRAY_LEN(("" string "")) - sizeof((string)[0])
+#define $strlen(string) $array_len(("" string "")) - sizeof((string)[0])
 
 // Unless is used for handling errors, so the control flow is always unlikely to happen
-#define unless(expr) if (UNLIKELY(expr))
+#define $catch(expr) if ($unlikely(expr))
 
-// range(0, 10, i) { printf("%d\n", i) }
-#define range(init, end, it) for (size_t it = (init); it < (end); it++)
+// $range(0, 10, i) { printf("%d\n", i) }
+#define $range(init, end, it) for (size_t it = (init); it < (end); it++)
 
-// aoclibs' abort()
-#define AOCLIBS_ABORT(msg, ...)                                    \
+#define $abort(msg, ...)                                           \
 	(fprintf(stderr, "%s: %s:%u: ", __func__, __FILE__, __LINE__), \
 	 fprintf(stderr, msg " " __VA_ARGS__),                         \
 	 fputc('\n', stderr),                                          \
 	 abort())
 
 // Panic when a code is assumed to never run
-#define UNREACHABLE(...) AOCLIBS_ABORT("Unreachable code: ", __VA_ARGS__)
-#define PANIC(...) AOCLIBS_ABORT("Panicked: ", __VA_ARGS__)
+#define $unreachable(...) $abort("Unreachable code: ", __VA_ARGS__)
+#define $panic(...) $abort("Panicked: ", __VA_ARGS__)
 
 // Marks not implemented code
-#define TODO(...) AOCLIBS_ABORT("TODO: ", __VA_ARGS__)
+#define $todo(...) $abort("$todo: ", __VA_ARGS__)
 
-// int foo() { UNIMPLEMENTED; }
-#define UNIMPLEMENTED AOCLIBS_ABORT("Unimplemented function: ", "%s", __func__)
+// int foo() { $unimplemented; }
+#define $unimplemented $abort("Unimplemented function: ", "%s", __func__)
 
 // Asserts an expression, and prints an optional formatted message
 #ifdef NDEBUG
-#define ASSERT(...)
+#define $assert(...)
 #else
-#define ASSERT(expr, ...) \
-	((expr) ? (void)0 : AOCLIBS_ABORT("Assertion failed: " #expr, __VA_ARGS__))
+#define $assert(expr, ...) ((expr) ? (void)0 : $abort("Assertion failed: " #expr, __VA_ARGS__))
 #endif
 
-// Differently from ASSERT(), this one is not removed by NDEBUG
-#define EXPECT(expr, ...) \
-	((expr) ? (void)0 : AOCLIBS_ABORT("Assertion failed: " #expr, __VA_ARGS__))
+// Differently from $assert(), this one is not removed by NDEBUG
+#define $expect(expr, ...) ((expr) ? (void)0 : $abort("Assertion failed: " #expr, __VA_ARGS__))
 
 // Convenience assert messages
-#define ASSERT_NONNULL(expr) ASSERT((expr), "passing NULL pointer to Nonnull parameter")
+#define $assert_nonnull(expr) $assert((expr), "passing NULL pointer to Nonnull parameter")
 
 // === Sanitizers ===
 
@@ -119,36 +115,36 @@
 
 #if defined(__SANITIZE_ADDRESS__)
 #include <sanitizer/asan_interface.h>
-#define _ASAN_POISON_MEMORY_REGION(ptr, size) ASAN_POISON_MEMORY_REGION((ptr), (size));
-#define _ASAN_UNPOISON_MEMORY_REGION(ptr, size) ASAN_UNPOISON_MEMORY_REGION((ptr), (size));
+#define $asan_poison_memory_region(ptr, size) ASAN_POISON_MEMORY_REGION((ptr), (size));
+#define $asan_unpoison_memory_region(ptr, size) ASAN_UNPOISON_MEMORY_REGION((ptr), (size));
 #else
-#define _ASAN_POISON_MEMORY_REGION(ptr, size)
-#define _ASAN_UNPOISON_MEMORY_REGION(ptr, size)
+#define $asan_poison_memory_region(ptr, size)
+#define $asan_unpoison_memory_region(ptr, size)
 #endif
 
 #if defined(__SANITIZE_MEMORY__)
 #include <sanitizer/msan_interface.h>
-#define __MSAN_POISON(ptr, size) __msan_poison((ptr), (size))
-#define __MSAN_UNPOISON(ptr, size) __msan_unpoison((ptr), (size))
+#define $msan_poison(ptr, size) __msan_poison((ptr), (size))
+#define $msan_unpoison(ptr, size) __msan_unpoison((ptr), (size))
 #else
-#define __MSAN_POISON(ptr, size)
-#define __MSAN_UNPOISON(ptr, size)
+#define $msan_poison(ptr, size)
+#define $msan_unpoison(ptr, size)
 #endif
 
 #if defined(__SANITIZE_MEMORY__) || defined(__SANITIZE_ADDRESS__)
 #define HAVE_SANITIZER
 #endif
 
-#define sanitizer_poison_memory(ptr, size)     \
+#define $sanitizer_poison_memory(ptr, size)    \
 	do {                                       \
-		_ASAN_POISON_MEMORY_REGION(ptr, size); \
-		__MSAN_POISON(ptr, size);              \
+		$asan_poison_memory_region(ptr, size); \
+		$msan_poison(ptr, size);               \
 	} while (0)
 
-#define sanitizer_unpoison_memory(ptr, size)     \
+#define $sanitizer_unpoison_memory(ptr, size)    \
 	do {                                         \
-		_ASAN_UNPOISON_MEMORY_REGION(ptr, size); \
-		__MSAN_UNPOISON(ptr, size);              \
+		$asan_unpoison_memory_region(ptr, size); \
+		$msan_unpoison(ptr, size);               \
 	} while (0)
 
 #endif // AOCLIBS_BASE_H_

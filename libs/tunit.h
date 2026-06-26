@@ -7,13 +7,13 @@
 
 /*
  * TEST(my_test_name) :: Register a test
- * TASSERT(1 == 1) :: TUnit specific asserts
+ * $tassert(1 == 1) :: TUnit specific asserts
  * SKIP_TEST("this must be implemented first") :: Skip registering test
 */
 
 #ifndef TUNIT
 #define TEST(...)
-#define TASSERT(...)
+#define $tassert(...)
 #define SKIP_TEST(...)
 #define TEST_TIMEOUT(...)
 #else
@@ -31,7 +31,7 @@
 	}                                                                \
 	static void test_##desc(void)
 
-#define TASSERT(expr, msg)                                      \
+#define $tassert(expr, msg)                                      \
 	do {                                                        \
 		if (!(expr)) {                                          \
 			tunit_assert(expr, #expr, msg, __FILE__, __LINE__); \
@@ -49,12 +49,12 @@
 #ifdef HEAP_TRACE
 #define no_debug_malloc no_debug_malloc
 #define no_debug_free no_debug_free
-#define TASSERT_HEAP_TRACE() TASSERT(heap_count_leaks == 0, "memory leak");
+#define $tassert_heap_trace() $tassert(heap_count_leaks == 0, "memory leak");
 #else
 #define heap_count_leaks 0
 #define no_debug_malloc malloc
 #define no_debug_free free
-#define TASSERT_HEAP_TRACE()
+#define $tassert_heap_trace()
 #endif
 
 #ifdef TUNIT
