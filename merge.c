@@ -27,7 +27,7 @@ void read_source_files(FileType ft, struct stat *st, const char *path);
 bool read_file(const char *file, bool ignore_include) {
 	FILE *fp = fopen(file, "r");
 	if (!fp) {
-		fprintf(stderr, "File not found: %s\n", file);
+		eprintf("File not found: %s\n", file);
 		return false;
 	}
 
@@ -94,16 +94,16 @@ void read_source_files(FileType ft, struct stat *st, const char *path) {
 	return;
 }
 
-#define STRING                         \
+#define STRING                     \
 	"#define AOC_IMPLEMENTATION\n" \
 	"#define AOC_CROWN\n"          \
-	"#include \"aoclibs.h\"\n"         \
-	"#include <string.h>\n"            \
+	"#include \"aoclibs.h\"\n"     \
+	"#include <string.h>\n"        \
 	"#include <stdlib.h>\n"
 
 #define STRING_MAIN                        \
-	"#define AOC_IMPLEMENTATION\n"     \
-	"#define AOC_CROWN\n"              \
+	"#define AOC_IMPLEMENTATION\n"         \
+	"#define AOC_CROWN\n"                  \
 	"#include \"aoclibs.h\"\n"             \
 	"#include <string.h>\n"                \
 	"#include <stdlib.h>\n"                \
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
 	output = fopen(OUTPUT_FILE, "w");
 
 	if (!output) {
-		fprintf(stderr, "Failed to open file %s. %s\n", OUTPUT_FILE, strerror(errno));
+		eprintf("Failed to open file %s. %s\n", OUTPUT_FILE, strerror(errno));
 		return 1;
 	}
 
@@ -210,8 +210,8 @@ int main(int argc, char *argv[]) {
 	{
 		ForkOptions opt = { 0 };
 		char *run_args[] = { "./test", NULL };
-        opt.argv = run_args;
-        opt.err = true;
+		opt.argv = run_args;
+		opt.err = true;
 		CmdResult output = { 0 };
 		int status = run_cmd(&output, opt);
 
@@ -221,7 +221,7 @@ int main(int argc, char *argv[]) {
 			eprintf("Running tests:\n%s", output.err.data);
 		}
 		if (status != 0) {
-			fprintf(stderr, "Failed to run test. Got error %d\n", status);
+			eprintf("Failed to run test. Got error %d\n", status);
 			return 1;
 		}
 	}
@@ -231,8 +231,8 @@ int main(int argc, char *argv[]) {
 		ForkOptions opt = { 0 };
 		char *compile_args[] = { C_COMPILER, "-std=c11",  "-c",		   "-O2", "-flto", "-fPIC",
 								 "-o",		 "aoclibs.o", "aoclibs.c", "-lm", NULL };
-        opt.argv = compile_args;
-        opt.err = true;
+		opt.argv = compile_args;
+		opt.err = true;
 		CmdResult output = { 0 };
 		int status = run_cmd(&output, opt);
 
