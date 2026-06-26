@@ -19,14 +19,24 @@ AOCDEF bool cstr_ends_with(const char *restrict s,
 						   const char *restrict pattern,
 						   const size_t pattern_len);
 
-#define cstr_eq(s, pattern) cstrn_eq((s), strlen((s)), (pattern), strlen((pattern)))
+// Compares "s" to "pattern".
+AOCDEF bool cstr_eq(const char *restrict s, const char *restrict pattern);
 // Compares "s" to "pattern".
 AOCDEF bool cstrn_eq(const char *restrict s,
 					 const size_t s_len,
 					 const char *restrict pattern,
 					 const size_t pattern_len);
 
-#define cstr_eq_case(s, pattern) cstrn_eq_case((s), strlen((s)), (pattern), strlen((pattern)))
+// Compares "s" to "pattern" ignoring case.
+//
+// Allocates a temporary variable to lowercase all characters. If the allocation fails, sets errno
+// to ENOMEM.
+//
+// 0 :: No Match
+// 1 :: Match
+// -1 :: Out of memory
+AOCDEF char cstr_eq_case(const char *restrict s, const char *restrict pattern);
+
 // Compares "s" to "pattern" ignoring case.
 //
 // Allocates a temporary variable to lowercase all characters. If the allocation fails, sets errno
@@ -69,30 +79,25 @@ AOCDEF long cstr_to_long(const char *s, const long _default);
 
 // Slices
 
-// printf("%.*s\n", VSLICE(slice))
-#define VSLICE(r) ((int)(r)->len), ((r)->data)
+// printf("%.*s\n", $view_slice(slice))
+#define $view_slice(r) ((int)(r)->len), ((r)->data)
 
 typedef struct {
 	const char *data;
 	size_t len;
 } Slice;
 
-#define slice_eq(cs1, cs2) cstrn_eq((cs1)->data, (cs1)->len, (cs2)->data, (cs2)->len)
-
-#define slice_eq_case(cs1, cs2, offset) \
-	cstrn_eq_case((cs1)->data + (offset), (cs1)->len, (cs2)->data, (cs2)->len)
-
-#define slice_begins_with(cs, begin, begin_len) \
-	cstr_begins_with((cs)->data, (cs)->len, (begin), (begin_len))
-#define slice_ends_with(cs, end, end_len) cstr_ends_with((cs)->data, (cs)->len, (end), (end_len))
-
-#define cstr_to_slice(s, start, end)                  \
-	(Slice) {                                         \
-		.data = (s) + (start), .len = (end) - (start) \
-	}
+AOCDEF Slice cstr_to_slice_from(const char *str, const size_t start, const size_t end);
+AOCDEF Slice cstr_to_slice(const char *str);
+AOCDEF bool slice_eq(Slice lhs, Slice rhs);
+AOCDEF char slice_eq_case(Slice lhs, Slice rhs);
+AOCDEF bool slice_begins_with(Slice lhs, Slice rhs);
+AOCDEF bool slice_begins_with_cstr(Slice lhs, const char *rhs, const size_t rhs_len);
+AOCDEF bool slice_ends_with(Slice lhs, Slice rhs);
+AOCDEF bool slice_ends_with_cstr(Slice lhs, const char *rhs, const size_t rhs_len);
 
 // Slice myslice = slice("hello, world!");
-#define slice(s)                            \
+#define $slice(s)                           \
 	(Slice) {                               \
 		.data = "" s "", .len = $strlen(s), \
 	}

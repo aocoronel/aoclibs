@@ -55,12 +55,48 @@ bool cstr_begins_with(const char *s,
 	return cstrn_eq(s, s_len, pattern, pattern_len);
 }
 
+bool cstr_eq(const char *s, const char *pattern) {
+	$assert_nonnull(s);
+	$assert_nonnull(pattern);
+	size_t s_len = strlen(s);
+	size_t pattern_len = strlen(pattern);
+	$catch(pattern_len == 0 || pattern_len > s_len) return false;
+	$catch(s_len < pattern_len) return false;
+	return memcmp(s, pattern, pattern_len) == 0;
+}
+
 bool cstrn_eq(const char *s, const size_t s_len, const char *pattern, const size_t pattern_len) {
 	$assert_nonnull(s);
 	$assert_nonnull(pattern);
 	$catch(pattern_len == 0 || pattern_len > s_len) return false;
 	$catch(s_len < pattern_len) return false;
 	return memcmp(s, pattern, pattern_len) == 0;
+}
+
+char cstr_eq_case(const char *s, const char *pattern) {
+	$assert_nonnull(s);
+	$assert_nonnull(pattern);
+	size_t s_len = strlen(s);
+	size_t pattern_len = strlen(pattern);
+	$catch(pattern_len == 0 || pattern_len > s_len) return false;
+
+	char *ptr = (char *)malloc(sizeof(char) * s_len + pattern_len);
+	$catch(!ptr) return -1;
+
+	char *s_tmp = ptr;
+	char *pattern_tmp = ptr + s_len;
+
+	memcpy(s_tmp, s, s_len);
+	memcpy(pattern_tmp, pattern, pattern_len);
+
+	cstrn_to_lower(s_tmp, s_len);
+	cstrn_to_lower(pattern_tmp, pattern_len);
+
+	bool equal = memcmp(s_tmp, pattern_tmp, pattern_len) == 0;
+
+	free(ptr);
+
+	return equal;
 }
 
 char cstrn_eq_case(const char *s,
@@ -199,6 +235,69 @@ long cstr_to_long(const char *s, const long _default) {
 	long val = strtol(s, &endptr, 10);
 	$catch(*endptr != '\0') return _default;
 	return val;
+}
+
+Slice cstr_to_slice_from(const char *str, const size_t start, const size_t end) {
+	return (Slice){ .data = str + start, .len = end - start };
+}
+
+Slice cstr_to_slice(const char *str) {
+	size_t len = strlen(str);
+	return (Slice){ .data = str, .len = len };
+}
+
+bool slice_eq(Slice lhs, Slice rhs) {
+	$assert_nonnull(lhs.data);
+	$assert_nonnull(rhs.data);
+	$catch(rhs.len == 0 || rhs.len > lhs.len) return false;
+	$catch(lhs.len < rhs.len) return false;
+	return memcmp(lhs.data, rhs.data, lhs.len) == 0;
+}
+
+char slice_eq_case(Slice lhs, Slice rhs) {
+	$assert_nonnull(lhs.data);
+	$assert_nonnull(rhs.data);
+	$catch(rhs.len == 0 || rhs.len > lhs.len) return false;
+
+	char *ptr = (char *)malloc(sizeof(char) * lhs.len + rhs.len);
+	$catch(!ptr) return -1;
+
+	char *s_tmp = ptr;
+	char *pattern_tmp = ptr + lhs.len;
+
+	memcpy(s_tmp, lhs.data, lhs.len);
+	memcpy(pattern_tmp, rhs.data, rhs.len);
+
+	cstrn_to_lower(s_tmp, lhs.len);
+	cstrn_to_lower(pattern_tmp, rhs.len);
+
+	bool equal = memcmp(s_tmp, pattern_tmp, rhs.len) == 0;
+
+	free(ptr);
+
+	return equal;
+}
+
+bool slice_begins_with(Slice lhs, Slice rhs) {
+	return slice_eq(lhs, rhs);
+}
+
+bool slice_begins_with_cstr(Slice lhs, const char *rhs, const size_t rhs_len) {
+	return cstrn_eq(lhs.data, lhs.len, rhs, rhs_len);
+}
+
+bool slice_ends_with(Slice lhs, Slice rhs) {
+	$assert_nonnull(lhs.data);
+	$assert_nonnull(rhs.data);
+	$catch(lhs.len < rhs.len) return false;
+	return memcmp(lhs.data + lhs.len - rhs.len, rhs.data, rhs.len) == 0;
+}
+
+bool slice_ends_with_cstr(Slice lhs, const char *rhs, const size_t rhs_len) {
+	$assert_nonnull(lhs.data);
+	$assert_nonnull(rhs);
+	$catch(lhs.len < rhs_len) return false;
+	return memcmp(lhs.data + lhs.len - rhs_len, rhs, rhs_len) == 0;
 }
 
 Slice while_next_word(const char *restrict s, size_t *restrict begin, size_t end) {
