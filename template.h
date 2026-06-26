@@ -55,6 +55,7 @@
 #include "./vendor/arena.h"
 
 // Standalones
+#include "./include/da.h"
 #include "./include/calculus.h"
 #include "./include/colors.h"
 #include "./include/buddy.h"
@@ -67,8 +68,6 @@
 
 #include "./include/io.h"
 
-// Dynamic Arrays
-#include "./include/da.h"
 #include "./include/rc.h"
 
 #include "./include/file.h"
