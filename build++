@@ -3,5 +3,6 @@
 -Iinclude
 -Ilibs
 -o merge
+-x c++
 merge.c
 -Wno-write-strings
