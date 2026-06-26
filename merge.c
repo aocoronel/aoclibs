@@ -113,7 +113,7 @@ void read_source_files(FileType ft, struct stat *st, const char *path) {
 
 // I didn't want to deploy crown, so I made this silly flag parsing
 #define flag(var, string)                     \
-	$range(1, argc, i) {                       \
+	$range(1, argc, i) {                      \
 		if (cstr_eq(argv[i], "" string "")) { \
 			var = true;                       \
 			break;                            \
@@ -184,6 +184,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	{
+		ForkOptions opt = { 0 };
 		char *compile_args[] = { C_COMPILER,
 								 "-std=c11",
 								 "-o",
@@ -194,8 +195,10 @@ int main(int argc, char *argv[]) {
 								 "-DHEAP_TRACE",
 								 disable_tunit ? NULL : (char *)"-DTUNIT",
 								 NULL };
+		opt.argv = compile_args;
+		opt.err = true;
 		CmdResult output = { 0 };
-		int status = run_cmd(compile_args, NULL, &output, .out = false, .err = true);
+		int status = run_cmd(&output, opt);
 
 		if (status != 0) {
 			eprintf("%s", output.err.data);
@@ -204,11 +207,13 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	char *run_args[] = { "./test", NULL };
-
 	{
+		ForkOptions opt = { 0 };
+		char *run_args[] = { "./test", NULL };
+        opt.argv = run_args;
+        opt.err = true;
 		CmdResult output = { 0 };
-		int status = run_cmd(run_args, NULL, &output, .out = false, .err = true);
+		int status = run_cmd(&output, opt);
 
 		if (disable_tunit) {
 			eprintf("%s", output.err.data);
@@ -223,10 +228,13 @@ int main(int argc, char *argv[]) {
 	if (!disable_tunit) fputc('\n', stderr);
 
 	if (compile_object) {
+		ForkOptions opt = { 0 };
 		char *compile_args[] = { C_COMPILER, "-std=c11",  "-c",		   "-O2", "-flto", "-fPIC",
 								 "-o",		 "aoclibs.o", "aoclibs.c", "-lm", NULL };
+        opt.argv = compile_args;
+        opt.err = true;
 		CmdResult output = { 0 };
-		int status = run_cmd(compile_args, NULL, &output, .out = false, .err = true);
+		int status = run_cmd(&output, opt);
 
 		if (status != 0) {
 			eprintf("%s", output.err.data);

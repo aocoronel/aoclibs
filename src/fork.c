@@ -34,10 +34,13 @@ void close_fd(int fd) {
 	if (fd != -1) close(fd);
 }
 
-fork_cmd_t fork_cmd(char **argv, const char *input, ForkOptions opt) {
-	$assert_nonnull(argv);
+fork_cmd_t fork_cmd(ForkOptions opt) {
 	int stdin_fd, stdout_fd, stderr_fd;
 	pid_t pid;
+	char **argv = opt.argv;
+	char *input = opt.input;
+
+	$assert_nonnull(argv);
 
 	int in_pipe[2] = { -1, -1 };
 	int out_pipe[2] = { -1, -1 };
@@ -172,11 +175,11 @@ int wait_child(pid_t pid) {
 	return -1;
 }
 
-int _run_cmd(char **argv, const char *input, CmdResult *out, ForkOptions opt) {
+int run_cmd(CmdResult *out, ForkOptions opt) {
 	$assert_nonnull(out);
 
 	CmdResult result = { 0 };
-	fork_cmd_t fc = fork_cmd(argv, input, opt);
+	fork_cmd_t fc = fork_cmd(opt);
 
 	$catch(fc.pid == -1) {
 		return fc.pid;
