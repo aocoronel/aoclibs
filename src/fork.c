@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <signal.h>
 
-ssize_t write_fd(int fd, const void *buf, size_t count) {
+bool write_fd(int fd, const void *buf, size_t count) {
 	$assert_nonnull(buf);
 
 	const char *p = (const char *)buf;
@@ -24,10 +24,10 @@ ssize_t write_fd(int fd, const void *buf, size_t count) {
 			continue;
 		}
 		$catch(errno == EINTR) continue;
-		$catch(errno == EAGAIN) return -2;
-		return -1;
+		$catch(errno == EAGAIN) return false;
+		return false;
 	}
-	return (ssize_t)count;
+	return true;
 }
 
 bool _fork_cmd(pid_t *pid, int fds[3], int pipes[6], ForkOptions opt) {
@@ -73,7 +73,7 @@ bool _fork_cmd(pid_t *pid, int fds[3], int pipes[6], ForkOptions opt) {
 	fds[2] = opt.err ? err_pipe[0] : -1;
 
 	if (input) {
-		$catch(fds[0] == -1 || write_fd(fds[0], input, strlen(input)) < 0) {
+		$catch(fds[0] == -1 || !write_fd(fds[0], input, strlen(input))) {
 			kill(*pid, SIGTERM);
 			wait_child(*pid);
 			return false;
@@ -161,10 +161,9 @@ int read_fds(int out_fd, int err_fd, fork_buff_t *fb) {
 
 int wait_child(pid_t pid) {
 	int status;
-	while (waitpid(pid, &status, 0) == -1) {
+	while (waitpid(pid, &status, 0) == -1)
 		if (errno != EINTR) return -1;
-	}
-	$catch(WIFEXITED(status)) return WEXITSTATUS(status);
+	if (WIFEXITED(status)) return WEXITSTATUS(status);
 	return -1;
 }
 
