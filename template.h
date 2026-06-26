@@ -48,6 +48,7 @@
 
 #include "./include/libc.h"
 #include "./include/base.h"
+#include "./include/cfg.h"
 
 // Vendor
 #include "./vendor/rapidhash.h"
