@@ -30,10 +30,6 @@ ssize_t write_fd(int fd, const void *buf, size_t count) {
 	return (ssize_t)count;
 }
 
-void close_fd(int fd) {
-	if (fd != -1) close(fd);
-}
-
 bool _fork_cmd(pid_t *pid, int fds[3], int pipes[6], ForkOptions opt) {
 	char **argv = opt.argv;
 	char *input = opt.input;
@@ -88,22 +84,26 @@ bool _fork_cmd(pid_t *pid, int fds[3], int pipes[6], ForkOptions opt) {
 	return true;
 }
 
+#define $close_fd(fd) \
+	if (fd != -1) close(fd);
 fork_cmd_t fork_cmd(ForkOptions opt) {
 	pid_t pid;
 	int pipes[6] = { -1 };
 	int fds[3];
 	bool ret = _fork_cmd(&pid, fds, pipes, opt);
+
 	if (!ret) {
-		close_fd(pipes[0]);
-		close_fd(pipes[1]);
-		close_fd(pipes[2]);
-		close_fd(pipes[3]);
-		close_fd(pipes[4]);
-		close_fd(pipes[5]);
+		$close_fd(pipes[0]);
+		$close_fd(pipes[1]);
+		$close_fd(pipes[2]);
+		$close_fd(pipes[3]);
+		$close_fd(pipes[4]);
+		$close_fd(pipes[5]);
 		return (fork_cmd_t){ .pid = -1, .stdin_fd = -1, .stdout_fd = -1, .stderr_fd = -1 };
 	}
 	return (fork_cmd_t){ .pid = pid, .stdin_fd = fds[0], .stdout_fd = fds[1], .stderr_fd = fds[2] };
 }
+#undef $close_fd
 
 int read_fds(int out_fd, int err_fd, fork_buff_t *fb) {
 	$assert_nonnull(fb);
