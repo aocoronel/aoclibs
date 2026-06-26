@@ -16,13 +16,13 @@ The current example is roughly enough to introduce all features Crown currently 
 ```c
 #include <stdio.h>
 
-#define AOCLIBS_IMPLEMENTATION
+#define AOC_IMPLEMENTATION
 #include "base.h"
 
-#define AOCLIBS_CROWN
+#define AOC_CROWN
 #include "crown.h"
 
-#define AOCLIBS_MATCH
+#define AOC_MATCH
 #include "match.h"
 
 bool match_int(int x, int y) {

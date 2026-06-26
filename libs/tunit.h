@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_TUNIT_H_
-#define AOCLIBS_TUNIT_H_
+#ifndef AOC_TUNIT_H_
+#define AOC_TUNIT_H_
 
 // TUnit -- Test Unit
 
@@ -389,4 +389,4 @@ int main(void) {
 }
 #endif // TUNIT
 
-#endif // AOCLIBS_TUNIT_H_
+#endif // AOC_TUNIT_H_

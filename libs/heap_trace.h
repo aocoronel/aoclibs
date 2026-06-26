@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_HEAP_TRACE_H_
-#define AOCLIBS_HEAP_TRACE_H_
+#ifndef AOC_HEAP_TRACE_H_
+#define AOC_HEAP_TRACE_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -185,4 +185,4 @@ static inline void heap_trace_summary(FILE *fd) {
 
 #endif
 
-#endif // AOCLIBS_HEAP_TRACE_H_
+#endif // AOC_HEAP_TRACE_H_

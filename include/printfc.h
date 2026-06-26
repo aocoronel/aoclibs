@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_PRINTFC_H_
-#define AOCLIBS_PRINTFC_H_
+#ifndef AOC_PRINTFC_H_
+#define AOC_PRINTFC_H_
 
 #include "base.h"
 #include "colors.h"
@@ -57,4 +57,4 @@
 #define tprintfc_info(istty, ...) tprintfc(istty, COLOR_GREEN, "info", __VA_ARGS__)
 #define tprintfc_critical(istty, ...) tprintfc(istty, COLOR_RED, "critical", __VA_ARGS__)
 
-#endif // AOCLIBS_PRINTFC_H_
+#endif // AOC_PRINTFC_H_

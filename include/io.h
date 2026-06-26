@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_IO_H
-#define AOCLIBS_IO_H
+#ifndef AOC_IO_H
+#define AOC_IO_H
 
 #include "base.h"
 
@@ -19,7 +19,7 @@ AOCDEF void fputf(FILE *fp, double f, int decimals);
 AOCDEF void fputui(FILE *fp, unsigned long long n);
 AOCDEF void fputsi(FILE *fp, signed long long n);
 
-#ifdef AOCLIBS_IMPLEMENTATION
+#ifdef AOC_IMPLEMENTATION
 #include "io.c"
 #endif
 

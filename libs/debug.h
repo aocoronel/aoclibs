@@ -1,7 +1,7 @@
-#ifndef AOCLIBS_DEBUG_H_
-#define AOCLIBS_DEBUG_H_
+#ifndef AOC_DEBUG_H_
+#define AOC_DEBUG_H_
 
-#ifdef AOCLIBS_DEBUG
+#ifdef AOC_DEBUG
 
 #define _GNU_SOURCE
 #include <setjmp.h>
@@ -56,6 +56,6 @@ __attribute__((constructor)) void _main(int argc, char *argv[]) {
 	}
 }
 
-#endif // AOCLIBS_DEBUG
+#endif // AOC_DEBUG
 
-#endif // AOCLIBS_DEBUG_H_
+#endif // AOC_DEBUG_H_

@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_CROWN_H_
-#define AOCLIBS_CROWN_H_
+#ifndef AOC_CROWN_H_
+#define AOC_CROWN_H_
 
 #include "arena.h"
 #include "base.h"
@@ -247,7 +247,7 @@ AOCDEF int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc);
 // the arena, and at release switch to the stack-based eliminating all allocations made by Crown.
 AOCDEF void crown_dump(FILE *fp);
 
-#ifdef AOCLIBS_CROWN
+#ifdef AOC_CROWN
 
 int optind = 0;
 char *optarg = NULL;
@@ -1182,7 +1182,7 @@ AOCDEF void crown_iprint(const char *msg, int indent) {
 	}
 	CROWN_PUTC(' ');
 }
-#endif // AOCLIBS_CROWN
+#endif // AOC_CROWN
 
 #ifdef TUNIT
 TEST(crown_normalize_name) {
@@ -1208,4 +1208,4 @@ TEST(crown_normalize_name) {
 }
 #endif
 
-#endif // AOCLIBS_CROWN_H_
+#endif // AOC_CROWN_H_

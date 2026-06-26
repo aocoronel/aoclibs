@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_BASE_H_
-#define AOCLIBS_BASE_H_
+#ifndef AOC_BASE_H_
+#define AOC_BASE_H_
 
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 700
@@ -146,4 +146,4 @@
 		$msan_unpoison(ptr, size);               \
 	} while (0)
 
-#endif // AOCLIBS_BASE_H_
+#endif // AOC_BASE_H_

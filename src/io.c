@@ -4,7 +4,7 @@
 #include "io.h"
 #include <math.h>
 
-#define AOCLIBS_IO_PUT_BUFF 64
+#define AOC_IO_PUT_BUFF 64
 
 int eprintf(const char *fmt, ...) {
 	va_list ap;
@@ -57,7 +57,7 @@ bool bputn(char *dst, size_t *len, size_t size, size_t count, char c) {
 	$assert_nonnull(dst != NULL);
 	$assert_nonnull(len != NULL);
 
-	char space[AOCLIBS_IO_PUT_BUFF];
+	char space[AOC_IO_PUT_BUFF];
 	memset(space, c, count);
 	return bputs(dst, len, size, space, count);
 }
@@ -103,7 +103,7 @@ bool bputf(char *dst, size_t *len, size_t size, int decimals, double f) {
 	int len_frac = decimals;
 
 	int total_len = len_int + (decimals > 0 ? 1 + len_frac : 0);
-	char str[AOCLIBS_IO_PUT_BUFF];
+	char str[AOC_IO_PUT_BUFF];
 	char *ptr = str + total_len;
 
 	int frac_int = (int)(fpart * powf(10, decimals) + 0.5f);
@@ -143,7 +143,7 @@ bool bputui(char *dst, size_t *len, size_t size, unsigned long long n) {
 		}
 	}
 
-	char str[AOCLIBS_IO_PUT_BUFF];
+	char str[AOC_IO_PUT_BUFF];
 	char *ptr = str + _len;
 	*ptr = '\0';
 
@@ -178,7 +178,7 @@ bool bputsi(char *dst, size_t *len, size_t size, signed long long n) {
 		}
 	}
 
-	char str[AOCLIBS_IO_PUT_BUFF];
+	char str[AOC_IO_PUT_BUFF];
 	char *ptr = str + _len;
 	*ptr = '\0';
 
@@ -195,8 +195,8 @@ bool bputsi(char *dst, size_t *len, size_t size, signed long long n) {
 
 size_t fputn(FILE *fp, size_t count, char c) {
 	$assert_nonnull(fp != NULL);
-	$catch(AOCLIBS_IO_PUT_BUFF < count) return SIZE_MAX;
-	char space[AOCLIBS_IO_PUT_BUFF];
+	$catch(AOC_IO_PUT_BUFF < count) return SIZE_MAX;
+	char space[AOC_IO_PUT_BUFF];
 	memset(space, c, count);
 	return fwrite(space, sizeof(char), count, fp);
 }
@@ -238,7 +238,7 @@ void fputf(FILE *fp, double f, int decimals) {
 	int len_frac = decimals;
 
 	int total_len = len_int + (decimals > 0 ? 1 + len_frac : 0);
-	char str[AOCLIBS_IO_PUT_BUFF];
+	char str[AOC_IO_PUT_BUFF];
 	char *ptr = str + total_len;
 
 	int frac_int = (int)(fpart * powf(10, decimals) + 0.5f);
@@ -278,7 +278,7 @@ void fputui(FILE *fp, unsigned long long n) {
 		}
 	}
 
-	char str[AOCLIBS_IO_PUT_BUFF];
+	char str[AOC_IO_PUT_BUFF];
 	char *ptr = str + len;
 	*ptr = '\0';
 
@@ -313,7 +313,7 @@ void fputsi(FILE *fp, signed long long n) {
 		}
 	}
 
-	char str[AOCLIBS_IO_PUT_BUFF];
+	char str[AOC_IO_PUT_BUFF];
 	char *ptr = str + len;
 	*ptr = '\0';
 

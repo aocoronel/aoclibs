@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_DA_H_
-#define AOCLIBS_DA_H_
+#ifndef AOC_DA_H_
+#define AOC_DA_H_
 
 #include "base.h"
 
@@ -152,7 +152,7 @@ AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t s
 
 #define da_is_null(da) !(da) || !(da)->data
 
-#ifdef AOCLIBS_IMPLEMENTATION
+#ifdef AOC_IMPLEMENTATION
 void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t type_size) {
 	size_t local_cap = *cap;
 	if ($unlikely((new_cap) > local_cap)) {

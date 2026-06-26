@@ -36,7 +36,7 @@
 
 // === Function Definitions ===
 
-// Enabled with AOCLIBS_IMPLEMENTATION
+// Enabled with AOC_IMPLEMENTATION
 
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 700
@@ -79,7 +79,7 @@
 // Libraries
 #include "./libs/heap_trace.h" // HEAP_DEBUG
 #include "./libs/tunit.h" // TUNIT
-#include "./libs/crown.h" // AOCLIBS_CROWN
-#include "./libs/debug.h" // AOCLIBS_DEBUG
-#include "./libs/spinner.h" // AOCLIBS_SPINNER
-#include "./libs/ini.h" // AOCLIBS_SPINNER
+#include "./libs/crown.h" // AOC_CROWN
+#include "./libs/debug.h" // AOC_DEBUG
+#include "./libs/spinner.h" // AOC_SPINNER
+#include "./libs/ini.h" // AOC_SPINNER

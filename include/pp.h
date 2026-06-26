@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_PP_H_
-#define AOCLIBS_PP_H_
+#ifndef AOC_PP_H_
+#define AOC_PP_H_
 
 #include "base.h"
 
@@ -51,7 +51,7 @@ AOCDEF void *prefresh(PPool *pool, size_t idx, const size_t size);
 // To free the pool, use da_free(pool)
 AOCDEF void pdrain(PPool *pool);
 
-#ifdef AOCLIBS_IMPLEMENTATION
+#ifdef AOC_IMPLEMENTATION
 #include "pp.c"
 #endif
 

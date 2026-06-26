@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_CSTR_H_
-#define AOCLIBS_CSTR_H_
+#ifndef AOC_CSTR_H_
+#define AOC_CSTR_H_
 
 #include "base.h"
 
@@ -121,8 +121,8 @@ AOCDEF void slice_chop_right_by(Slice *s, char delim);
 AOCDEF Slice slice_extract_from_substring(Slice *s);
 AOCDEF void slice_shift_by(Slice *s, size_t len);
 
-#ifdef AOCLIBS_IMPLEMENTATION
+#ifdef AOC_IMPLEMENTATION
 #include "cstr.c"
-#endif // AOCLIBS_IMPLEMENTATION
+#endif // AOC_IMPLEMENTATION
 
-#endif // AOCLIBS_CSTR_H_
+#endif // AOC_CSTR_H_

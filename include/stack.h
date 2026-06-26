@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_STACK_H_
-#define AOCLIBS_STACK_H_
+#ifndef AOC_STACK_H_
+#define AOC_STACK_H_
 
 #include "base.h"
 

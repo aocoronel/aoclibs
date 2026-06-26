@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_FILE_H_
-#define AOCLIBS_FILE_H_
+#ifndef AOC_FILE_H_
+#define AOC_FILE_H_
 
 #include "base.h"
 #include "rc.h"
@@ -104,8 +104,8 @@ AOCDEF char *null make_path(char *restrict out,
 							const Slice *restrict dirs,
 							const size_t dir_count);
 
-#ifdef AOCLIBS_IMPLEMENTATION
+#ifdef AOC_IMPLEMENTATION
 #include "file.c"
 #endif
 
-#endif // AOCLIBS_FILE_H_
+#endif // AOC_FILE_H_

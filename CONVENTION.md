@@ -50,7 +50,7 @@ Header files are defined in `base` and `libs`.
 
 Libraries in `libs` may use other libraries from `base` and `libs`, but `base` libraries must not use from `libs`. You can consult the `template.h` to see what `base` libraries are standalones. Mostly will only depend on `base.h`, but since you can consume it as Unlicense, you can just copy paste it over.
 
-The header guards are defined as follows: `AOCLIBS_LIBNAME_H_`.
+The header guards are defined as follows: `AOC_LIBNAME_H_`.
 
 ## Functions
 

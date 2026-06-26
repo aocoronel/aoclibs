@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_INI_H_
-#define AOCLIBS_INI_H_
+#ifndef AOC_INI_H_
+#define AOC_INI_H_
 
 #include "rc.h"
 #include <ctype.h>
@@ -53,7 +53,7 @@ AOCDEF bool ini_parse(Ini *ini);
 AOCDEF void ini_print_error(Ini *restrict ini, const char *restrict file);
 AOCDEF void ini_deinit(Ini *ini);
 
-#ifdef AOCLIBS_INI
+#ifdef AOC_INI
 #include "da.h"
 #include "file.h"
 #include "printfc.h"

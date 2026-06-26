@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_COLORS_H_
-#define AOCLIBS_COLORS_H_
+#ifndef AOC_COLORS_H_
+#define AOC_COLORS_H_
 
 #include "cfg.h"
 
@@ -55,4 +55,4 @@
 #define COLOR_WHITE_BRIGHT "\x1b[97m"
 #endif // CONFIG_TTY_COLORS
 
-#endif // AOCLIBS_COLORS_H_
+#endif // AOC_COLORS_H_

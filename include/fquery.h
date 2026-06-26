@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_FQUERY_H_
-#define AOCLIBS_FQUERY_H_
+#ifndef AOC_FQUERY_H_
+#define AOC_FQUERY_H_
 
 #include "base.h"
 
@@ -58,8 +58,8 @@ AOCDEF bool fquery(const fquery_t *qms, const char *pattern);
 // === Internal ===
 AOCDEF bool _fquery(const fquery_t *qms, const char *null p);
 
-#ifdef AOCLIBS_IMPLEMENTATION
+#ifdef AOC_IMPLEMENTATION
 #include "fquery.c"
-#endif // AOCLIBS_IMPLEMENTATION
+#endif // AOC_IMPLEMENTATION
 
 #endif

@@ -168,7 +168,7 @@ bool _hmap_init(_HashMap *map, const size_t capacity, const size_t sizeof_entry)
 
 _HashEntry *_hmap_insert(_HashMap *map, const Slice key, const size_t sizeof_entry) {
 	if (!map || !map->entries) {
-		if (!hmap_init(map, AOCLIBS_HASHMAP_INITIAL_CAPACITY)) return NULL;
+		if (!hmap_init(map, AOC_HASHMAP_INITIAL_CAPACITY)) return NULL;
 	}
 
 	uint64_t hash = _HMAP_HASH(key);
@@ -243,7 +243,7 @@ typedef struct HashMap {
 
 TEST(hashmap_test) {
 	HashMap map = { 0 };
-	// Optional, AOCLIBS_HASHMAP_INITIAL_CAPACITY will be used if this step isn't done
+	// Optional, AOC_HASHMAP_INITIAL_CAPACITY will be used if this step isn't done
 	if (!hmap_init(&map, 10)) {
 		$tassert(0, "out of memory");
 	}

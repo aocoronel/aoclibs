@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_RC_H_
-#define AOCLIBS_RC_H_
+#ifndef AOC_RC_H_
+#define AOC_RC_H_
 
 #include "base.h"
 #include "da.h"
@@ -79,4 +79,4 @@ typedef struct {
 	} while (0)
 // =================================
 
-#endif // AOCLIBS_RC_H_
+#endif // AOC_RC_H_

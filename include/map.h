@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_MAP_H_
-#define AOCLIBS_MAP_H_
+#ifndef AOC_MAP_H_
+#define AOC_MAP_H_
 
 #include "base.h"
 #include "cstr.h"
@@ -107,7 +107,7 @@ AOCDEF struct _Map *null _map_get(struct _Map *map, const Slice slice);
 AOCDEF
 int map_binary_search(struct _Map *map, const unsigned char k);
 
-#ifdef AOCLIBS_IMPLEMENTATION
+#ifdef AOC_IMPLEMENTATION
 #include "map.c"
 #endif
 

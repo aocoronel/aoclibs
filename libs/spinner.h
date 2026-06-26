@@ -1,7 +1,7 @@
-#ifndef AOCLIBS_SPINNER_H_
-#define AOCLIBS_SPINNER_H_
+#ifndef AOC_SPINNER_H_
+#define AOC_SPINNER_H_
 
-#ifdef AOCLIBS_SPINNER
+#ifdef AOC_SPINNER
 
 #include <stdint.h>
 
@@ -24,4 +24,4 @@ AOCDEF const char *get_spinner(void) {
 
 #endif
 
-#endif // AOCLIBS_SPINNER_H_
+#endif // AOC_SPINNER_H_

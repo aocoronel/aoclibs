@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_ARENA_H_
-#define AOCLIBS_ARENA_H_
+#ifndef AOC_ARENA_H_
+#define AOC_ARENA_H_
 
 // Copyright 2022 Alexey Kutepov <reximkut@gmail.com>
 
@@ -169,9 +169,9 @@ AOCDEF void arena_destroy(Arena *a);
 	} while (0)
 // =================================
 
-#ifdef AOCLIBS_IMPLEMENTATION
+#ifdef AOC_IMPLEMENTATION
 
-#if AOCLIBS_ARENA_BACKEND == AOCLIBS_ARENA_BACKEND_LIBC_MALLOC
+#if AOC_ARENA_BACKEND == AOC_ARENA_BACKEND_LIBC_MALLOC
 
 AOCDEF Region *arena_new_region(const size_t capacity) {
 	const size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
@@ -193,7 +193,7 @@ AOCDEF void arena_free_region(Region *r) {
 	free(r);
 }
 
-#elif AOCLIBS_ARENA_BACKEND == AOCLIBS_ARENA_BACKEND_VIRTUAL_ALLOC && __linux__
+#elif AOC_ARENA_BACKEND == AOC_ARENA_BACKEND_VIRTUAL_ALLOC && __linux__
 
 #include <unistd.h>
 #include <sys/mman.h>
@@ -225,7 +225,7 @@ AOCDEF void arena_free_region(Region *r) {
 
 #else
 
-#error "Only malloc (AOCLIBS_ARENA_BACKEND_LIBC_MALLOC) and mmap (AOCLIBS_ARENA_BACKEND_VIRTUAL_ALLOC) are supported."
+#error "Only malloc (AOC_ARENA_BACKEND_LIBC_MALLOC) and mmap (AOC_ARENA_BACKEND_VIRTUAL_ALLOC) are supported."
 
 #endif
 
@@ -359,6 +359,6 @@ AOCDEF void arena_destroy(Arena *a) {
 	a->begin = NULL;
 	a->end = NULL;
 }
-#endif // AOCLIBS_IMPLEMENTATION
+#endif // AOC_IMPLEMENTATION
 
-#endif // AOCLIBS_ARENA_H_
+#endif // AOC_ARENA_H_

@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_HASHMAP_H_
-#define AOCLIBS_HASHMAP_H_
+#ifndef AOC_HASHMAP_H_
+#define AOC_HASHMAP_H_
 
 #include "base.h"
 #include "cstr.h"
@@ -77,8 +77,8 @@ AOCDEF bool _hmap_remove_from_hash(_HashMap *map, const uint64_t hash, const Sli
 		result;                                                \
 	})
 
-#ifdef AOCLIBS_IMPLEMENTATION
+#ifdef AOC_IMPLEMENTATION
 #include "hmap.c"
 #endif
 
-#endif // AOCLIBS_HASHMAP_H_
+#endif // AOC_HASHMAP_H_

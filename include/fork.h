@@ -1,5 +1,5 @@
-#ifndef AOCLIBS_FORK_H_
-#define AOCLIBS_FORK_H_
+#ifndef AOC_FORK_H_
+#define AOC_FORK_H_
 
 #include "base.h"
 #include "rc.h"
@@ -39,8 +39,8 @@ AOCDEF ssize_t write_fd(int fd, const void *buf, size_t count);
 AOCDEF int read_fds(int out_fd, int err_fd, fork_buff_t *fb);
 AOCDEF void close_fd(int fd);
 
-#ifdef AOCLIBS_IMPLEMENTATION
+#ifdef AOC_IMPLEMENTATION
 #include "fork.c"
-#endif // AOCLIBS_IMPLEMENTATION
+#endif // AOC_IMPLEMENTATION
 
 #endif

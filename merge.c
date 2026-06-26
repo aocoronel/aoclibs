@@ -1,4 +1,4 @@
-#define AOCLIBS_IMPLEMENTATION
+#define AOC_IMPLEMENTATION
 #include "include/base.h"
 #include "include/cstr.h"
 #include "include/file.h"
@@ -95,15 +95,15 @@ void read_source_files(FileType ft, struct stat *st, const char *path) {
 }
 
 #define STRING                         \
-	"#define AOCLIBS_IMPLEMENTATION\n" \
-	"#define AOCLIBS_CROWN\n"          \
+	"#define AOC_IMPLEMENTATION\n" \
+	"#define AOC_CROWN\n"          \
 	"#include \"aoclibs.h\"\n"         \
 	"#include <string.h>\n"            \
 	"#include <stdlib.h>\n"
 
 #define STRING_MAIN                        \
-	"#define AOCLIBS_IMPLEMENTATION\n"     \
-	"#define AOCLIBS_CROWN\n"              \
+	"#define AOC_IMPLEMENTATION\n"     \
+	"#define AOC_CROWN\n"              \
 	"#include \"aoclibs.h\"\n"             \
 	"#include <string.h>\n"                \
 	"#include <stdlib.h>\n"                \
@@ -149,15 +149,15 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	fputs("#ifndef AOCLIBS_H\n", output);
-	fputs("#define AOCLIBS_H\n", output);
+	fputs("#ifndef AOC_H\n", output);
+	fputs("#define AOC_H\n", output);
 
 	if (read_file(TEMPLATE_FILE, false) == false) return 1;
 
-	fprintf(output, "%s", "#ifdef AOCLIBS_IMPLEMENTATION\n");
+	fprintf(output, "%s", "#ifdef AOC_IMPLEMENTATION\n");
 	dir_walk("src", .isreg = read_source_files);
-	fprintf(output, "%s", "#endif // AOCLIBS_IMPLEMENTATION\n");
-	fputs("#endif // AOCLIBS_H\n", output);
+	fprintf(output, "%s", "#endif // AOC_IMPLEMENTATION\n");
+	fputs("#endif // AOC_H\n", output);
 
 	fclose(output);
 
