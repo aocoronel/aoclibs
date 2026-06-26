@@ -26,7 +26,9 @@
 #define null
 
 // Macros for renaming purposes
+#ifndef __cplusplus
 #define inline __attribute__((__gnu_inline__)) inline
+#endif
 #define restrict __restrict
 #define typeof(type) __typeof__((type))
 // C++ auto in C as a GNU extension: #define auto __auto_type
