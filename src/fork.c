@@ -34,26 +34,24 @@ void close_fd(int fd) {
 	if (fd != -1) close(fd);
 }
 
-fork_cmd_t fork_cmd(ForkOptions opt) {
-	int stdin_fd, stdout_fd, stderr_fd;
-	pid_t pid;
+bool _fork_cmd(pid_t *pid, int fds[3], int pipes[6], ForkOptions opt) {
 	char **argv = opt.argv;
 	char *input = opt.input;
 
 	$assert_nonnull(argv);
 
-	int in_pipe[2] = { -1, -1 };
-	int out_pipe[2] = { -1, -1 };
-	int err_pipe[2] = { -1, -1 };
+	int *in_pipe = pipes; // 0-1
+	int *out_pipe = pipes + 2; // 2-3
+	int *err_pipe = pipes + 4; // 4-5
 
-	if (input && pipe(in_pipe) == -1) goto err;
-	if (opt.out && pipe(out_pipe) == -1) goto err;
-	if (opt.err && pipe(err_pipe) == -1) goto err;
+	if (input && pipe(in_pipe) == -1) return false;
+	if (opt.out && pipe(out_pipe) == -1) return false;
+	if (opt.err && pipe(err_pipe) == -1) return false;
 
-	pid = fork();
-	$catch(pid == -1) goto err;
+	*pid = fork();
+	$catch(*pid == -1) return false;
 
-	if (pid == 0) { // child
+	if (*pid == 0) { // child
 		if (input) {
 			close(in_pipe[1]);
 			$catch(dup2(in_pipe[0], STDIN_FILENO) == -1) _exit(127);
@@ -67,13 +65,6 @@ fork_cmd_t fork_cmd(ForkOptions opt) {
 			$catch(dup2(err_pipe[1], STDERR_FILENO) == -1) _exit(127);
 		}
 
-		close_fd(in_pipe[0]);
-		close_fd(in_pipe[1]);
-		close_fd(out_pipe[0]);
-		close_fd(out_pipe[1]);
-		close_fd(err_pipe[0]);
-		close_fd(err_pipe[1]);
-
 		execvp(argv[0], argv);
 		_exit(127);
 	}
@@ -81,35 +72,37 @@ fork_cmd_t fork_cmd(ForkOptions opt) {
 	if (opt.out) close(out_pipe[1]);
 	if (opt.err) close(err_pipe[1]);
 
-	stdin_fd = input ? in_pipe[1] : -1;
-	stdout_fd = opt.out ? out_pipe[0] : -1;
-	stderr_fd = opt.err ? err_pipe[0] : -1;
+	fds[0] = input ? in_pipe[1] : -1;
+	fds[1] = opt.out ? out_pipe[0] : -1;
+	fds[2] = opt.err ? err_pipe[0] : -1;
 
 	if (input) {
-		$catch(stdin_fd == -1) goto err_stdin;
-		$catch(write_fd(stdin_fd, input, strlen(input)) < 0) {
-			goto err_stdin;
+		$catch(fds[0] == -1 || write_fd(fds[0], input, strlen(input)) < 0) {
+			kill(*pid, SIGTERM);
+			wait_child(*pid);
+			return false;
 		}
-		close(stdin_fd);
+		close(fds[0]);
 	}
 
-	return (fork_cmd_t){
-		.pid = pid, .stdin_fd = stdin_fd, .stdout_fd = stdout_fd, .stderr_fd = stderr_fd
-	};
+	return true;
+}
 
-err_stdin:
-	kill(pid, SIGTERM);
-	wait_child(pid);
-
-err:
-	close_fd(in_pipe[0]);
-	close_fd(in_pipe[1]);
-	close_fd(out_pipe[0]);
-	close_fd(out_pipe[1]);
-	close_fd(err_pipe[0]);
-	close_fd(err_pipe[1]);
-
-	return (fork_cmd_t){ .pid = -1, .stdin_fd = -1, .stdout_fd = -1, .stderr_fd = -1 };
+fork_cmd_t fork_cmd(ForkOptions opt) {
+	pid_t pid;
+	int pipes[6] = { -1 };
+	int fds[3];
+	bool ret = _fork_cmd(&pid, fds, pipes, opt);
+	if (!ret) {
+		close_fd(pipes[0]);
+		close_fd(pipes[1]);
+		close_fd(pipes[2]);
+		close_fd(pipes[3]);
+		close_fd(pipes[4]);
+		close_fd(pipes[5]);
+		return (fork_cmd_t){ .pid = -1, .stdin_fd = -1, .stdout_fd = -1, .stderr_fd = -1 };
+	}
+	return (fork_cmd_t){ .pid = pid, .stdin_fd = fds[0], .stdout_fd = fds[1], .stderr_fd = fds[2] };
 }
 
 int read_fds(int out_fd, int err_fd, fork_buff_t *fb) {
