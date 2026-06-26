@@ -2,6 +2,7 @@
 #define AOC_PP_H_
 
 #include "base.h"
+#include "da.h"
 
 // Pointer Pool
 //
@@ -18,9 +19,7 @@
 // Memory allocated using pfill is asserted to never be NULL.
 
 typedef struct {
-	size_t cap;
-	size_t len;
-	void **data;
+	DYNAMIC_ARRAY(void *);
 } PPool;
 
 // Allocates 'size' bytes using malloc and stores pointer to pool

@@ -4,6 +4,7 @@
 #include "arena.h"
 #include "base.h"
 #include "io.h"
+#include "da.h"
 #include "cstr.c"
 #include <assert.h>
 #include <stdbool.h>
@@ -40,21 +41,15 @@ typedef struct {
 } CrownOption;
 
 typedef struct {
-	size_t len;
-	size_t cap;
-	CrownOption *data;
+    DYNAMIC_ARRAY(CrownOption);
 } CrownOpts;
 
 typedef struct {
-	size_t len;
-	size_t cap;
-	CrownArgument *data;
+    DYNAMIC_ARRAY(CrownArgument);
 } CrownArgs;
 
 typedef struct {
-	size_t len;
-	size_t cap;
-	CrownCommand *data;
+    DYNAMIC_ARRAY(CrownCommand);
 } CrownCmds;
 
 struct CrownCommand {
