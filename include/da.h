@@ -55,11 +55,11 @@
 // DynamicArray my_da = { 0 };
 // da_reserve(&my_da, (&my_da)->len + 1); // Needs to allocate one value
 #define da_reserve(da, new_cap)                                                          \
-	do {                                                                                 \
+	({                                                                                   \
 		void *ptr = _da_reserve((da)->data, &(da)->cap, (new_cap), sizeof(*(da)->data)); \
 		$assert(ptr, "out of memory while reserving memory for dynamic array");          \
 		(da)->data = (typeof((da)->data))ptr;                                            \
-	} while (0)
+	})
 
 AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t sizeof_da);
 
@@ -155,18 +155,16 @@ AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t s
 #ifdef AOC_IMPLEMENTATION
 void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t type_size) {
 	size_t local_cap = *cap;
-	if ($unlikely((new_cap) > local_cap)) {
-		if (local_cap < CONFIG_DA_DEFAULT_CAPACITY) {
-			local_cap = CONFIG_DA_DEFAULT_CAPACITY;
-		}
-		while ((new_cap) > local_cap) {
-			local_cap *= 2;
-		}
-		void *new_data = realloc(data, local_cap * type_size);
-		*cap = local_cap;
-		return new_data;
+	if (new_cap <= local_cap) return data;
+	if (local_cap < CONFIG_DA_DEFAULT_CAPACITY) {
+		local_cap = CONFIG_DA_DEFAULT_CAPACITY;
 	}
-	return data;
+	while ((new_cap) > local_cap) {
+		local_cap *= 2;
+	}
+	void *new_data = realloc(data, local_cap * type_size);
+	*cap = local_cap;
+	return new_data;
 }
 #endif
 
