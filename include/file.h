@@ -14,26 +14,25 @@ typedef enum FileType {
 	F_FAIL, // Failed to stat
 } FileType;
 
-typedef void (*null dw_fn)(FileType, struct stat *, const char *);
+typedef void (*dw_fn)(FileType, struct stat *, const char *);
 
 typedef struct DirWalker DirWalker;
 
 struct DirWalker {
 	void (*null isdir)(FileType, DirWalker *);
-	dw_fn islnk;
-	dw_fn isnull;
-	dw_fn isreg;
+	dw_fn null islnk;
+	dw_fn null isnull;
+	dw_fn null isreg;
 	void (*null isempty)(const char *path);
 };
 
-// dir_walk("test.md", .islnk = my_fn);
+// Usage: dir_walk("test.md", .islnk = my_fn);
 #define dir_walk(path, ...)                           \
 	do {                                              \
 		DirWalker _walk = (DirWalker){ __VA_ARGS__ }; \
 		dir_walker(path, &_walk);                     \
 	} while (0)
-// dir_walk can run four user provided functions based on each filetype:
-// reg, directory, lnk and null.
+// dir_walker can run five user provided functions based on each FileType.
 //
 // If the user prefers to ignore a certain filetype, the function values can be
 // passed as NULL.
