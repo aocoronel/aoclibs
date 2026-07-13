@@ -69,13 +69,17 @@ I usually prefix private variables/macros/functions with one `_` or two. However
 
 I like to write reusable code. This means that if I write an allocator, I should have many pieces on how to make it, and let the user make their own, if they want. Private is against that idea.
 
-In the current state of this project, all the types that are also not supposed to be used directly, follow are suffixed with `_t` and are `snake_case`.
+In the current state of this project, all the types that are also not supposed to be used directly are suffixed with `_t` and are `snake_case`.
+
+### Unit Tests
+
+`aoclibs` presents a novel way to write tests by writing them along the source code, which is powered by [tunit](https://codeberg.org/aocoronel/aoclibs/src/branch/main/docs/tunit.md).
 
 ## Header Files
 
 Header files are defined in `base` and `libs`.
 
-Libraries in `libs` may use other libraries from `base` and `libs`, but `base` libraries must not use from `libs`. You can consult the `template.h` to see what `base` libraries are standalones. Mostly will only depend on `base.h`, but since you can consume it as Unlicense, you can just copy paste it over.
+Libraries in `libs` may use other libraries from `base` and `libs`, but `base` libraries must not use from `libs`. You can consult the `template.h` to see what `base` libraries are standalones. Mostly will only depend on `base.h`.
 
 The header guards are defined as follows: `AOC_LIBNAME_H_`.
 
