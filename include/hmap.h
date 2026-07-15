@@ -19,7 +19,7 @@ typedef struct Hash_Entry_Tmpl {
 } Hash_Entry_Tmpl;
 
 typedef struct Hash_Map_Tmpl {
-	HASHMAP(int);
+	HASHMAP(void *);
 } Hash_Map_Tmpl;
 
 #define hmap_init(map, capacity) \
@@ -53,20 +53,27 @@ AOCDEF void _hmap_reset(Hash_Map_Tmpl *map);
 AOCDEF void *_hmap_insert(Hash_Map_Tmpl *map, const Slice key);
 AOCDEF void *_hmap_insert_from_hash(Hash_Map_Tmpl *map, const Slice key, const uint64_t hash);
 
-#define hmap_get(map, slice)                                    \
-	({                                                          \
-		void *value = _hmap_get((Hash_Map_Tmpl *)map, (slice)); \
-		$assert(value);                                         \
-		*(typeof((map)->data))value;                            \
+#define hmap_get(map, slice)                                   \
+	({                                                         \
+		size_t idx = _hmap_get((Hash_Map_Tmpl *)map, (slice)); \
+		$assert(idx != SIZE_MAX);                              \
+		(map)->data[idx];                                      \
 	})
-#define hmap_get_value(map, slice)                              \
-	({                                                          \
-		void *value = _hmap_get((Hash_Map_Tmpl *)map, (slice)); \
-		(typeof((map)->data))value;                             \
+#define hmap_get_value(map, slice)                             \
+	({                                                         \
+		typeof((map)->data) ret = NULL;                        \
+		size_t idx = _hmap_get((Hash_Map_Tmpl *)map, (slice)); \
+		if (idx != SIZE_MAX) {                                 \
+			ret = (map)->data + idx;                           \
+		}                                                      \
+		ret;                                                   \
 	})
-AOCDEF void *_hmap_get(const Hash_Map_Tmpl *map, const Slice key);
-AOCDEF void *_hmap_get_entry(const Hash_Map_Tmpl *map, const Slice key);
-AOCDEF void *_hmap_get_from_hash(const Hash_Map_Tmpl *map, const Slice key, const uint64_t hash);
+AOCDEF size_t _hmap_get(const Hash_Map_Tmpl *map, const Slice key);
+AOCDEF Hash_Entry_Tmpl *
+_hmap_get_from_hash(const Hash_Map_Tmpl *map, const Slice key, const uint64_t hash);
+AOCDEF size_t _hmap_get_value_from_hash(const Hash_Map_Tmpl *map,
+										const Slice key,
+										const uint64_t hash);
 
 #define hmap_remove(map, slice) _hmap_remove((Hash_Map_Tmpl *)map, (slice))
 
