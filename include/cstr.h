@@ -80,7 +80,7 @@ AOCDEF long cstr_to_long(const char *s, const long _default);
 // Slices
 
 // printf("%.*s\n", $view_slice(slice))
-#define $view_slice(r) ((int)(r)->len), ((r)->data)
+#define $view_slice(r) ((int)(r).len), ((r).data)
 
 typedef struct {
 	const char *data;
@@ -102,6 +102,11 @@ AOCDEF bool slice_ends_with_cstr(Slice lhs, const char *rhs, const size_t rhs_le
 		.data = "" s "", .len = $strlen(s), \
 	}
 
+#define $rc_to_slice(rc)                      \
+	(Slice) {                                 \
+		.data = (rc)->data, .len = (rc)->len, \
+	}
+
 // while (begin < end) {
 //     cursor = while_extract_next_word(s, &begin, end);
 //     if (cursor.len == 0) break;
@@ -111,6 +116,8 @@ AOCDEF Slice while_next_word_and(const char *restrict s,
 								 size_t *restrict begin,
 								 size_t end,
 								 char delim);
+
+AOCDEF size_t slice_next_line(Slice *out, Slice *it);
 
 AOCDEF size_t cstr_skip_whitespace_forward(const char *pos, size_t len);
 AOCDEF size_t cstr_skip_whitespace_backward(const char *pos, size_t len);
