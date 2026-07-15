@@ -54,12 +54,16 @@
 //
 // DynamicArray my_da = { 0 };
 // da_reserve(&my_da, (&my_da)->len + 1); // Needs to allocate one value
-#define da_reserve(da, new_cap)                                                          \
+#define da_reserve_safe(da, new_cap)                                                     \
 	({                                                                                   \
 		void *ptr = _da_reserve((da)->data, &(da)->cap, (new_cap), sizeof(*(da)->data)); \
 		$assert(ptr, "out of memory while reserving memory for dynamic array");          \
 		(da)->data = (typeof((da)->data))ptr;                                            \
 	})
+
+#define da_reserve(da, new_cap)                    \
+	((da)->data = (typeof((da)->data))_da_reserve( \
+			 (da)->data, &(da)->cap, (new_cap), sizeof(*(da)->data));)
 
 AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t sizeof_da);
 
@@ -72,10 +76,10 @@ AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t s
 		(da)->cap = 0;                              \
 	} while (0)
 
-#define da_insert(da, item)               \
-	do {                                  \
-		da_reserve((da), (da)->len + 1);  \
-		(da)->data[(da)->len++] = (item); \
+#define da_insert(da, item)                   \
+	do {                                      \
+		da_reserve_safe((da), (da)->len + 1); \
+		(da)->data[(da)->len++] = (item);     \
 	} while (0)
 
 #define da_append(da, items_buff, items_size)          \
@@ -86,7 +90,7 @@ AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t s
 
 #define da_add(da, items_buff, items_size, offset)                                       \
 	do {                                                                                 \
-		da_reserve((da), (da)->len + (items_size));                                      \
+		da_reserve_safe((da), (da)->len + (items_size));                                 \
 		memcpy((da)->data + (offset), (items_buff), (items_size) * sizeof(*(da)->data)); \
 	} while (0)
 
@@ -112,7 +116,7 @@ AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t s
 
 #define da_clone(dest, src)                                             \
 	do {                                                                \
-		da_reserve(dest, (src)->cap);                                   \
+		da_reserve_safe(dest, (src)->cap);                              \
 		(dest)->len = (src)->len;                                       \
 		memcpy((dest)->data, (src)->data, (src)->len * sizeof(void *)); \
 	} while (0)
