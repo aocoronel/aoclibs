@@ -4,17 +4,23 @@
 #include "base.h"
 #include "cstr.h"
 
+#define HASHENTRY(type) \
+	Slice key;          \
+	uint64_t hash;      \
+	uint32_t meta;      \
+	type value
+
+#define HASHMAP(type) \
+	size_t len;       \
+	size_t cap;       \
+	type *entries
+
 typedef struct _HashEntry {
-	Slice key;
-	uint64_t hash;
-	uint32_t meta;
-	int value;
+	HASHENTRY(int);
 } _HashEntry;
 
 typedef struct _HashMap {
-	size_t cap;
-	size_t len;
-	_HashEntry *entries;
+	HASHMAP(_HashEntry);
 } _HashMap;
 
 #define hmap_init(map, capacity) \
@@ -33,18 +39,18 @@ AOCDEF void _hmap_clear(_HashMap *map);
 #define hmap_reset _hmap_reset((_HashMap *)map)
 AOCDEF void _hmap_reset(_HashMap *map);
 
-#define hmap_insert(map, slice, val)                                     \
-	({                                                                   \
-		bool ok = false;                                                 \
-		typeof((map)->entries) e = (typeof((map)->entries))_hmap_insert( \
-				(_HashMap *)map, (slice), sizeof(*(map)->entries));      \
-		if (e) {                                                         \
-			e->value = (val);                                            \
-			ok = true;                                                   \
-		}                                                                \
-		ok;                                                              \
+#define hmap_insert(map, slice, val)                                        \
+	({                                                                      \
+		bool ok = false;                                                    \
+		typeof((map)->entries) e;                                           \
+		e = (typeof((map)->entries))_hmap_insert((_HashMap *)map, (slice)); \
+		if (e) {                                                            \
+			e->value = (val);                                               \
+			ok = true;                                                      \
+		}                                                                   \
+		ok;                                                                 \
 	})
-AOCDEF _HashEntry *_hmap_insert(_HashMap *map, const Slice key, const size_t sizeof_entry);
+AOCDEF _HashEntry *_hmap_insert(_HashMap *map, const Slice key);
 AOCDEF _HashEntry *_hmap_insert_from_hash(_HashMap *map, const Slice key, const uint64_t hash);
 
 #define hmap_get(map, slice) ((typeof((map)->entries))_hmap_get((_HashMap *)map, (slice)))->value
