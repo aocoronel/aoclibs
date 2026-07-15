@@ -25,6 +25,9 @@
 // a design bug.
 #define null
 
+// Sometimes variables are left undefined on purpose, but there is not indicator of such
+#define undefined
+
 // Macros for renaming purposes
 #ifndef __cplusplus
 #define inline __attribute__((__gnu_inline__)) inline
