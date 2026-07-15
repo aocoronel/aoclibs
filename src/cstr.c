@@ -349,6 +349,30 @@ Slice while_next_word_and(const char *restrict s, size_t *restrict begin, size_t
 	}
 }
 
+size_t slice_next_line(Slice *out, Slice *it) {
+	$assert_nonnull(out);
+	$assert_nonnull(it);
+
+	size_t s_len = it->len;
+	const char *s_data = it->data;
+
+	const char *newline = memchr(s_data, '\n', s_len);
+	if (!newline)
+		return SIZE_MAX;
+
+	size_t len = (size_t)(newline - s_data);
+
+	*out = (Slice){
+		.data = s_data,
+		.len = len,
+	};
+
+	it->data = newline + 1;
+	it->len = s_len - len - 1;
+
+	return len;
+}
+
 void slice_to_cstr(Slice s, char *buff, const size_t size) {
 	int size_to_copy = s.len > size ? size : s.len;
 	memcpy(buff, s.data, size_to_copy);
