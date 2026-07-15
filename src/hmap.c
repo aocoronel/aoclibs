@@ -3,6 +3,7 @@
 #include "base.h"
 #include "calculus.h"
 #include "hmap.h"
+#include "da.h"
 #include "rapidhash.h"
 
 enum {
@@ -14,33 +15,33 @@ enum {
 #define _HMAP_ENTRY_DISTANCE(entry) (entry->meta & _HMAP_META_DISTANCE_MASK)
 #define _HMAP_SET_DISTANCE(entry, distance) \
 	(entry)->meta = _HMAP_META_USED_MASK | ((distance) & _HMAP_META_DISTANCE_MASK);
-#define _HMAP_MASK(map) (map)->cap - 1
+#define _HMAP_MASK(map) (map)->entries.cap - 1
 #define _HMAP_HASH(slice) rapidhash(key.data, key.len)
 #define _HMAP_INDEX(map, hash) (size_t)(hash) & _HMAP_MASK((map))
 
-bool _hmap_resize(_HashMap *map, size_t new_capacity) {
+bool _hmap_resize(Hash_Map_Tmpl *map, size_t new_capacity) {
 	$assert_nonnull(map);
-	$assert_nonnull(map->entries);
+	$assert_nonnull(map->entries.data);
 
 	size_t cap = coerce_to_pow2(new_capacity);
 	$assert(cap - 1 <= _HMAP_META_DISTANCE_MASK);
 
-	_HashEntry *new_entries = (_HashEntry *)calloc(cap, sizeof(_HashEntry));
+	Hash_Entry_Tmpl *new_entries = (Hash_Entry_Tmpl *)calloc(cap, sizeof(Hash_Entry_Tmpl));
 	$catch(!new_entries) return false;
 
-	_HashEntry *old_entries = map->entries;
-	size_t old_capacity = map->cap;
+	Hash_Entry_Tmpl *old_entries = map->entries.data;
+	size_t old_capacity = map->entries.cap;
 
-	_HashMap new_map;
-	new_map.entries = new_entries;
-	new_map.cap = cap;
-	new_map.len = 0;
+	Hash_Map_Tmpl new_map;
+	new_map.entries.data = new_entries;
+	new_map.entries.cap = cap;
+	new_map.entries.len = 0;
 
 	for (size_t i = 0; i < old_capacity; i++) {
-		_HashEntry *e = &old_entries[i];
+		Hash_Entry_Tmpl *e = &old_entries[i];
 		if (_HMAP_ENTRY_IS_USED(e)) {
-			_HashEntry *_e = _hmap_insert_from_hash(&new_map, e->key, e->hash);
-			_e->value = e->value;
+			Hash_Entry_Tmpl *_e = _hmap_insert_from_hash(&new_map, e->key, e->hash);
+			_e->value_idx = e->value_idx;
 		}
 	}
 
@@ -49,44 +50,44 @@ bool _hmap_resize(_HashMap *map, size_t new_capacity) {
 	return true;
 }
 
-void _hmap_free(_HashMap *map) {
+void _hmap_free(Hash_Map_Tmpl *map) {
 	$assert_nonnull(map);
-	$assert_nonnull(map->entries);
-	free(map->entries);
-	map->entries = NULL;
-	map->cap = 0;
-	map->len = 0;
+	$assert_nonnull(map->entries.data);
+	free(map->entries.data);
+	map->entries.data = NULL;
+	map->entries.cap = 0;
+	map->entries.len = 0;
 }
 
-void _hmap_clear(_HashMap *map) {
+void _hmap_clear(Hash_Map_Tmpl *map) {
 	$assert_nonnull(map);
-	$assert_nonnull(map->entries);
-	if (map->len == 0) return;
-	memset(map->entries, 0, map->cap * sizeof(_HashEntry));
-	map->len = 0;
+	$assert_nonnull(map->entries.data);
+	if (map->entries.len == 0) return;
+	memset(map->entries.data, 0, map->entries.cap * sizeof(Hash_Entry_Tmpl));
+	map->entries.len = 0;
 }
 
-void _hmap_reset(_HashMap *map) {
+void _hmap_reset(Hash_Map_Tmpl *map) {
 	$assert_nonnull(map);
-	map->len = 0;
+	map->entries.len = 0;
 }
 
-bool _hmap_remove(_HashMap *map, const Slice key) {
+bool _hmap_remove(Hash_Map_Tmpl *map, const Slice key) {
 	uint64_t hash = _HMAP_HASH(key);
 	return _hmap_remove_from_hash(map, hash, key);
 }
 
-bool _hmap_remove_from_hash(_HashMap *map, const uint64_t hash, const Slice key) {
+bool _hmap_remove_from_hash(Hash_Map_Tmpl *map, const uint64_t hash, const Slice key) {
 	$assert_nonnull(map);
-	$assert_nonnull(map->entries);
+	$assert_nonnull(map->entries.data);
 
-	$catch(map->len == 0) return false;
+	$catch(map->entries.len == 0) return false;
 	size_t idx = _HMAP_INDEX(map, hash);
 	size_t capmask = _HMAP_MASK(map);
 
 	for (uint32_t d = 0;; d++) {
 		size_t pos = (idx + d) & capmask;
-		_HashEntry *e = &map->entries[pos];
+		Hash_Entry_Tmpl *e = &map->entries.data[pos];
 		$catch(!_HMAP_ENTRY_IS_USED(e) || _HMAP_ENTRY_DISTANCE(e) < d) {
 			return false;
 		}
@@ -95,122 +96,126 @@ bool _hmap_remove_from_hash(_HashMap *map, const uint64_t hash, const Slice key)
 		size_t cur = pos;
 		for (;;) {
 			size_t next = (cur + 1) & capmask;
-			_HashEntry *next_e = &map->entries[next];
+			Hash_Entry_Tmpl *next_e = &map->entries.data[next];
 			if (!_HMAP_ENTRY_IS_USED(next_e)) {
-				map->entries[cur].meta = 0;
-				map->len--;
+				map->entries.data[cur].meta = 0;
+				map->entries.len--;
 
-				if (map->cap > 16 && map->len * 8 < map->cap) {
-					$catch(!hmap_resize(map, map->cap / 2)) return false;
+				if (map->entries.cap > 16 && map->entries.len * 8 < map->entries.cap) {
+					$catch(!hmap_resize(map, map->entries.cap / 2)) return false;
 				}
 				return true;
 			}
 			uint32_t nd = _HMAP_ENTRY_DISTANCE(next_e);
 			if (nd == 0) {
-				map->entries[cur].meta = 0;
-				map->len--;
+				map->entries.data[cur].meta = 0;
+				map->entries.len--;
 
-				if (map->cap > 16 && map->len * 8 < map->cap) {
-					$catch(!hmap_resize(map, map->cap / 2)) return false;
+				if (map->entries.cap > 16 && map->entries.len * 8 < map->entries.cap) {
+					$catch(!hmap_resize(map, map->entries.cap / 2)) return false;
 				}
 				return true;
 			}
-			map->entries[cur] = *next_e;
-			_HMAP_SET_DISTANCE(&map->entries[cur], nd - 1);
+			map->entries.data[cur] = *next_e;
+			_HMAP_SET_DISTANCE(&map->entries.data[cur], nd - 1);
 			cur = next;
 		}
 	}
 	return true;
 }
 
-_HashEntry *_hmap_get(const _HashMap *map, const Slice key) {
+void *_hmap_get(const Hash_Map_Tmpl *map, const Slice key) {
 	uint64_t hash = _HMAP_HASH(key);
-	_HashEntry *e = _hmap_get_from_hash(map, key, hash);
+	void *e = _hmap_get_from_hash(map, key, hash);
 	$assert(e && "key not found");
 	return e;
 }
 
-_HashEntry *_hmap_get_entry(const _HashMap *map, const Slice key) {
+void *_hmap_get_entry(const Hash_Map_Tmpl *map, const Slice key) {
 	uint64_t hash = _HMAP_HASH(key);
 	return _hmap_get_from_hash(map, key, hash);
 }
 
-_HashEntry *_hmap_get_from_hash(const _HashMap *map, const Slice key, const uint64_t hash) {
+void *
+_hmap_get_from_hash(const Hash_Map_Tmpl *map, const Slice key, const uint64_t hash) {
 	$assert_nonnull(map);
-	$assert_nonnull(map->entries);
-	if (map->len == 0) return NULL;
+	$assert_nonnull(map->entries.data);
+	if (map->entries.len == 0) return NULL;
 
 	size_t capmask = _HMAP_MASK(map);
 	size_t idx = _HMAP_INDEX(map, hash);
 
 	for (uint32_t d = 0;; d++) {
-		_HashEntry *e = &map->entries[(idx + d) & capmask];
+		size_t id = (idx + d) & capmask;
+		Hash_Entry_Tmpl *e = &map->entries.data[id];
 		$catch(!_HMAP_ENTRY_IS_USED(e)) return NULL;
 
 		$catch(_HMAP_ENTRY_DISTANCE(e) < d) return NULL;
 
-		if (e->hash == hash && slice_eq(e->key, key)) return e;
+		if (e->hash == hash && slice_eq(e->key, key)) {
+			return &map->data[e->value_idx];
+		}
 	}
 }
 
-bool _hmap_init(_HashMap *map, const size_t capacity, const size_t sizeof_entry) {
+bool _hmap_init(Hash_Map_Tmpl *map, const size_t capacity, const size_t sizeof_entry) {
 	$assert_nonnull(map);
 	size_t cap = coerce_to_pow2(capacity);
 	$assert(cap - 1 <= _HMAP_META_DISTANCE_MASK);
 
-	map->entries = (_HashEntry *)calloc(cap, sizeof_entry);
-	$catch(!map->entries) return false;
+	map->entries.data = (Hash_Entry_Tmpl *)calloc(cap, sizeof_entry);
+	$catch(!map->entries.data) return false;
 
-	map->cap = cap;
-	map->len = 0;
+	map->entries.cap = cap;
+	map->entries.len = 0;
 	return true;
 }
 
-_HashEntry *_hmap_insert(_HashMap *map, const Slice key) {
+void *_hmap_insert(Hash_Map_Tmpl *map, const Slice key) {
 	$assert_nonnull(map);
-	$assert_nonnull(map->entries);
+	$assert_nonnull(map->entries.data);
 
 	uint64_t hash = _HMAP_HASH(key);
-	_HashEntry *existing = (_HashEntry *)_hmap_get_from_hash(map, key, hash);
+	Hash_Entry_Tmpl *existing = (Hash_Entry_Tmpl *)_hmap_get_from_hash(map, key, hash);
 	if (existing) {
 		existing->key = key;
 		return existing;
 	}
 
-	$catch(map->len >= map->cap) return NULL;
+	$catch(map->entries.len >= map->entries.cap) return NULL;
 
-	if (map->len * 4 >= map->cap * 3) {
-		$catch(!hmap_resize(map, map->cap * 2) && map->len + 1 >= map->cap) return NULL;
+	if (map->entries.len * 4 >= map->entries.cap * 3) {
+		$catch(!hmap_resize(map, map->entries.cap * 2) &&
+			   map->entries.len + 1 >= map->entries.cap) return NULL;
 	}
 
 	return _hmap_insert_from_hash(map, key, hash);
 }
 
-_HashEntry *_hmap_insert_from_hash(_HashMap *map, const Slice key, const uint64_t hash) {
+void *_hmap_insert_from_hash(Hash_Map_Tmpl *map, const Slice key, const uint64_t hash) {
 	$assert_nonnull(map);
-	$assert_nonnull(map->entries);
+	$assert_nonnull(map->entries.data);
 	size_t idx = _HMAP_INDEX(map, hash);
 	uint32_t distance = 0;
 	size_t capmask = _HMAP_MASK(map);
 
-	_HashEntry incoming;
+	Hash_Entry_Tmpl incoming;
 	incoming.key = key;
 	incoming.hash = hash;
 	_HMAP_SET_DISTANCE(&incoming, distance);
 
-	for (size_t offset = 0; offset < map->cap; offset++, distance++) {
+	for (size_t offset = 0; offset < map->entries.cap; offset++, distance++) {
 		size_t pos = (idx + offset) & capmask;
-		_HashEntry *e = &map->entries[pos];
+		Hash_Entry_Tmpl *e = &map->entries.data[pos];
 
 		if (!_HMAP_ENTRY_IS_USED(e)) {
 			_HMAP_SET_DISTANCE(&incoming, distance);
 			*e = incoming;
-			map->len++;
+			map->entries.len++;
 			return e;
 		}
 
 		if (e->hash == hash && slice_eq(e->key, key)) {
-			e->value = incoming.value;
 			e->key = incoming.key;
 			return e;
 		}
@@ -237,7 +242,7 @@ typedef struct HashEntry {
 typedef struct HashMap {
 	size_t cap;
 	size_t len;
-	_HashEntry *entries;
+	Hash_Entry_Tmpl *entries;
 } HashMap;
 
 TEST(hashmap_test) {
