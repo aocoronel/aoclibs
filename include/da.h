@@ -61,9 +61,11 @@
 		(da)->data = (typeof((da)->data))ptr;                                            \
 	})
 
-#define da_reserve(da, new_cap)                    \
-	((da)->data = (typeof((da)->data))_da_reserve( \
-			 (da)->data, &(da)->cap, (new_cap), sizeof(*(da)->data));)
+#define da_reserve(da, new_cap)                                          \
+	({                                                                   \
+		(da)->data = (typeof((da)->data))_da_reserve(                    \
+				(da)->data, &(da)->cap, (new_cap), sizeof(*(da)->data)); \
+	})
 
 AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t sizeof_da);
 
