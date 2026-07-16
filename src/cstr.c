@@ -319,6 +319,60 @@ Slice while_next_word(const char *restrict s, size_t *restrict begin, size_t end
 	return (Slice){ .data = s + start, .len = i - start };
 }
 
+Slice while_parse_word(const char *restrict s, size_t *restrict begin, size_t end) {
+	$assert_nonnull(s);
+
+	size_t i = *begin;
+
+	while (i < end && isspace((unsigned char)s[i])) {
+		i++;
+	}
+
+	if (i >= end) {
+		*begin = end;
+		return (Slice){ .data = s + end, .len = 0 };
+	}
+
+	bool is_string = s[i] == '"';
+	if (is_string) {
+		// "data"
+		//  ^- i
+		i++;
+		size_t start = i;
+
+		while (i < end && s[i] != '"') {
+			i++;
+		}
+
+		Slice result = {
+			.data = s + start,
+			.len = i - start,
+		};
+
+		if (i < end) {
+			// data"
+			//      ^- i
+			i++;
+		}
+
+		*begin = i;
+		return result;
+	} else {
+		size_t start = i;
+
+		while (i < end && !isspace((unsigned char)s[i])) {
+			i++;
+		}
+
+		*begin = i;
+
+		return (Slice){
+			.data = s + start,
+			.len = i - start,
+		};
+	}
+}
+
 Slice while_next_word_and(const char *restrict s, size_t *restrict begin, size_t end, char delim) {
 	$assert_nonnull(s);
 
@@ -357,8 +411,7 @@ size_t slice_next_line(Slice *out, Slice *it) {
 	const char *s_data = it->data;
 
 	const char *newline = memchr(s_data, '\n', s_len);
-	if (!newline)
-		return SIZE_MAX;
+	if (!newline) return SIZE_MAX;
 
 	size_t len = (size_t)(newline - s_data);
 
@@ -419,6 +472,31 @@ void slice_chop_right_by(Slice *s, char delim) {
 	s->len = (size_t)(ptr - s->data);
 }
 
+size_t substring_end(Slice s) {
+	$assert_nonnull(s.data);
+	$catch(s.len == 0 || s.data[0] != '"') {
+		return 0;
+	}
+
+	const char *pos = s.data + 1;
+	size_t len = 0;
+
+	while (len < s.len - 1) {
+		if (pos[len] == '\\') {
+			if (len + 1 < s.len - 1)
+				len += 2;
+			else
+				break;
+		} else if (pos[len] == '"') {
+			break;
+		} else {
+			len++;
+		}
+	}
+
+	return len;
+}
+
 Slice slice_extract_from_substring(Slice *s) {
 	$assert_nonnull(s);
 	$catch(s->len == 0 || s->data[0] != '"') {
@@ -448,6 +526,10 @@ Slice slice_extract_from_substring(Slice *s) {
 }
 
 void slice_shift_by(Slice *s, size_t len) {
-	s->data += len;
-	s->len -= len;
+	// I assume (s->len - 1 > s->len) can be obviously marked as
+	// never can happen and may be optimized away
+	volatile size_t l = len;
+	if (s->len - l > s->len) l = 0;
+	s->data += l;
+	s->len -= l;
 }

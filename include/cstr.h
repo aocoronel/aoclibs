@@ -108,7 +108,7 @@ AOCDEF bool slice_ends_with_cstr(Slice lhs, const char *rhs, const size_t rhs_le
 	}
 
 // while (begin < end) {
-//     cursor = while_extract_next_word(s, &begin, end);
+//     cursor = while_next_word(s, &begin, end);
 //     if (cursor.len == 0) break;
 // }
 AOCDEF Slice while_next_word(const char *restrict s, size_t *restrict begin, size_t end);
@@ -127,6 +127,8 @@ AOCDEF void slice_trim(Slice *s);
 AOCDEF void slice_chop_right_by(Slice *s, char delim);
 AOCDEF Slice slice_extract_from_substring(Slice *s);
 AOCDEF void slice_shift_by(Slice *s, size_t len);
+
+AOCDEF size_t substring_end(Slice s);
 
 #ifdef AOC_IMPLEMENTATION
 #include "cstr.c"
