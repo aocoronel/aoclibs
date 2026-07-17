@@ -232,7 +232,7 @@ float cstr_to_float(const char *s, const float _default) {
 long cstr_to_long(const char *s, const long _default) {
 	$assert_nonnull(s != NULL);
 	char *endptr;
-	long val = strtol(s, &endptr, 10);
+	long val = strtol(s, &endptr, 0);
 	$catch(*endptr != '\0') return _default;
 	return val;
 }
