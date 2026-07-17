@@ -57,6 +57,7 @@ c++ @build++ && ./merge
 | debug.h                    | Simple signal handler              |
 | heap_trace.h               | Catch malloc/calloc/realloc leaks  |
 | ini.h                      | INI parser                         |
+| lexer.h                    | Simple lexer                       |
 | spinner.h                  | Simple spinner without allocations |
 | [tunit.h](./docs/tunit.md) | Test Unit                          |
 
