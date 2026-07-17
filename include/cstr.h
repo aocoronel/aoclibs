@@ -96,6 +96,11 @@ AOCDEF bool slice_begins_with_cstr(Slice lhs, const char *rhs, const size_t rhs_
 AOCDEF bool slice_ends_with(Slice lhs, Slice rhs);
 AOCDEF bool slice_ends_with_cstr(Slice lhs, const char *rhs, const size_t rhs_len);
 
+AOCDEF double slice_to_double(Slice s, const double _default);
+AOCDEF float slice_to_float(Slice s, const double _default);
+AOCDEF long slice_to_long(Slice s, const long _default);
+AOCDEF bool slice_to_bool(Slice s, const bool _default);
+
 // Slice myslice = slice("hello, world!");
 #define $slice(s)                           \
 	(Slice) {                               \

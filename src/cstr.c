@@ -206,6 +206,46 @@ int cstr_fmt_write(char *s, const size_t s_cap, const char *fmt, ...) {
 	return allocated_len;
 }
 
+double slice_to_double(Slice s, const double _default) {
+	$assert_nonnull(s.data != NULL);
+	$assert(s.len < 15, "%zu", s.len);
+	char buff[15] = { 0 };
+	memcpy(buff, s.data, s.len);
+	char *endptr;
+	double val = strtod(buff, &endptr);
+	$catch(*endptr != '\0') return _default;
+	return val;
+}
+
+float slice_to_float(Slice s, const double _default) {
+	$assert_nonnull(s.data != NULL);
+	$assert(s.len < 15, "%zu", s.len);
+	char buff[15] = { 0 };
+	memcpy(buff, s.data, s.len);
+	char *endptr;
+	float val = strtof(buff, &endptr);
+	$catch(*endptr != '\0') return _default;
+	return val;
+}
+
+long slice_to_long(Slice s, const long _default) {
+	$assert_nonnull(s.data != NULL);
+	$assert(s.len < 20, "%zu", s.len);
+	char buff[20] = { 0 };
+	memcpy(buff, s.data, s.len);
+	char *endptr;
+	long val = strtol(buff, &endptr, 0);
+	$catch(*endptr != '\0') return _default;
+	return val;
+}
+
+bool slice_to_bool(Slice s, const bool _default) {
+	$assert_nonnull(s.data != NULL);
+	if (slice_eq_case(s, $slice("true")) || slice_eq(s, $slice("1"))) return true;
+	if (slice_eq_case(s, $slice("false")) || slice_eq(s, $slice("0"))) return false;
+	return _default;
+}
+
 double cstr_to_double(const char *s, const double _default) {
 	$assert_nonnull(s != NULL);
 	char *endptr;
