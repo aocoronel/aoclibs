@@ -1,6 +1,7 @@
 #ifndef AOC_BUDDY_H_
-#include "base.h"
 #define AOC_BUDDY_H_
+
+#include "base.h"
 
 // Buddy Allocator
 //

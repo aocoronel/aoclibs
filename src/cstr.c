@@ -450,7 +450,7 @@ size_t slice_next_line(Slice *out, Slice *it) {
 	size_t s_len = it->len;
 	const char *s_data = it->data;
 
-	const char *newline = memchr(s_data, '\n', s_len);
+	const char *newline = (const char *)memchr(s_data, '\n', s_len);
 	if (!newline) return SIZE_MAX;
 
 	size_t len = (size_t)(newline - s_data);

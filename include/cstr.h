@@ -1,6 +1,7 @@
 #ifndef AOC_CSTR_H_
-#include "base.h"
 #define AOC_CSTR_H_
+
+#include "base.h"
 
 // NULL :: Out of memory
 AOCDEF char *null cstr_dup(const char *s, const size_t len);

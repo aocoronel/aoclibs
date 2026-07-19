@@ -1,6 +1,7 @@
 #ifndef AOC_FORK_H_
-#include "base.h"
 #define AOC_FORK_H_
+
+#include "base.h"
 
 #include "rc.h"
 #include <sys/types.h>

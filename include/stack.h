@@ -1,6 +1,7 @@
 #ifndef AOC_STACK_H_
-#include "base.h"
 #define AOC_STACK_H_
+
+#include "base.h"
 
 struct Stack {
 	void *base_alloc;

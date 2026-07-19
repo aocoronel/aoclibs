@@ -1,6 +1,7 @@
 #ifndef AOC_FILE_H_
-#include "base.h"
 #define AOC_FILE_H_
+
+#include "base.h"
 
 #include "rc.h"
 #include "cstr.h"

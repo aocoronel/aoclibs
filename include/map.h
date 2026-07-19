@@ -1,6 +1,7 @@
 #ifndef AOC_MAP_H_
-#include "base.h"
 #define AOC_MAP_H_
+
+#include "base.h"
 
 #include "cstr.h"
 #include "rc.h"

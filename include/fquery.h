@@ -1,6 +1,7 @@
 #ifndef AOC_FQUERY_H_
-#include "base.h"
 #define AOC_FQUERY_H_
+
+#include "base.h"
 
 // FQuery takes the same use case of regular expressions, however, without compilation.
 //

@@ -1,6 +1,8 @@
 #ifndef AOC_TYPES_H_
 #define AOC_TYPES_H_
 
+#ifndef __cplusplus
+
 // C forces you to do this, when you want to define a struct that uses itself
 //   typedef struct Node {
 //       struct Node *node;
@@ -18,52 +20,44 @@
 #define $$declare(name) name name
 #define $declare(type) typedef type $$declare
 
-#ifndef AOC_BUDDY_H_
+// buddy.h
 $declare(struct)(Buddy_Block);
 $declare(struct)(Buddy_Page);
 $declare(struct)(Buddy_Header);
 $declare(struct)(Buddy);
-#endif // AOC_BUDDY_H_
 
-#ifndef AOC_CSTR_H_
+// cstr.h
 $declare(struct)(Slice);
-#endif // AOC_CSTR_H_
 
-#ifndef AOC_FILE_H_
+// file.h
 $declare(enum)(File_Type);
 $declare(struct)(Dir_Walker);
-#endif // AOC_FILE_H_
 
-#ifndef AOC_FORK_H_
+// fork.h
 $declare(struct)(Fork_Result);
 $declare(struct)(Fork_Options);
 $declare(struct)(Cmd_Result);
-#endif // AOC_FORK_H_
 
-#ifndef AOC_FQUERY_H_
+// fquery.h
 $declare(struct)(FQuery);
-#endif // AOC_FQUERY_H_
 
-#ifndef AOC_HASHMAP_H_
+// hmap.h
 $declare(struct)(Hash_Entry_Tmpl);
 $declare(struct)(Hash_Map_Tmpl);
-#endif // AOC_HASHMAP_H_
 
-#ifndef AOC_MAP_H_
+// map.h
 $declare(struct)(Map_Tmpl);
-#endif // AOC_MAP_H_
 
-#ifndef AOC_PP_H_
+// pp.h
 $declare(struct)(Pointer_Pool);
-#endif // AOC_PP_H_
 
-#ifndef AOC_RC_H_
+// rc.h
 $declare(struct)(rcs);
 $declare(struct)(rc);
-#endif // AOC_RC_H_
 
-#ifndef AOC_STACK_H_
+// stack.h
 $declare(struct)(Stack);
-#endif // AOC_STACK_H_
+
+#endif // __cplusplus
 
 #endif // AOC_TYPES_H_

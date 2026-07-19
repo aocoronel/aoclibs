@@ -1,6 +1,7 @@
 #ifndef AOC_PP_H_
-#include "base.h"
 #define AOC_PP_H_
+
+#include "base.h"
 
 #include "da.h"
 

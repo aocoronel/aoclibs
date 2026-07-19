@@ -1,6 +1,7 @@
 #ifndef AOC_HASHMAP_H_
-#include "base.h"
 #define AOC_HASHMAP_H_
+
+#include "base.h"
 
 #include "cstr.h"
 #include "da.h"

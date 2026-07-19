@@ -1,7 +1,7 @@
 #ifndef AOC_RC_H_
-#include "base.h"
 #define AOC_RC_H_
 
+#include "base.h"
 #include "da.h"
 
 // Maybe rename rc to string? rc may stand for reference counting, but we use as a abbreviation for
