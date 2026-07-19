@@ -106,13 +106,13 @@ TEST(map_test) {
 	map_insert(&arena, &map, $slice("hello"), 20);
 
 	TUnitMap *m = map_get(&map, $slice("hello"));
-	$tassert(m->value == 20, "wrong value");
+	$assert(m->value == 20, "wrong value");
 
 	map_set(&map, $slice("hello"), 23);
-	$tassert(m->value == 23, "wrong value");
+	$assert(m->value == 23, "wrong value");
 
 	TUnitMap *m2 = map_prepare(&arena, &map, $slice("hello2"));
-	$tassert(m2->occupied == false, "should not be occupied");
+	$assert(m2->occupied == false, "should not be occupied");
 
 	// rc buff = { 0 };
 	// map_dump(&map, &buff);

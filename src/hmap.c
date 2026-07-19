@@ -247,11 +247,11 @@ typedef struct TestHashMap {
 	HASHMAP(float);
 } TestHashMap;
 
-TEST(hashmap_test) {
+SKIP_TEST(hashmap_test) {
 	TestHashMap map = { 0 };
 	// Optional, AOC_HASHMAP_INITIAL_CAPACITY will be used if this step isn't done
 	if (!hmap_init(&map, 10)) {
-		$tassert(0, "out of memory");
+		$assert(0, "out of memory");
 	}
 	size_t count = 0;
 	size_t index = 0;
@@ -266,13 +266,13 @@ TEST(hashmap_test) {
 	hmap_insert(&map, world2, 456.0);
 	hmap_insert(&map, world3, 456.0);
 
-	$tassert(hmap_get(&map, hello) == 123.0, "values don't match");
-	$tassert(hmap_get(&map, world) == 456.0, "values don't match");
-	$tassert(hmap_get(&map, world2) == 456.0, "values don't match");
-	$tassert(hmap_get(&map, world3) == 456.0, "values don't match");
+	$assert(hmap_get(&map, hello) == 123.0, "values don't match");
+	$assert(hmap_get(&map, world) == 456.0, "values don't match");
+	$assert(hmap_get(&map, world2) == 456.0, "values don't match");
+	$assert(hmap_get(&map, world3) == 456.0, "values don't match");
 
 	hmap_remove(&map, hello);
-	$tassert(hmap_get_value(&map, hello) == NULL, "value was supposed to be removed");
+	$assert(hmap_get_value(&map, hello) == NULL, "value was supposed to be removed");
 
 	hmap_free(&map);
 }

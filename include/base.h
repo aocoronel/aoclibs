@@ -106,7 +106,11 @@
 #ifdef NDEBUG
 #define $assert(...)
 #else
+#ifdef TUNIT
+#define $assert(expr, ...) $tunit_assert(expr, __VA_ARGS__)
+#else
 #define $assert(expr, ...) ((expr) ? (void)0 : $abort("Assertion failed: " #expr, __VA_ARGS__))
+#endif
 #endif
 
 // Differently from $assert(), this one is not removed by NDEBUG

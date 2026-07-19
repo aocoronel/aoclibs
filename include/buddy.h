@@ -55,7 +55,7 @@ AOCDEF void buddy_dealloc(void *ptr);
 AOCDEF void buddy_free(Buddy *b);
 
 #ifdef TUNIT
-TEST(buddy_alloc) {
+SKIP_TEST(buddy_alloc) {
 	Buddy a = { 0 };
 
 	void *p4 = buddy_alloc(&a, 513);

@@ -1185,7 +1185,7 @@ TEST(crown_normalize_name) {
 	do {                                                                \
 		char funcname[64];                                              \
 		crown_normalize_name(funcname, "" string "", sizeof(funcname)); \
-		$tassert(cstr_eq("" match "", funcname), "strings don't match"); \
+		$assert(cstr_eq("" match "", funcname), "strings don't match"); \
 	} while (0)
 
 	crown_normalize_name_test("id|url|tag", "id_url_tag");

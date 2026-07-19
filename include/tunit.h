@@ -2,59 +2,71 @@
 #define AOC_TUNIT_H_
 
 // TUnit -- Test Unit
+//
+// This library is standalone from aoclibs. Taking this single file will work anywhere.
 
 // Enable TUnit :: cc -DTUNIT
 
 /*
  * TEST(my_test_name) :: Register a test
- * $tassert(1 == 1) :: TUnit specific asserts
+ * $assert(1 == 1) :: TUnit specific asserts
  * SKIP_TEST("this must be implemented first") :: Skip registering test
 */
 
 #ifndef TUNIT
 #define TEST(...)
-#define $tassert(...)
+#define $assert(...)
 #define SKIP_TEST(...)
 #define TEST_TIMEOUT(...)
 #else
-#define TEST(desc)                                                   \
-	static void test_##desc(void);                                   \
-	__attribute__((constructor)) static void register_##desc(void) { \
-		tunit_register_test(#desc, test_##desc, 0);                  \
-	}                                                                \
+#define TEST(desc)                                                         \
+	static void test_##desc(void);                                         \
+	__attribute__((constructor)) static void tunit_register_##desc(void) { \
+		tunit_register_test(#desc, test_##desc, 0);                        \
+	}                                                                      \
 	static void test_##desc(void)
 
-#define TEST_TIMEOUT(desc, timeout)                                  \
-	static void test_##desc(void);                                   \
-	__attribute__((constructor)) static void register_##desc(void) { \
-		tunit_register_test(#desc, test_##desc, timeout);            \
-	}                                                                \
+#define TEST_TIMEOUT(desc, timeout)                                        \
+	static void test_##desc(void);                                         \
+	__attribute__((constructor)) static void tunit_register_##desc(void) { \
+		tunit_register_test(#desc, test_##desc, timeout);                  \
+	}                                                                      \
 	static void test_##desc(void)
 
-#define $tassert(expr, msg)                                      \
-	do {                                                        \
-		if (!(expr)) {                                          \
-			tunit_assert(expr, #expr, msg, __FILE__, __LINE__); \
-			return;                                             \
-		}                                                       \
+#define $tunit_assert(expr, ...)                                 \
+	do {                                                         \
+		if (!(expr)) {                                           \
+			fprintf(stderr,                                      \
+					"  %s:%d: Assertion failed in test %s: %s:", \
+					__FILE__,                                    \
+					__LINE__,                                    \
+					CURRENT_TEST ? CURRENT_TEST : "(unknown)",   \
+					#expr);                                      \
+			fprintf(stderr, " " __VA_ARGS__);                    \
+			fputc('\n', stderr);                                 \
+			tunit_fail();                                        \
+			abort();                                             \
+		}                                                        \
 	} while (0)
 
-#define SKIP_TEST(reason)        \
-	do {                         \
-		tunit_skip_test(reason); \
-		return;                  \
-	} while (0)
+#define SKIP_TEST(desc)                                                     \
+	static void test_##desc(void);                                         \
+	__attribute__((constructor)) static void tunit_register_##desc(void) { \
+		return;                                                            \
+	}                                                                      \
+	static void test_##desc(void)
 #endif
 
 #ifdef HEAP_TRACE
+// heap_count_leaks is defined in heap_trace.h
 #define no_debug_malloc no_debug_malloc
 #define no_debug_free no_debug_free
-#define $tassert_heap_trace() $tassert(heap_count_leaks == 0, "memory leak");
+#define $assert_heap_trace() $assert(heap_count_leaks == 0, "memory leak");
 #else
 #define heap_count_leaks 0
 #define no_debug_malloc malloc
 #define no_debug_free free
-#define $tassert_heap_trace()
+#define $assert_heap_trace()
 #endif
 
 #ifdef TUNIT
@@ -83,15 +95,15 @@ static inline void tunit_log(const char *fmt, ...);
 
 typedef void (*TestFunc)(void);
 
-typedef struct __TUnitTest {
+typedef struct TUnit_Test {
 	const char *description;
 	TestFunc func;
-	struct __TUnitTest *next;
+	struct TUnit_Test *next;
 	size_t timeout;
-} __TUnitTest;
+} TUnit_Test;
 
-static __TUnitTest *__TUnitHead = NULL;
-static __TUnitTest *__TUnitTail = NULL;
+static TUnit_Test *TUNIT_HEAD = NULL;
+static TUnit_Test *TUNIT_TAIL = NULL;
 
 static int TESTS_RUN = 0;
 static int TESTS_FAIL = 0;
@@ -100,27 +112,27 @@ static int TESTS_LEAKS = 0;
 static double TESTS_TIME = 0.0;
 static const char *CURRENT_TEST = NULL;
 
-static jmp_buf __TUnitJMP;
-static volatile int __TUnitTimeoutOccurred = 0;
+static jmp_buf TUNIT_JUMP;
+static volatile int TUNIT_TIMEOUT_OCCURRED = 0;
 
-static struct timespec __TUnitStartTime;
+static struct timespec TUNIT_START_TIME;
 
 FILE *TUNIT_LOG_FILE = NULL;
-int tunit_fd = -1;
+int TUNIT_FD = -1;
 
-static inline void __tunit_timeout_handler(int sig) {
-	__TUnitTimeoutOccurred = 1;
-	fprintf(stderr, "  [TIMEOUT] Test '%s' exceeded time limit (%d)\n", CURRENT_TEST, sig);
+static inline void tunit_timeout_handler(int sig) {
+	TUNIT_TIMEOUT_OCCURRED = 1;
+	fprintf(stderr, "  [timeout] Test '%s' exceeded time limit (%d)\n", CURRENT_TEST, sig);
 	TESTS_FAIL++;
-	longjmp(__TUnitJMP, 1);
+	longjmp(TUNIT_JUMP, 1);
 }
 
-static inline void __tunit_segfault_handler(int sig) {
-	fprintf(stderr, "  [CRASH] __tunit_segfault (signal %d) in test '%s'\n", sig, CURRENT_TEST);
+static inline void tunit_segfault_handler(int sig) {
+	fprintf(stderr, "  [segmentation fault] (signal %d) in test '%s'\n", sig, CURRENT_TEST);
 	TESTS_FAIL++;
-	longjmp(__TUnitJMP, 1);
+	longjmp(TUNIT_JUMP, 1);
 }
-static inline double get_time_diff_ms(struct timespec *start) {
+static inline double tunit_get_time_diff_ms(struct timespec *start) {
 	struct timespec end;
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	double start_ms = start->tv_sec * 1000.0 + start->tv_nsec / 1000000.0;
@@ -129,7 +141,7 @@ static inline double get_time_diff_ms(struct timespec *start) {
 }
 
 #ifdef TUNIT_SUBPROCESS
-static inline void __tunit_run_single_test(__TUnitTest *test) {
+static inline void tunit_run_single_test(TUnit_Test *test) {
 	CURRENT_TEST = test->description;
 	int pipefd[2];
 	if (pipe(pipefd) == -1) {
@@ -146,12 +158,12 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
 	if (pid == 0) { // Child process
 		close(pipefd[0]); // Close read end
 
-		__TUnitTimeoutOccurred = 0;
+		TUNIT_TIMEOUT_OCCURRED = 0;
 
-		int jump_val = setjmp(__TUnitJMP);
+		int jump_val = setjmp(TUNIT_JUMP);
 		if (jump_val == 0) {
-			signal(SIGSEGV, __tunit_segfault_handler);
-			signal(SIGALRM, __tunit_timeout_handler);
+			signal(SIGSEGV, tunit_segfault_handler);
+			signal(SIGALRM, tunit_timeout_handler);
 			if (test->timeout > 0) {
 				alarm(test->timeout);
 			}
@@ -191,7 +203,7 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
 
 		if (WIFEXITED(status)) {
 			clock_gettime(CLOCK_MONOTONIC, &end);
-			double duration_ms = get_time_diff_ms(&start);
+			double duration_ms = tunit_get_time_diff_ms(&start);
 			if (strcmp(result, "OK") == 0) {
 				fprintf(stderr, " ok: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
 			} else if (strcmp(result, "SKIP") == 0) {
@@ -201,7 +213,7 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
 			TESTS_TIME += duration_ms;
 		} else {
 			clock_gettime(CLOCK_MONOTONIC, &end);
-			double duration_ms = get_time_diff_ms(&start);
+			double duration_ms = tunit_get_time_diff_ms(&start);
 			if (WIFSIGNALED(status)) {
 				fprintf(stderr,
 						" fail: %s %.2fms (CRASH: signal %d)\r\n",
@@ -209,7 +221,7 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
 						duration_ms,
 						WTERMSIG(status));
 			} else {
-				fprintf(stderr, " fatal: %s %.2fms (UNKNOWN ERROR)\r\n", CURRENT_TEST, duration_ms);
+				fprintf(stderr, " fatal: %s %.2fms (Unknown error)\r\n", CURRENT_TEST, duration_ms);
 			}
 			TESTS_TIME += duration_ms;
 			TESTS_FAIL++;
@@ -217,18 +229,18 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
 	}
 }
 #else
-static inline void __tunit_run_single_test(__TUnitTest *test) {
+static inline void tunit_run_single_test(TUnit_Test *test) {
 	double duration_ms = 0.0;
 	int leaks_begin = heap_count_leaks;
 	CURRENT_TEST = test->description;
-	__TUnitTimeoutOccurred = 0;
+	TUNIT_TIMEOUT_OCCURRED = 0;
 
-	clock_gettime(CLOCK_MONOTONIC, &__TUnitStartTime);
+	clock_gettime(CLOCK_MONOTONIC, &TUNIT_START_TIME);
 
-	int jump_val = setjmp(__TUnitJMP);
+	int jump_val = setjmp(TUNIT_JUMP);
 	if (jump_val == 0) {
-		signal(SIGSEGV, __tunit_segfault_handler);
-		signal(SIGALRM, __tunit_timeout_handler);
+		signal(SIGSEGV, tunit_segfault_handler);
+		signal(SIGALRM, tunit_timeout_handler);
 		if (test->timeout > 0) {
 			alarm(test->timeout);
 		}
@@ -238,7 +250,7 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
 		alarm(0);
 		signal(SIGSEGV, SIG_DFL);
 
-		duration_ms = get_time_diff_ms(&__TUnitStartTime);
+		duration_ms = tunit_get_time_diff_ms(&TUNIT_START_TIME);
 
 		int leaks = heap_count_leaks - leaks_begin;
 		if (leaks > 0) {
@@ -248,7 +260,7 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
 			fprintf(stderr, " ok: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
 		}
 	} else if (jump_val == 1) { /* Assertion fail or crash */
-		duration_ms = get_time_diff_ms(&__TUnitStartTime);
+		duration_ms = tunit_get_time_diff_ms(&TUNIT_START_TIME);
 
 		int leaks = heap_count_leaks - leaks_begin;
 		if (leaks > 0) {
@@ -258,7 +270,7 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
 			fprintf(stderr, " fail: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
 		}
 	} else if (jump_val == 2) { /* Skipped test */
-		duration_ms = get_time_diff_ms(&__TUnitStartTime);
+		duration_ms = tunit_get_time_diff_ms(&TUNIT_START_TIME);
 
 		int leaks = heap_count_leaks - leaks_begin;
 		if (leaks > 0) {
@@ -272,61 +284,44 @@ static inline void __tunit_run_single_test(__TUnitTest *test) {
 }
 #endif
 static inline void tunit_register_test(const char *desc, void (*func)(void), size_t timeout) {
-	__TUnitTest *tc = no_debug_malloc(sizeof(__TUnitTest));
+	TUnit_Test *tc = no_debug_malloc(sizeof(TUnit_Test));
 	tc->description = desc;
 	tc->func = func;
 	tc->next = NULL;
 	tc->timeout = timeout;
-	if (__TUnitTail)
-		__TUnitTail->next = tc;
+	if (TUNIT_TAIL)
+		TUNIT_TAIL->next = tc;
 	else
-		__TUnitHead = tc;
-	__TUnitTail = tc;
+		TUNIT_HEAD = tc;
+	TUNIT_TAIL = tc;
 }
 
-static inline void
-tunit_assert(int expr, const char *expr_str, const char *msg, const char *file, int line) {
-	if (!expr) {
-		fprintf(stderr,
-				"  [FAIL] Assertion failed: %s in test %s: %s at %s:%d\n",
-				msg,
-				CURRENT_TEST ? CURRENT_TEST : "(unknown)",
-				expr_str,
-				file,
-				line);
-		TESTS_FAIL++;
-		longjmp(__TUnitJMP, 1);
-	}
+static inline void tunit_fail(void) {
+	TESTS_FAIL++;
+	longjmp(TUNIT_JUMP, 1);
 }
 
-static inline void tunit_skip_test(const char *reason) {
-	fprintf(stderr, "  [SKIP] Test '%s' skipped: %s\n", CURRENT_TEST, reason);
-	TESTS_SKIP++;
-	longjmp(__TUnitJMP, 2);
-}
-
-static inline void __tunit_run_all_tests(void) {
-	__TUnitTest *curr = __TUnitHead;
+static inline void tunit_run_all_tests(void) {
+	TUnit_Test *curr = TUNIT_HEAD;
 	while (curr) {
 		TESTS_RUN++;
-		__tunit_run_single_test(curr);
+		tunit_run_single_test(curr);
 		curr = curr->next;
 	}
 
-	fprintf(stderr,
-			"%d succeed, %d failed and %d skipped (%.2fms total)\n",
-			TESTS_RUN,
-			TESTS_FAIL,
-			TESTS_SKIP,
-			TESTS_TIME);
+	fprintf(stderr, "%d succeed, %d failed (%.2fms total)\n", TESTS_RUN, TESTS_FAIL, TESTS_TIME);
+
+#ifdef HEAP_TRACE
+	heap_trace_summary(stdout);
+#endif
 }
 
-static inline void __tunit_init_log(const char *log_path) {
+static inline void tunit_init_log(const char *log_path) {
 	TUNIT_LOG_FILE = fopen(log_path, "a");
 	if (!TUNIT_LOG_FILE) {
 		perror("failed to open log file");
 	}
-	tunit_fd = fileno(TUNIT_LOG_FILE);
+	TUNIT_FD = fileno(TUNIT_LOG_FILE);
 }
 
 static inline void tunit_log(const char *fmt, ...) {
@@ -340,7 +335,7 @@ static inline void tunit_log(const char *fmt, ...) {
 	fflush(TUNIT_LOG_FILE);
 }
 
-static inline void __tunit_log(const char *msg) {
+static inline void tunit_log_begin_end(const char *msg) {
 	if (!TUNIT_LOG_FILE) return;
 
 	time_t now = time(NULL);
@@ -356,20 +351,20 @@ static inline void __tunit_log(const char *msg) {
 	fflush(TUNIT_LOG_FILE);
 }
 
-static inline void __tunit_close_log(void) {
+static inline void tunit_close_log(void) {
 	if (TUNIT_LOG_FILE) fclose(TUNIT_LOG_FILE);
-	if (tunit_fd != -1) close(tunit_fd);
+	if (TUNIT_FD != -1) close(TUNIT_FD);
 }
 
-static inline void __tunit_free(void) {
-	__TUnitTest *cur = __TUnitHead;
+static inline void tunit_free(void) {
+	TUnit_Test *cur = TUNIT_HEAD;
 	while (cur) {
-		__TUnitTest *next = cur->next;
+		TUnit_Test *next = cur->next;
 		no_debug_free(cur);
 		cur = next;
 	}
-	__TUnitHead = NULL;
-	__TUnitTail = NULL;
+	TUNIT_HEAD = NULL;
+	TUNIT_TAIL = NULL;
 }
 
 int main(void) {
@@ -378,13 +373,13 @@ int main(void) {
 	snprintf(perturb, sizeof(perturb), "%d", (rand() % 255) + 1);
 	setenv("MALLOC_PERTURB_", perturb, 1);
 
-	__tunit_init_log("tunit.log");
-	__tunit_log("Initializing test");
-	__tunit_run_all_tests();
-	__tunit_log("Finished test");
-	__tunit_close_log();
+	tunit_init_log("tunit.log");
+	tunit_log_begin_end("Initializing test");
+	tunit_run_all_tests();
+	tunit_log_begin_end("Finished test");
+	tunit_close_log();
 
-	__tunit_free();
+	tunit_free();
 	return TESTS_FAIL;
 }
 #endif // TUNIT

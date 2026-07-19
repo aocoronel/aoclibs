@@ -51,8 +51,8 @@
 #include "./include/base.h"
 #include "./include/cfg.h"
 
-#include "./libs/heap_trace.h" // HEAP_DEBUG
-#include "./libs/tunit.h" // TUNIT
+#include "./include/heap_trace.h" // HEAP_DEBUG
+#include "./include/tunit.h" // TUNIT
 
 // Vendor
 #include "./vendor/rapidhash.h"
