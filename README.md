@@ -29,25 +29,28 @@ c++ @build++ && ./merge
 
 ### Base libraries
 
-| Library    | Description                     |
-|------------|---------------------------------|
-| base.h     | Handful aliases and macros      |
-| buddy.h    | Buddy allocator                 |
-| calculus.h | Math                            |
-| colors.h   | Terminal colors                 |
-| cstr.h     | C String operations and slices  |
-| da.h       | Heap/stack-based dynamic arrays |
-| libc.h     | Most included libc libraries    |
-| file.h     | File operations                 |
-| fork.h     | Fork high-level wrappers        |
-| fquery.h   | "Regex"-like based on functions |
-| hmap.h     | Unordered hashmap               |
-| io.h       | Input/output simple functions   |
-| map.h      | Ordered map                     |
-| pp.h       | Pointer Pool                    |
-| printfc.h  | printf() with colors            |
-| rc.h       | String type powered by da.h     |
-| stack.h    | Stack allocator                 |
+| Library                    | Description                       |
+|----------------------------|-----------------------------------|
+| base.h                     | Handful aliases and macros        |
+| buddy.h                    | Buddy allocator                   |
+| calculus.h                 | Math                              |
+| colors.h                   | Terminal colors                   |
+| cstr.h                     | C String operations and slices    |
+| da.h                       | Heap/stack-based dynamic arrays   |
+| file.h                     | File operations                   |
+| fork.h                     | Fork high-level wrappers          |
+| fquery.h                   | "Regex"-like based on functions   |
+| heap_trace.h               | Catch malloc/calloc/realloc leaks |
+| hmap.h                     | Unordered hashmap                 |
+| io.h                       | Input/output simple functions     |
+| libc.h                     | Most included libc libraries      |
+| map.h                      | Ordered map                       |
+| pp.h                       | Pointer Pool                      |
+| types.h                    | Forward declared types            |
+| printfc.h                  | printf() with colors              |
+| rc.h                       | String type powered by da.h       |
+| stack.h                    | Stack allocator                   |
+| [tunit.h](./docs/tunit.md) | Test Unit                         |
 
 ### Libraries
 
@@ -55,11 +58,9 @@ c++ @build++ && ./merge
 |----------------------------|------------------------------------|
 | [crown.h](./docs/crown.md) | Full-blown CLI suite               |
 | debug.h                    | Simple signal handler              |
-| heap_trace.h               | Catch malloc/calloc/realloc leaks  |
 | ini.h                      | INI parser                         |
 | lexer.h                    | Simple lexer                       |
 | spinner.h                  | Simple spinner without allocations |
-| [tunit.h](./docs/tunit.md) | Test Unit                          |
 
 ### Vendored
 
