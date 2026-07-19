@@ -37,7 +37,7 @@
 	do {                                                         \
 		if (!(expr)) {                                           \
 			fprintf(stderr,                                      \
-					"  %s:%d: Assertion failed in test %s: %s:", \
+					" %s:%d: Assertion failed in test %s: %s:", \
 					__FILE__,                                    \
 					__LINE__,                                    \
 					CURRENT_TEST ? CURRENT_TEST : "(unknown)",   \
@@ -309,7 +309,7 @@ static inline void tunit_run_all_tests(void) {
 		curr = curr->next;
 	}
 
-	fprintf(stderr, "%d succeed, %d failed (%.2fms total)\n", TESTS_RUN, TESTS_FAIL, TESTS_TIME);
+	fprintf(stderr, "%d succeed, %d failed (%.2fms total)\n", TESTS_RUN - TESTS_FAIL, TESTS_FAIL, TESTS_TIME);
 
 #ifdef HEAP_TRACE
 	heap_trace_summary(stdout);
