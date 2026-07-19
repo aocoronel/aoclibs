@@ -58,9 +58,10 @@ gcc -o add_test add.c -DTUNIT
 Output:
 
 ```console
-./add_test
- ok: add 0.01ms
-1 succeed, 0 failed (0.01ms total)
+❯ ./add_test
+ add.h:12: Assertion failed in test add: add(x, y) == 2: x: 1, y: 2
+ fail: add 0.01ms
+0 succeed, 1 failed (0.01ms total)
 ```
 
 Notice we just compile the entirety of `tunit.h` without optimization flags, and the execution was fast.
