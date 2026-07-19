@@ -1,14 +1,13 @@
 #ifndef AOC_STACK_H_
+#include "base.h"
 #define AOC_STACK_H_
 
-#include "base.h"
-
-typedef struct {
+struct Stack {
 	void *base_alloc;
 	void *buff;
 	size_t used_size;
 	size_t size;
-} Stack;
+};
 
 #define stack_new(s, type) stack_alloc((s), sizeof(type))
 Stack *stack_init(size_t size);

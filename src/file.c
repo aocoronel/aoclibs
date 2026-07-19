@@ -148,7 +148,7 @@ int absolute_path_from(rc *output, Slice *path) {
 	return 0;
 }
 
-bool dir_walker(const char *path, DirWalker *dw) {
+bool dir_walker(const char *path, Dir_Walker *dw) {
 	$assert_nonnull(path != NULL);
 	$assert_nonnull(dw);
 
@@ -166,7 +166,7 @@ bool dir_walker(const char *path, DirWalker *dw) {
 
 		cstr_fmt_write(fullpath, AOC_MAX_PATH, "%s/%s", path, entry->d_name);
 
-		FileType ft = get_filetype(&st, fullpath);
+		File_Type ft = get_filetype(&st, fullpath);
 
 		switch (ft) {
 		case F_REG:
@@ -194,7 +194,7 @@ bool dir_walker(const char *path, DirWalker *dw) {
 	return true;
 }
 
-FileType get_filetype(struct stat *restrict st, const char *restrict path) {
+File_Type get_filetype(struct stat *restrict st, const char *restrict path) {
 	$assert_nonnull(path != NULL);
 
 	if (lstat(path, st) == -1) return F_FAIL;

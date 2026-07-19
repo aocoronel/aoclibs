@@ -46,9 +46,13 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
+#include "./include/types.h"
 #include "./include/libc.h"
 #include "./include/base.h"
 #include "./include/cfg.h"
+
+#include "./libs/heap_trace.h" // HEAP_DEBUG
+#include "./libs/tunit.h" // TUNIT
 
 // Vendor
 #include "./vendor/rapidhash.h"
@@ -76,8 +80,7 @@
 #include "./include/hmap.h"
 
 // Libraries
-#include "./libs/heap_trace.h" // HEAP_DEBUG
-#include "./libs/tunit.h" // TUNIT
+#include "./libs/lexer.h" // LEXER
 #include "./libs/crown.h" // AOC_CROWN
 #include "./libs/debug.h" // AOC_DEBUG
 #include "./libs/spinner.h" // AOC_SPINNER

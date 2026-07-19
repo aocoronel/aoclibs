@@ -4,7 +4,7 @@
 #include "pp.h"
 #include "da.h"
 
-void *pfill(PPool *pool, const size_t size) {
+void *pfill(Pointer_Pool *pool, const size_t size) {
 	$assert_nonnull(pool);
 
 	void *tmp = malloc(size);
@@ -14,7 +14,7 @@ void *pfill(PPool *pool, const size_t size) {
 	return tmp;
 }
 
-void *pfillc(PPool *pool, const size_t size) {
+void *pfillc(Pointer_Pool *pool, const size_t size) {
 	$assert_nonnull(pool);
 
 	void *tmp = malloc(size);
@@ -25,7 +25,7 @@ void *pfillc(PPool *pool, const size_t size) {
 	return tmp;
 }
 
-void *prefresh(PPool *pool, size_t idx, const size_t size) {
+void *prefresh(Pointer_Pool *pool, size_t idx, const size_t size) {
 	$assert_nonnull(pool);
 
 	void *tmp = realloc(pool->data[idx], size);
@@ -36,7 +36,7 @@ void *prefresh(PPool *pool, size_t idx, const size_t size) {
 	return tmp;
 }
 
-void pdrain(PPool *pool) {
+void pdrain(Pointer_Pool *pool) {
 	$assert(pool != NULL, "double free attempt");
 
 	$range(0, pool->len, i) {

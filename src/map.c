@@ -2,7 +2,7 @@
 
 #include "map.h"
 
-int map_binary_search(struct _Map *map, const unsigned char k) {
+int map_binary_search(struct Map_Tmpl *map, const unsigned char k) {
 	$assert_nonnull(map);
 	int left = 0, right = (int)map->len;
 	while (left < right) {
@@ -16,7 +16,7 @@ int map_binary_search(struct _Map *map, const unsigned char k) {
 	return left;
 }
 
-void _map_dump(struct _Map *restrict m, rc *restrict buff, const int indent, const int depth) {
+void _map_dump(struct Map_Tmpl *restrict m, rc *restrict buff, const int indent, const int depth) {
 	$assert_nonnull(m);
 	$assert_nonnull(buff);
 	da_reserve(buff, depth + 1);
@@ -31,13 +31,13 @@ void _map_dump(struct _Map *restrict m, rc *restrict buff, const int indent, con
 	}
 }
 
-struct _Map *_map_prepare(Arena *restrict arena,
-						  struct _Map *restrict map,
+struct Map_Tmpl *_map_prepare(Arena *restrict arena,
+						  struct Map_Tmpl *restrict map,
 						  const Slice slice,
 						  const size_t sizeof_value) {
 	$assert_nonnull(arena);
 	$assert_nonnull(map);
-	struct _Map *curr = map;
+	struct Map_Tmpl *curr = map;
 	size_t cursor = 0;
 
 	while (cursor < (slice).len) {
@@ -55,7 +55,7 @@ struct _Map *_map_prepare(Arena *restrict arena,
 
 		memmove(&curr->data[pos + 1], &curr->data[pos], (curr->len - pos) * sizeof(curr->data[0]));
 
-		struct _Map next = { 0 };
+		struct Map_Tmpl next = { 0 };
 		next.key = k;
 
 		curr->data[pos] = next;
@@ -67,9 +67,9 @@ struct _Map *_map_prepare(Arena *restrict arena,
 	return curr;
 }
 
-struct _Map *_map_get(struct _Map *map, const Slice slice) {
+struct Map_Tmpl *_map_get(struct Map_Tmpl *map, const Slice slice) {
 	$assert_nonnull(map);
-	struct _Map *result = map;
+	struct Map_Tmpl *result = map;
 	size_t cursor = 0;
 
 	while (result && cursor < (slice).len) {

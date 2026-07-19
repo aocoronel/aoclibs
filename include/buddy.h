@@ -1,7 +1,6 @@
-#ifndef AOC_BUDDY_H
-#define AOC_BUDDY_H
-
+#ifndef AOC_BUDDY_H_
 #include "base.h"
+#define AOC_BUDDY_H_
 
 // Buddy Allocator
 //
@@ -14,11 +13,11 @@ enum {
 	Buddy_Max_Orders = 32,
 };
 
-typedef struct Buddy_Block {
-	struct Buddy_Block *next;
-} Buddy_Block;
+struct Buddy_Block {
+	Buddy_Block *next;
+};
 
-typedef struct Buddy_Page {
+struct Buddy_Page {
 	struct Buddy_Page *next;
 	uint8_t *base;
 	uint8_t *split_map;
@@ -26,17 +25,17 @@ typedef struct Buddy_Page {
 	Buddy_Block *free_lists[Buddy_Max_Orders];
 	unsigned max_order;
 	size_t total_size;
-} Buddy_Page;
+};
 
-typedef struct {
+struct Buddy_Header {
 	Buddy_Page *page;
 	unsigned order;
-} Buddy_Header;
+};
 
-typedef struct {
+struct Buddy {
 	Buddy_Page *begin;
 	Buddy_Page *end;
-} Buddy;
+};
 
 AOCDEF Buddy_Block *buddy_freelist_pop(Buddy_Block **head);
 AOCDEF Buddy_Page *buddy_new_page(unsigned page_order);
@@ -69,8 +68,8 @@ TEST(buddy_alloc) {
 	buddy_dealloc(p3);
 	buddy_dealloc(p4);
 
-	buddy_free(&a);
+	// buddy_free(&a);
 }
 #endif
 
-#endif // AOC_BUDDY_H
+#endif // AOC_BUDDY_H_

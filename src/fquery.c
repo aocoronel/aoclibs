@@ -154,29 +154,29 @@ AOCDEF const char *null fquery_isalpha(const char *null p, const void *c) {
 	return p + 1;
 }
 
-AOCDEF bool _fquery(const fquery_t *qms, const char *null p) {
+AOCDEF bool fquery_recursive(const FQuery *qms, const char *null p) {
 	if (qms->fn == NULL) return true;
 
-	const fquery_fn fn = qms->fn;
+	const FQuery_Fn fn = qms->fn;
 	const void *arg = qms->arg;
 
 	const char *next = fn(p, arg);
 
 	if (!next) return false;
 
-	return _fquery(qms + 1, next);
+	return fquery_recursive(qms + 1, next);
 }
 
-AOCDEF bool fquery(const fquery_t *qms, const char *pattern) {
+AOCDEF bool fquery(const FQuery *qms, const char *pattern) {
 	$assert_nonnull(qms);
 	$assert_nonnull(pattern);
-	return _fquery(qms, pattern);
+	return fquery_recursive(qms, pattern);
 }
 
 // int main(void) {
 //     int skip_to_a = 'a';
 //     int optional_dash = 'b';
-//     const fquery_t *qms = new_fquery({ .fn = fquery_skip_to_fn, .arg = isdigit },
+//     const FQuery *qms = new_fquery({ .fn = fquery_skip_to_fn, .arg = isdigit },
 //                                      { .fn = fquery_optional, .arg = &optional_dash },
 //                                      { .fn = fquery_skip_to_int, .arg = &skip_to_a });
 //
@@ -187,7 +187,7 @@ AOCDEF bool fquery(const fquery_t *qms, const char *pattern) {
 //     printf("  Matching 'a': Found: %s\n", fquery(qms, "a") ? "true" : "false");
 //     printf("  Matching 'bbbc': Found: %s\n", fquery(qms, "bbbc") ? "true" : "false");
 //
-//     const fquery_t *qms2 = new_fquery(
+//     const FQuery *qms2 = new_fquery(
 //             { .fn = fquery_isdigit }, { .fn = fquery_isdigit }, { .fn = fquery_isdigit });
 //
 //     printf("\nQuery: 'isdigit, isdigit, isdigit'\n");

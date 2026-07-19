@@ -1,7 +1,7 @@
 #ifndef AOC_HASHMAP_H_
+#include "base.h"
 #define AOC_HASHMAP_H_
 
-#include "base.h"
 #include "cstr.h"
 #include "da.h"
 
@@ -11,16 +11,16 @@
 	} entries;                          \
 	DYNAMIC_ARRAY(type);
 
-typedef struct Hash_Entry_Tmpl {
+struct Hash_Entry_Tmpl {
 	Slice key;
 	uint64_t hash;
 	uint32_t meta;
 	size_t value_idx;
-} Hash_Entry_Tmpl;
+};
 
-typedef struct Hash_Map_Tmpl {
+struct Hash_Map_Tmpl {
 	HASHMAP(void *);
-} Hash_Map_Tmpl;
+};
 
 #define hmap_init(map, capacity) \
 	(typeof((map)))_hmap_init((Hash_Map_Tmpl *)map, (capacity), sizeof(*(map)->entries.data))

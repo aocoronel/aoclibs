@@ -1,7 +1,6 @@
 #ifndef AOC_CSTR_H_
-#define AOC_CSTR_H_
-
 #include "base.h"
+#define AOC_CSTR_H_
 
 // NULL :: Out of memory
 AOCDEF char *null cstr_dup(const char *s, const size_t len);
@@ -82,10 +81,10 @@ AOCDEF long cstr_to_long(const char *s, const long _default);
 // printf("%.*s\n", $view_slice(slice))
 #define $view_slice(r) ((int)(r).len), ((r).data)
 
-typedef struct {
+struct Slice {
 	const char *data;
 	size_t len;
-} Slice;
+};
 
 AOCDEF Slice cstr_to_slice_from(const char *str, const size_t start, const size_t end);
 AOCDEF Slice cstr_to_slice(const char *str);

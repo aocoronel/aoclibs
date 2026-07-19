@@ -1,7 +1,7 @@
 #ifndef AOC_PP_H_
+#include "base.h"
 #define AOC_PP_H_
 
-#include "base.h"
 #include "da.h"
 
 // Pointer Pool
@@ -18,19 +18,19 @@
 //
 // Memory allocated using pfill is asserted to never be NULL.
 
-typedef struct {
+struct Pointer_Pool {
 	DYNAMIC_ARRAY(void *);
-} PPool;
+};
 
 // Allocates 'size' bytes using malloc and stores pointer to pool
 //
 // NULL :: Out of memory
-AOCDEF void *pfill(PPool *pool, const size_t size);
+AOCDEF void *pfill(Pointer_Pool *pool, const size_t size);
 
 // Allocates zero initialized 'size' bytes using malloc and stores pointer to pool
 //
 // NULL :: Out of memory
-AOCDEF void *pfillc(PPool *pool, const size_t size);
+AOCDEF void *pfillc(Pointer_Pool *pool, const size_t size);
 
 // Reallocates pointer at 'idx' using new 'size' in bytes
 //
@@ -41,14 +41,14 @@ AOCDEF void *pfillc(PPool *pool, const size_t size);
 // void *p = pfill(&pool, 100);
 // size_t idx = pool.len - 1;
 // p = prefresh(&pool, idx, 200);
-AOCDEF void *prefresh(PPool *pool, size_t idx, const size_t size);
+AOCDEF void *prefresh(Pointer_Pool *pool, size_t idx, const size_t size);
 
 // Frees all memory. Doesn't free the pool itself.
 //
 // The user can always reuse the same pool.
 //
 // To free the pool, use da_free(pool)
-AOCDEF void pdrain(PPool *pool);
+AOCDEF void pdrain(Pointer_Pool *pool);
 
 #ifdef AOC_IMPLEMENTATION
 #include "pp.c"

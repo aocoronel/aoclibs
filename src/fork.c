@@ -30,7 +30,7 @@ bool write_fd(int fd, const void *buf, size_t count) {
 	return true;
 }
 
-bool _fork_cmd(pid_t *pid, int fds[3], int pipes[6], ForkOptions opt) {
+bool _fork_cmd(pid_t *pid, int fds[3], int pipes[6], Fork_Options opt) {
 	char **argv = opt.argv;
 	char *input = opt.input;
 
@@ -86,7 +86,7 @@ bool _fork_cmd(pid_t *pid, int fds[3], int pipes[6], ForkOptions opt) {
 
 #define $close_fd(fd) \
 	if (fd != -1) close(fd);
-fork_cmd_t fork_cmd(ForkOptions opt) {
+Fork_Result fork_cmd(Fork_Options opt) {
 	pid_t pid;
 	int pipes[6] = { -1 };
 	int fds[3];
@@ -99,13 +99,13 @@ fork_cmd_t fork_cmd(ForkOptions opt) {
 		$close_fd(pipes[3]);
 		$close_fd(pipes[4]);
 		$close_fd(pipes[5]);
-		return (fork_cmd_t){ .pid = -1, .stdin_fd = -1, .stdout_fd = -1, .stderr_fd = -1 };
+		return (Fork_Result){ .pid = -1, .stdin_fd = -1, .stdout_fd = -1, .stderr_fd = -1 };
 	}
-	return (fork_cmd_t){ .pid = pid, .stdin_fd = fds[0], .stdout_fd = fds[1], .stderr_fd = fds[2] };
+	return (Fork_Result){ .pid = pid, .stdin_fd = fds[0], .stdout_fd = fds[1], .stderr_fd = fds[2] };
 }
 #undef $close_fd
 
-int read_fds(int out_fd, int err_fd, fork_buff_t *fb) {
+int read_fds(int out_fd, int err_fd, Cmd_Result *fb) {
 	$assert_nonnull(fb);
 
 	bool out_eof = (out_fd == -1);
@@ -167,17 +167,17 @@ int wait_child(pid_t pid) {
 	return -1;
 }
 
-int run_cmd(CmdResult *out, ForkOptions opt) {
+int run_cmd(Cmd_Result *out, Fork_Options opt) {
 	$assert_nonnull(out);
 
-	CmdResult result = { 0 };
-	fork_cmd_t fc = fork_cmd(opt);
+	Cmd_Result result = { 0 };
+	Fork_Result fc = fork_cmd(opt);
 
 	$catch(fc.pid == -1) {
 		return fc.pid;
 	}
 
-	fork_buff_t fb = { 0 };
+	Cmd_Result fb = { 0 };
 
 	read_fds(fc.stdout_fd, fc.stderr_fd, &fb);
 

@@ -1,31 +1,30 @@
 #ifndef AOC_FQUERY_H_
-#define AOC_FQUERY_H_
-
 #include "base.h"
+#define AOC_FQUERY_H_
 
 // FQuery takes the same use case of regular expressions, however, without compilation.
 //
 // Setting up FQuery is simple:
 //
 // int skip_to_a = 'a';
-// const fquery_t *query =
-//      new_fquery(
+// const FQuery *query =
+//      $fquery(
 //       { .fn = fquery_any, .arg = NULL },
 //       { .fn = fquery_any, .arg = NULL },
 //       { .fn = fquery_skip_to_int, .arg = &skip_to_a });
 // fquery(query, "00adasd")
 
-#define new_fquery(...)   \
-	(fquery_t[]) {        \
+#define $fquery(...)      \
+	(FQuery[]) {          \
 		__VA_ARGS__, NULL \
 	}
 
-typedef const char *(*fquery_fn)(const char *null, const void *);
+typedef const char *(*FQuery_Fn)(const char *null, const void *);
 
-typedef struct {
-	fquery_fn fn;
+struct FQuery {
+	FQuery_Fn fn;
 	const void *arg;
-} fquery_t;
+};
 
 // *p == c
 AOCDEF const char *null fquery_eq_int(const char *null p, const void *c);
@@ -53,10 +52,9 @@ AOCDEF const char *null fquery_isspace(const char *null p, const void *c);
 AOCDEF const char *null fquery_isupper(const char *null p, const void *c);
 AOCDEF const char *null fquery_isxdigit(const char *null p, const void *c);
 
-AOCDEF bool fquery(const fquery_t *qms, const char *pattern);
+AOCDEF bool fquery_recursive(const FQuery *qms, const char *null p);
 
-// === Internal ===
-AOCDEF bool _fquery(const fquery_t *qms, const char *null p);
+AOCDEF bool fquery(const FQuery *qms, const char *pattern);
 
 #ifdef AOC_IMPLEMENTATION
 #include "fquery.c"

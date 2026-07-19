@@ -1,7 +1,6 @@
 #ifndef AOC_DA_H_
-#define AOC_DA_H_
-
 #include "base.h"
+#define AOC_DA_H_
 
 // This is implementation has few modifications and additions, and is inspired by
 // the dynamic array available here: https://github.com/tsoding/nob.h
@@ -15,12 +14,6 @@
  * Below is the a very generic dynamic arena struct. The data type can be swapped to something else
  * and it's going to work just like normal.
 */
-
-// typedef struct {
-//         size_t cap;
-//         size_t len;
-//         void *data; // must be a pointer!
-// } DynamicArray;
 
 // For clarity, it's rather let the user create the struct, than make a macro that does it for them
 #define DYNAMIC_ARRAY(type) \

@@ -1,7 +1,7 @@
 #ifndef AOC_MAP_H_
+#include "base.h"
 #define AOC_MAP_H_
 
-#include "base.h"
 #include "cstr.h"
 #include "rc.h"
 #include "arena.h"
@@ -45,17 +45,17 @@
 // Lookup is done using binary search
 
 // This is the assumed layout of the map
-struct _Map {
+struct Map_Tmpl {
 	size_t len;
 	size_t cap;
-	struct _Map *data;
+	Map_Tmpl *data;
 
 	bool occupied;
 	char key;
 	int value;
 };
 
-#define map_dump(map, buff) _map_dump((struct _Map *)(map), (buff), 0, 0)
+#define map_dump(map, buff) _map_dump((struct Map_Tmpl *)(map), (buff), 0, 0)
 
 #define map_delete(map, slice)                   \
 	({                                           \
@@ -81,15 +81,15 @@ struct _Map {
 		result;                                  \
 	})
 
-#define map_get(map, slice) (typeof(map))_map_get((struct _Map *)(map), (slice))
+#define map_get(map, slice) (typeof(map))_map_get((struct Map_Tmpl *)(map), (slice))
 
 #define map_prepare(arena, map, slice) \
-	(typeof(map))_map_prepare((arena), (struct _Map *)(map), (slice), sizeof((map)->value))
+	(typeof(map))_map_prepare((arena), (struct Map_Tmpl *)(map), (slice), sizeof((map)->value))
 
 #define map_insert(arena, map, slice, val)                                                        \
 	({                                                                                            \
 		typeof(map) curr =                                                                        \
-				(typeof(map))_map_prepare((arena), (struct _Map *)(map), (slice), sizeof((val))); \
+				(typeof(map))_map_prepare((arena), (struct Map_Tmpl *)(map), (slice), sizeof((val))); \
 		if (!curr->occupied) {                                                                    \
 			curr->occupied = true;                                                                \
 			curr->value = (val);                                                                  \
@@ -98,14 +98,14 @@ struct _Map {
 	})
 
 AOCDEF void
-_map_dump(struct _Map *restrict m, rc *restrict buff, const int indent, const int depth);
-AOCDEF struct _Map *null _map_prepare(Arena *restrict arena,
-									  struct _Map *restrict map,
+_map_dump(struct Map_Tmpl *restrict m, rc *restrict buff, const int indent, const int depth);
+AOCDEF struct Map_Tmpl *null _map_prepare(Arena *restrict arena,
+									  struct Map_Tmpl *restrict map,
 									  const Slice slice,
 									  const size_t sizeof_value);
-AOCDEF struct _Map *null _map_get(struct _Map *map, const Slice slice);
+AOCDEF struct Map_Tmpl *null _map_get(struct Map_Tmpl *map, const Slice slice);
 AOCDEF
-int map_binary_search(struct _Map *map, const unsigned char k);
+int map_binary_search(struct Map_Tmpl *map, const unsigned char k);
 
 #ifdef AOC_IMPLEMENTATION
 #include "map.c"

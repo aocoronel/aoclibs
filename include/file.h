@@ -1,38 +1,36 @@
 #ifndef AOC_FILE_H_
+#include "base.h"
 #define AOC_FILE_H_
 
-#include "base.h"
 #include "rc.h"
 #include "cstr.h"
 #include <sys/stat.h>
 
-typedef enum FileType {
+enum File_Type {
 	F_NULL, // Doesn't exist
 	F_REG, // Regular file
 	F_DIR, // Directory
 	F_LNK, // Symbolic Link
 	F_FAIL, // Failed to stat
-} FileType;
+};
 
-typedef void (*dw_fn)(FileType, struct stat *, const char *);
+typedef void (*Dir_Walker_Fn)(File_Type, struct stat *, const char *);
 
-typedef struct DirWalker DirWalker;
-
-struct DirWalker {
-	void (*null isdir)(FileType, DirWalker *);
-	dw_fn null islnk;
-	dw_fn null isnull;
-	dw_fn null isreg;
+struct Dir_Walker {
+	void (*null isdir)(File_Type, Dir_Walker *);
+	Dir_Walker_Fn null islnk;
+	Dir_Walker_Fn null isnull;
+	Dir_Walker_Fn null isreg;
 	void (*null isempty)(const char *path);
 };
 
 // Usage: dir_walk("test.md", .islnk = my_fn);
-#define dir_walk(path, ...)                           \
-	do {                                              \
-		DirWalker _walk = (DirWalker){ __VA_ARGS__ }; \
-		dir_walker(path, &_walk);                     \
+#define dir_walk(path, ...)                             \
+	do {                                                \
+		Dir_Walker _walk = (Dir_Walker){ __VA_ARGS__ }; \
+		dir_walker(path, &_walk);                       \
 	} while (0)
-// dir_walker can run five user provided functions based on each FileType.
+// dir_walker can run five user provided functions based on each File_Type.
 //
 // If the user prefers to ignore a certain filetype, the function values can be
 // passed as NULL.
@@ -41,12 +39,12 @@ struct DirWalker {
 // the isdir function
 //
 // Sets errno << opendir
-AOCDEF bool dir_walker(const char *restrict path, DirWalker *restrict dw);
+AOCDEF bool dir_walker(const char *restrict path, Dir_Walker *restrict dw);
 
 // Stat the file and return its type
 //
 // F_FAIL :: failed to stat. Sets errno << lstat
-AOCDEF FileType get_filetype(struct stat *restrict st, const char *restrict path);
+AOCDEF File_Type get_filetype(struct stat *restrict st, const char *restrict path);
 
 // Reads file, splitting the read buffer by the delimiter.
 // Returns how many bytes has been read.

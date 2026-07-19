@@ -22,7 +22,7 @@ char *C_COMPILER = "g++";
 char *C_COMPILER = "gcc";
 #endif
 
-void read_source_files(FileType ft, struct stat *st, const char *path);
+void read_source_files(File_Type ft, struct stat *st, const char *path);
 
 bool read_file(const char *file, bool ignore_include) {
 	FILE *fp = fopen(file, "r");
@@ -86,7 +86,7 @@ print:
 	return true;
 }
 
-void read_source_files(FileType ft, struct stat *st, const char *path) {
+void read_source_files(File_Type ft, struct stat *st, const char *path) {
 	if (!cstr_ends_with(path, strlen(path), ".c", 2)) return;
 
 	if (!read_file(path, true)) return;
@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	{
-		ForkOptions opt = { 0 };
+		Fork_Options opt = { 0 };
 		char *compile_args[] = { C_COMPILER,
 								 "-std=c11",
 								 "-o",
@@ -197,7 +197,7 @@ int main(int argc, char *argv[]) {
 								 NULL };
 		opt.argv = compile_args;
 		opt.err = true;
-		CmdResult output = { 0 };
+		Cmd_Result output = { 0 };
 		int status = run_cmd(&output, opt);
 
 		if (status != 0) {
@@ -208,11 +208,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	{
-		ForkOptions opt = { 0 };
+		Fork_Options opt = { 0 };
 		char *run_args[] = { "./test", NULL };
 		opt.argv = run_args;
 		opt.err = true;
-		CmdResult output = { 0 };
+		Cmd_Result output = { 0 };
 		int status = run_cmd(&output, opt);
 
 		if (disable_tunit) {
@@ -228,12 +228,12 @@ int main(int argc, char *argv[]) {
 	if (!disable_tunit) fputc('\n', stderr);
 
 	if (compile_object) {
-		ForkOptions opt = { 0 };
+		Fork_Options opt = { 0 };
 		char *compile_args[] = { C_COMPILER, "-std=c11",  "-c",		   "-O2", "-flto", "-fPIC",
 								 "-o",		 "aoclibs.o", "aoclibs.c", "-lm", NULL };
 		opt.argv = compile_args;
 		opt.err = true;
-		CmdResult output = { 0 };
+		Cmd_Result output = { 0 };
 		int status = run_cmd(&output, opt);
 
 		if (status != 0) {
