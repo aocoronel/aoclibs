@@ -18,6 +18,10 @@ TUnit is inspired by the Zig test unit feature, that lets you write tests alongs
 
 Currently, there is no support for running tests in several threads.
 
+> In aoclibs, tunit.h is included in template.h, so we can use tunit.h without even bother including it everywhere
+
+Follow the only example you need:
+
 ```c
 // add.c
 #include "add.h"
@@ -25,8 +29,6 @@ int add(int x, int y) {
   return x + y;
 }
 ```
-
-> In aoclibs, tunit.h is included in template.h, so we can use tunit.h without even bother including it everywhere
 
 ```c
 // add.h
@@ -41,10 +43,10 @@ TEST(add) {
   int x = 1;
   int y = 2;
   // raw messages are useless, embrace the power of printf
-  $tunit_assert(add(x, y) == 2, "%d == %d", x, y);
+  $tunit_assert(add(x, y) == 2, "x: %d, y: %d", x, y);
   // aoclibs has direct support for tunit. So all $assert macros are converted to tunit asserts
   // automatically
-  // $assert(add(x, y) == 2, "%d == %d", x, y);
+  // $assert(add(x, y) == 2, "x: %d, y: %d", x, y);
 }
 #endif
 ```
