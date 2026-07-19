@@ -33,9 +33,10 @@
 #define inline __attribute__((__gnu_inline__)) inline
 #endif
 #define restrict __restrict
+// This macro is an exception on the $macro() convention. Reason: it's a C23 keyword.
 #define typeof(type) __typeof__((type))
 // C++ auto in C as a GNU extension: #define auto __auto_type
-// This will only be enabled when TCC support it
+// This will only be enabled when TCC supports it
 
 // All allocations are assumed to be made by malloc() and realloc(), and freed by free()
 // Because you can compile the entire library to just a single header file, you can overwrite it
