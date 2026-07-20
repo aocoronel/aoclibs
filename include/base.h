@@ -46,8 +46,8 @@
 // mimalloc, dmalloc, rpmalloc...
 
 // Compiler specific
-#define $likely(expr) __builtin_expect(!!(expr), 1)
-#define $unlikely(expr) __builtin_expect(!!(expr), 0)
+#define $likely(expr) __builtin_expect((expr), 1)
+#define $unlikely(expr) __builtin_expect((expr), 0)
 #define $deprecated(fn_to_use_instead) __attribute_deprecated_msg__(fn_to_use_instead)
 #define $must_use __attribute__((warn_unused_result))
 #define $attr_malloc __attribute__((__malloc__))
