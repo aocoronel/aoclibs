@@ -24,26 +24,27 @@
 
 #include "base.h"
 
-typedef struct Region Region;
+typedef struct Arena_Region Arena_Region;
+typedef struct Arena Arena;
 
-struct Region {
-	Region *null next;
+struct Arena_Region {
+	Arena_Region *null next;
 	size_t len;
 	size_t cap;
 	uintptr_t data[];
 };
 
-typedef struct {
-	Region *null begin, *null end;
-} Arena;
+struct Arena {
+	Arena_Region *null begin, *null end;
+};
 
 // Allocates a new region in the heap with given "capacity".
 //
 // This memory is freed using "arena_free_region".
 //
 // NULL :: failed to allocate
-AOCDEF Region *null arena_new_region(const size_t capacity);
-AOCDEF void arena_free_region(Region *r);
+AOCDEF Arena_Region *null arena_new_region(const size_t capacity);
+AOCDEF void arena_free_region(Arena_Region *r);
 
 // Reserve space from the arena with given "size_bytes".
 //
@@ -86,20 +87,20 @@ AOCDEF void arena_destroy(Arena *a);
 
 #define dar_reserve(a, da, new_cap) _dar_reserve(a, da, new_cap, sizeof(*(da)->data))
 
-#define _dar_reserve(a, da, new_cap, sizeof_da)                                                 \
-	do {                                                                                        \
+#define _dar_reserve(a, da, new_cap, sizeof_da)                                                  \
+	do {                                                                                         \
 		if ($unlikely((da)->len >= (da)->cap)) {                                                 \
-			size_t new_capacity = (da)->cap < CONFIG_ARENA_DA_DEFAULT_CAPACITY ?                \
-										  CONFIG_ARENA_DA_DEFAULT_CAPACITY :                    \
-										  new_cap;                                              \
-			while ((new_cap) > new_capacity) {                                                  \
-				new_capacity *= 2;                                                              \
-			}                                                                                   \
-			(da)->data = (typeof((da)->data))arena_realloc(                                 \
-					(a), (da)->data, (da)->cap * (sizeof_da), new_capacity * (sizeof_da));      \
+			size_t new_capacity = (da)->cap < CONFIG_ARENA_DA_DEFAULT_CAPACITY ?                 \
+										  CONFIG_ARENA_DA_DEFAULT_CAPACITY :                     \
+										  new_cap;                                               \
+			while ((new_cap) > new_capacity) {                                                   \
+				new_capacity *= 2;                                                               \
+			}                                                                                    \
+			(da)->data = (typeof((da)->data))arena_realloc(                                      \
+					(a), (da)->data, (da)->cap * (sizeof_da), new_capacity * (sizeof_da));       \
 			$assert((da)->data, "out of memory while reserving memory for arena dynamic array"); \
-			(da)->cap = new_capacity;                                                           \
-		}                                                                                       \
+			(da)->cap = new_capacity;                                                            \
+		}                                                                                        \
 	} while (0)
 
 #define dar_insert(a, da, item)            \
@@ -173,10 +174,10 @@ AOCDEF void arena_destroy(Arena *a);
 
 #if AOC_ARENA_BACKEND == AOC_ARENA_BACKEND_LIBC_MALLOC
 
-AOCDEF Region *arena_new_region(const size_t capacity) {
-	const size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
+AOCDEF Arena_Region *arena_new_region(const size_t capacity) {
+	const size_t size_bytes = sizeof(Arena_Region) + sizeof(uintptr_t) * capacity;
 
-	Region *r = (Region *)malloc(size_bytes);
+	Arena_Region *r = (Arena_Region *)malloc(size_bytes);
 	if (!r) return NULL;
 
 	// Properly allocated memory will slowly releasing this
@@ -188,7 +189,7 @@ AOCDEF Region *arena_new_region(const size_t capacity) {
 	return r;
 }
 
-AOCDEF void arena_free_region(Region *r) {
+AOCDEF void arena_free_region(Arena_Region *r) {
 	$assert_nonnull(r);
 	free(r);
 }
@@ -198,10 +199,11 @@ AOCDEF void arena_free_region(Region *r) {
 #include <unistd.h>
 #include <sys/mman.h>
 
-AOCDEF Region *arena_new_region(const size_t capacity) {
-	const size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * capacity;
+AOCDEF Arena_Region *arena_new_region(const size_t capacity) {
+	const size_t size_bytes = sizeof(Arena_Region) + sizeof(uintptr_t) * capacity;
 
-	Region *r = mmap(NULL, size_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+	Arena_Region *r =
+			mmap(NULL, size_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 	if (!r) return NULL;
 
 	r->next = NULL;
@@ -210,9 +212,9 @@ AOCDEF Region *arena_new_region(const size_t capacity) {
 	return r;
 }
 
-AOCDEF void arena_free_region(Region *r) {
+AOCDEF void arena_free_region(Arena_Region *r) {
 	$assert_nonnull(r);
-	const size_t size_bytes = sizeof(Region) + sizeof(uintptr_t) * r->cap;
+	const size_t size_bytes = sizeof(Arena_Region) + sizeof(uintptr_t) * r->cap;
 	int ret = munmap(r, size_bytes);
 
 	// Manpage:
@@ -341,7 +343,7 @@ AOCDEF char *arena_sprintf(Arena *a, const char *format, ...) {
 
 AOCDEF void arena_reset(Arena *a) {
 	$assert_nonnull(a != NULL);
-	for (Region *r = a->begin; r != NULL; r = r->next) {
+	for (Arena_Region *r = a->begin; r != NULL; r = r->next) {
 		r->len = 0;
 	}
 
@@ -350,9 +352,9 @@ AOCDEF void arena_reset(Arena *a) {
 
 AOCDEF void arena_destroy(Arena *a) {
 	$assert_nonnull(a != NULL);
-	Region *r = a->begin;
+	Arena_Region *r = a->begin;
 	while (r) {
-		Region *r0 = r;
+		Arena_Region *r0 = r;
 		r = r->next;
 		arena_free_region(r0);
 	}
