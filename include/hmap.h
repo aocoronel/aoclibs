@@ -39,6 +39,12 @@ AOCDEF void _hmap_clear(Hash_Map_Tmpl *map);
 #define hmap_reset _hmap_reset((Hash_Map_Tmpl *)map)
 AOCDEF void _hmap_reset(Hash_Map_Tmpl *map);
 
+#define hmap_prepare(map, slice)                                                      \
+    ({                                                                                \
+        typeof((map)->entries.data) e;                                                \
+        e = (typeof((map)->entries.data))_hmap_insert((Hash_Map_Tmpl *)map, (slice)); \
+    })
+
 #define hmap_insert(map, slice, val)                                                  \
     ({                                                                                \
         bool ok = false;                                                              \
@@ -86,7 +92,7 @@ typedef const char *(*Hash_Map_Dump_Fn)(void *, size_t);
 // build stage
 // "fn" is responsible for taking the map->data and returning the string representation of the type
 // at corresponding index.
-void hmap_dump(void *map, const char *map_name, const char *type, Hash_Map_Dump_Fn fn);
+void hmap_dump(FILE *fp, void *map, const char *map_name, const char *type, Hash_Map_Dump_Fn fn);
 
 #ifdef AOC_IMPLEMENTATION
 #include "hmap.c"

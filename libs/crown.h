@@ -1,22 +1,19 @@
-#ifndef AOC_CROWN_H_
-#define AOC_CROWN_H_
+#ifndef CROWN_H_
+#define CROWN_H_
 
-#include "arena.h"
 #include "base.h"
-#include "io.h"
-#include "da.h"
-#include "cstr.c"
-#include <assert.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "colors.h"
+#include "hmap.h"
 #include <sys/ioctl.h>
 #include <unistd.h>
 
 #define CROWN_BUFFER 256 // used by crown_normalize_name
-#define CROWN_INDENTATION 10 // Indentation by spaces
+#define CROWN_INDENTATION 6 // Indentation by spaces
+
+// Separator used by flags to indicate value
+#ifndef CROWN_SEPARATOR
+#define CROWN_SEPARATOR ':'
+#endif
 
 // Coloring
 #define CROWN_HEADER_COLOR COLOR_BOLD_UNDERLINE
@@ -26,1181 +23,775 @@
 #define CROWN_OUTPUT stdout
 #endif
 
-typedef struct CrownCommand CrownCommand;
+#define $crown_printf(...) fprintf(CROWN_OUTPUT, __VA_ARGS__)
+#define $crown_puts(string) fputs((string), CROWN_OUTPUT)
+#define $crown_putc(c) fputc(c, CROWN_OUTPUT)
 
-typedef struct {
-	const char *name;
-	const char *completion;
-} CrownArgument;
+typedef struct Crown_Hashmap Crown_Hashmap;
+typedef struct Crown_Option Crown_Option;
 
-typedef struct {
-	const char *short_opt;
-	const char *long_opt;
-	const int args;
-	const char *desc;
-} CrownOption;
+typedef const char *(*Crown_Fn)(int argc, char **argv, Crown_Option *opt);
 
-typedef struct {
-    DYNAMIC_ARRAY(CrownOption);
-} CrownOpts;
+struct Crown_Option {
+    const char *short_opt, *long_opt, *desc;
 
-typedef struct {
-    DYNAMIC_ARRAY(CrownArgument);
-} CrownArgs;
+    Crown_Fn fn;
+    void *var;
 
-typedef struct {
-    DYNAMIC_ARRAY(CrownCommand);
-} CrownCmds;
+    struct {
+        const char *name;
+        const char *completion;
+    } arg;
 
-struct CrownCommand {
-	const char *name;
-	const int args;
-	const char *desc;
-	CrownCmds *subcmd;
-	CrownOpts *flags;
+    struct {
+        const char *name;
+        const char *value;
+    } env;
 };
 
-typedef struct {
-	CrownOption *opt;
-	const char *name;
-	const char *value; // HOME, PATH, SHELL...
-} CrownEnv;
+struct Crown_Hashmap {
+    HASHMAP(size_t);
+};
 
-typedef struct {
-	const char *name;
-	const char *desc;
-	const char *usage;
-	CrownArgs *args;
-	CrownCmds *subcmd;
-	CrownOpts *flags;
-} CrownProgram;
+extern const Crown_Option CROWN_OPTIONS[];
+extern size_t CROWN_OPTIONS_LENGTH;
+extern Crown_Hashmap CROWN_HASHMAP;
 
-extern int optind; // == getopt
-extern char *optarg; // == getopt
-extern char *optcur; // opt current
+// Current index on argv, same behavior as getopt's optind
+extern int OPTIND;
+// Next argument, same behavior as getopt's optarg
+extern char *OPTARG;
+// Current argument, same behavior as getopt's optopt
+extern char *OPTOPT;
+extern char *OPTCURR;
 
-extern CrownCmds Crown_Command;
-extern CrownOpts Crown_Option;
-extern CrownArgs Crown_Argument;
+// === Standard API
 
-extern CrownProgram *Program;
-extern Arena Program_Arena;
+#define CROWN_NOT_OPT ((void *)-1)
+// Parses command-line arguments
+//
+// CROWN_NOT_OPT :: you may use this to parse positional arguments
+//
+// Example:
+//  crown_init();
+//  while (OPTIND < argc) {
+//      const char *err = crown_parse(argc, argv);
+//      if (err != CROWN_NOT_OPT) {
+//          printf("error: %s: %s\n", err, OPTOPT);
+//          continue;
+//      }
+//      // parse positional arguments manually
+//  }
+//  crown_deinit();
+AOCDEF const char *crown_parse(int argc, char *argv[]);
 
-extern CrownCommand *last_cmd;
+#define CROWN_COMPLETION_BASH (1 << 0)
+#define CROWN_COMPLETION_ZSH (1 << 1)
+// Generate autocompletion script
+//
+// The "shell" accepts either CROWN_COMPLETION_BASH, CROWN_COMPLETION_ZSH, or both.
+//
+// TODO: The "default_completion" is the command that is used when no completion is available
+AOCDEF void crown_completion(
+    const char *restrict progname, const char *restrict null default_completion, int shell);
 
-#define CROWN_PRINTF(...) fprintf(CROWN_OUTPUT, __VA_ARGS__)
-#define CROWN_PUTS(string) fputs(string, CROWN_OUTPUT)
-#define CROWN_PUTC(c) fputc(c, CROWN_OUTPUT)
+// Prints help message.
+AOCDEF void
+crown_help(const char *restrict progname, const char *restrict desc, const char *restrict usage);
 
-// Important to initialize, before anything at the beginning of the main()
-// You may set .name, .usage and .desc here.
-#define crown_init(...)                                                                            \
-	do {                                                                                           \
-		CrownProgram *_Program = alloca(sizeof(CrownProgram));                                     \
-		*_Program = (CrownProgram){                                                                \
-			.subcmd = &Crown_Command, .flags = &Crown_Option, .args = &Crown_Argument, __VA_ARGS__ \
-		};                                                                                         \
-		Program = _Program;                                                                        \
-		Program->args->len = 1;                                                                    \
-	} while (0)
+// Dump the hashmap in a stack-based format, so the user can use it to create a constant hashmap, and
+// use Crown without allocating
+AOCDEF void crown_compile(FILE *fd);
 
-// Once you no longer need to use Crown, you can deinitialize all memory it used.
-AOCDEF void crown_deinit(void);
+// Init the hashmap
+void crown_init(void);
 
-// Add new argument
-// It has a key which is used to be referenced by flags and commands
-#define crown_new_arg(key, ...)      \
-	size_t key = Program->args->len; \
-	crown_append(CrownArgument, Program->args, (CrownArgument){ __VA_ARGS__ })
+// Deinit the hashmap
+void crown_deinit(void);
 
-#define crown_new_opt(key, opt, ...)                                           \
-	size_t key##_id = (opt)->flags->len;                                       \
-	do {                                                                       \
-		crown_append(CrownOption, (opt)->flags, (CrownOption){ __VA_ARGS__ }); \
-	} while (0);                                                               \
-	CrownOption *key = &(opt)->flags->data[key##_id];
+// Get next argument from argv.
+AOCDEF char *crown_getarg(int argc, char *argv[]);
 
-// crown_new_cmd(open, Program, ...)
-#define crown_new_cmd(key, opt, ...)                                              \
-	size_t key##_id = (opt)->subcmd->len;                                         \
-	do {                                                                          \
-		crown_append(CrownCommand, (opt)->subcmd, (CrownCommand){ __VA_ARGS__ }); \
-		last_cmd = &(opt)->subcmd->data[(opt)->subcmd->len - 1];                  \
-		last_cmd->subcmd = arena_calloc(&Program_Arena, sizeof(CrownCmds));       \
-		last_cmd->flags = arena_calloc(&Program_Arena, sizeof(CrownOpts));        \
-	} while (0);                                                                  \
-	CrownCommand *key = &(opt)->subcmd->data[key##_id];
+// === Extra API
 
-#define crown_help_flag(key)               \
-	crown_new_subopt(key,                  \
-					 .short_opt = "-h",    \
-					 .long_opt = "--help", \
-					 .args = CrownNoArg,   \
-					 .desc = "Display this message and exits");
+#ifdef CROWN_EXTRA
+// Reads separator value, if no argument is given, try getenv(), fallback to env.value
+AOCDEF const char *crown_collect_char_env(int argc, char **argv, Crown_Option *opt);
 
-// Syntactic sugar for crown_new_opt(last_cmd->flags, ...)
-#define crown_new_subopt(key, ...)                                                \
-	size_t key##_id = last_cmd->flags->len;                                       \
-	do {                                                                          \
-		$assert(last_cmd != NULL, "No command defined");                           \
-		crown_append(CrownOption, last_cmd->flags, (CrownOption){ __VA_ARGS__ }); \
-	} while (0);                                                                  \
-	CrownOption *key = &last_cmd->flags->data[key##_id];
+// Reads separator value, or next argument
+AOCDEF const char *crown_collect_int(int argc, char **argv, Crown_Option *opt);
 
-#define crown_new_subcmd(key, ...)                                                                 \
-	size_t key##_id = last_cmd->subcmd->len;                                                       \
-	do {                                                                                           \
-		$assert(last_cmd != NULL, "No command defined");                                            \
-		crown_append(CrownCommand, last_cmd->subcmd, (CrownCommand){ __VA_ARGS__ });               \
-		last_cmd->subcmd->data[key##_id].subcmd = arena_calloc(&Program_Arena, sizeof(CrownCmds)); \
-		last_cmd->subcmd->data[key##_id].flags = arena_calloc(&Program_Arena, sizeof(CrownOpts));  \
-	} while (0);                                                                                   \
-	CrownCommand *key = &last_cmd->subcmd->data[key##_id];
+// Reads separator value, or next argument
+AOCDEF const char *crown_collect_uint(int argc, char **argv, Crown_Option *opt);
 
-// Internal macro
-#define crown_append(T, opt, ...)                         \
-	do {                                                  \
-		T _tmp = __VA_ARGS__;                             \
-		void *ptr = &_tmp;                                \
-		dar_reserve(&Program_Arena, opt, (opt)->len + 1); \
-		memcpy(&(opt)->data[(opt)->len], ptr, sizeof(T)); \
-		(opt)->len += 1;                                  \
-	} while (0)
+// Reads separator value, or invert
+AOCDEF const char *crown_collect_bool(int argc, char **argv, Crown_Option *opt);
+#endif // CROWN_EXTRA
+
+// === Helper API
+
+// Reads separator
+//
+// NULL :: No argument found
+AOCDEF const char *null crown_get_separator_value(const char *null arg);
+
+// Reads separator and next argument
+//
+// NULL :: No argument found
+AOCDEF const char *null crown_get_value(int argc, char **argv, const char *null arg);
+
+// Checks if the next argument is an option
+AOCDEF bool crown_is_next_option(void);
 
 // Prints indented message of given "indent".
 //
 // If the size of the terminal cannot be obtained, fallback to 80 columns.
 AOCDEF void crown_iprint(const char *msg, int indent);
 
-// Generates bash completions for commands, flags and arguments.
-//
-// If user provides environment variables, they will be set as a global completion variable.
-// This way the user can write argument completion that uses those environment variables.
-AOCDEF void crown_bashgen(const CrownEnv *null env, size_t envc);
-
 // Normalizes a given "str" to a valid shell function name, by replacing it to non-alphanumeric
 // characters with underscores.
 //
 // May truncate to "buff_size".
-AOCDEF void crown_normalize_name(char *buff, const char *str, size_t buff_size);
+AOCDEF void crown_normalize_name(char *restrict buff, const char *restrict str, size_t buff_size);
 
-// Prints help message.
+// Print the completion code for the options
+AOCDEF void crown_generate_options(size_t opt_len, int indent);
+
+// Print the special completion algorithm for environment variables
 //
-// If "cmd" is NULL, prints the main help message.
-AOCDEF void crown_help(CrownCommand *null cmd);
-
-// Get next argument from argv.
-AOCDEF char *crown_getarg(char *argv[], int argc);
-
-// Important errors when using getopt:
-
-enum {
-	// Command or flag doesn't have an assigned argument
-	CrownNoArg = 0,
-	// Returned when CrownOption.args is not NULL, and no argument has been found.
-	CrownMissingOptarg = -1,
-	// Returned when input is not recognized to be a flag.
-	// This can be used to parse commands and positional arguments.
-	CrownNotOpt = -2,
-	// This is relevant only for developers, and notices when there was an error
-	// on defining and option or command.
-	CrownNotDefined = -3,
-	// This should NEVER return. It only returns if optind is higher than argc.
-	CrownEndOfArgs = -4,
-	// User attempted to enter an option that doesn't exist.
-	CrownNotFound = -5,
-};
-
-#define crown_parseopt(opt) crown_getopt((opt), argv, argc)
-// Flag parser.
+// When an argument and a environment variable set in share the same name, this function will
+// add a lookup for loop, which will update the environment variable at completion
 //
-// If "cmds" is NULL, fallsback to flags defined in Programs.
-//
-// By providing a specific command, getopt will return the index, related to the options defined in
-// the provided command. If "cmds" is NULL, parses the main commands.
-//
-// The returned value is the given index generated when creating a command, argument or option with
-// crown_new_cmd...
-AOCDEF int crown_getopt(CrownCommand *null cmds, char *argv[], int argc);
+// Example:
+// 1. Flag "-d" has argument and env named "MY_DIR".
+// 2. Flag "-f" has argument completion that uses "MY_DIR" as base directory to search for files
+// 3. User pass "-d:~/"
+// 4. User pass "-f=[TAB]", will autocomplete with files from "MY_DIR"
+AOCDEF void crown_generate_env_vars(int idx, size_t opt_len);
 
-// Convenient way to access a subcmd
-#define crown_subcmd(opt, idx) (opt)->subcmd->data[(idx)]
+// Print shell specific entry point
+AOCDEF void crown_generate_completion(
+    int idx, size_t opt_len, const char *null default_completion, int default_level);
 
-#define crown_parsecmd(opt) crown_getcmd((opt), argv, argc)
-// Command parser.
-//
-// If "cmds" is NULL, fallsback to commands defined in Programs.
-//
-// By providing a specific command, getcmd will return the index, related to the subcommand defined
-// in the provided command. If "cmds" is NULL, parses the main commands.
-//
-// The returned value is the given index generated when creating a command, argument or option with
-// crown_new_cmd...
-AOCDEF int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc);
+AOCDEF const char *crown_parse_shortopt(int argc, char *argv[]);
+AOCDEF const char *crown_parse_longopt(int argc, char *argv[]);
 
-// Dump the entire CrownProgram variable in a stack-based format, so the user can initialize it using
-// the arena, and at release switch to the stack-based eliminating all allocations made by Crown.
-AOCDEF void crown_dump(FILE *fp);
+// Print help options section
+AOCDEF void crown_help_options(void);
 
-#ifdef AOC_CROWN
+// Function to dump the hashmap
+AOCDEF const char *crown_hash_dump(void *x, size_t idx);
 
-int optind = 0;
-char *optarg = NULL;
-char *optcur = NULL;
+#ifdef CROWN
 
-CrownCmds Crown_Command = { 0 };
-CrownOpts Crown_Option = { 0 };
-CrownArgs Crown_Argument = { 0 };
-
-CrownProgram *Program;
-Arena Program_Arena = { 0 };
-
-CrownCommand *last_cmd = NULL;
-
-#include "colors.h"
 #include "cstr.h"
-#include <ctype.h>
+#include "io.h"
 
-AOCDEF void crown_deinit(void) {
-	arena_destroy(&Program_Arena);
+int OPTIND = 0;
+char *OPTARG = NULL;
+char *OPTOPT = NULL;
+char *OPTCURR = NULL;
+
+Crown_Hashmap CROWN_HASHMAP = { { 0 } };
+// Computed in crown_init()
+size_t CROWN_OPTIONS_LENGTH = 0;
+
+void crown_generate_options(size_t opt_len, int indent) {
+    $range(0, opt_len, i) {
+        const Crown_Option opt = CROWN_OPTIONS[i];
+
+        const char *sopt = opt.short_opt;
+        const char *lopt = opt.long_opt;
+        const char *arg_name = opt.arg.name;
+
+        $assert(lopt || sopt, "Option doesn't has a short or long flag");
+
+        if (!arg_name) continue;
+
+        char ARG[CROWN_BUFFER];
+        crown_normalize_name(ARG, arg_name, CROWN_BUFFER);
+
+        fputw(CROWN_OUTPUT, indent);
+        if (lopt && sopt)
+            $crown_printf("  -%s|--%s)\n", sopt, lopt);
+        else if (lopt)
+            $crown_printf("  --%s)\n", lopt);
+        else if (sopt)
+            $crown_printf("  -%s)\n", sopt);
+        fputw(CROWN_OUTPUT, indent);
+        $crown_printf("    echo \"$(_%s)\"\n", ARG);
+        fputw(CROWN_OUTPUT, indent);
+        $crown_puts("    return 0\n");
+        fputw(CROWN_OUTPUT, indent);
+        $crown_puts("    ;;\n");
+    }
 }
 
-// Helper function
-AOCDEF void crown_indent_completion(int indent) {
-	for (int i = 0; i < indent; i++) {
-		CROWN_PUTC(' ');
-	}
+void crown_generate_env_vars(int idx, size_t opt_len) {
+    $range(0, opt_len, i) {
+        const Crown_Option opt = CROWN_OPTIONS[i];
+        const char *env_name = opt.env.name;
+        const char *env_value = opt.env.value;
+        const char *sopt = opt.short_opt;
+        const char *lopt = opt.long_opt;
+        if (!env_name) continue;
+        $assert(env_value, "environment variable set, but no value was set");
+
+        const char *arg_name = opt.arg.name;
+        $assert(
+            arg_name != NULL && cstr_eq(arg_name, env_name),
+            "argument name isn't equal to environment name");
+
+        $crown_printf("  for ((i = %d; i < ${#words[@]}; i++)); do\n", idx);
+        if (sopt && lopt) {
+            $crown_printf(
+                "    if [[ \"${words[i]}\" == \"-%s\" ]] || [[ \"${words[i]}\" == \"--%s\" ]] && ((i + 1 < ${#words[@]})); then\n",
+                sopt, lopt);
+        } else if (sopt) {
+            $crown_printf(
+                "    if [[ \"${words[i]}\" == \"--%s\" ]] && ((i + 1 < ${#words[@]})); then\n",
+                lopt);
+        } else if (lopt) {
+            $crown_printf(
+                "    if [[ \"${words[i]}\" == \"-%s\" ]] && ((i + 1 < ${#words[@]})); then\n",
+                sopt);
+        }
+        $crown_printf("       %s=\"${words[i + 1]}\"\n", env_name);
+        $crown_puts("       break\n");
+        $crown_puts("    fi\n");
+        $crown_puts("  done\n\n");
+    }
 }
 
-// Helper function
-AOCDEF void crown_bashgen_case_prev_open(int level) {
-	CROWN_PRINTF("  case \"${words[%d]}\" in\n", level);
+void crown_generate_completion(
+    int idx, size_t opt_len, const char *default_completion, int default_level) {
+    if (default_level == 1)
+        $crown_puts("_generate_completions_bash() {\n");
+    else if (default_level == 2)
+        $crown_puts("_generate_completions_zsh() {\n");
+
+    // For reference:
+    // "  local prev_word=${words[idx - 1]}\n"
+    // "  local level=${#words[@]}\n"
+    $crown_puts(
+        "  local idx=\"$1\"; shift\n"
+        "  local words=( \"$@\" )\n"
+        "  local current_word=${words[idx]}\n"
+        "\n");
+
+    crown_generate_env_vars(idx, opt_len);
+
+    // Argument completion
+    $crown_printf("  case \"$current_word\" in\n");
+    crown_generate_options(opt_len, 0);
+    $crown_puts("  esac\n");
+
+    $crown_puts(
+        "  if [[ \"${current_word}\" == -* ]]; then\n"
+        "    for elem in \"${global_flags[@]}\"; do\n"
+        "      if [[ $elem == \"$current_word\"* ]]; then\n"
+        "       echo \"$elem\";\n"
+        "      fi\n"
+        "    done\n"
+        "    return 0\n"
+        "  fi\n");
+    if (default_completion) {
+        $crown_printf("  %s;\n", default_completion);
+    }
+    $crown_puts(
+        "  return 0\n"
+        "}\n\n");
 }
 
-// Helper function
-AOCDEF void crown_bashgen_case_prev_close(int indent) {
-	crown_indent_completion(indent);
-	CROWN_PRINTF("  esac\n");
+void crown_completion(const char *progname, const char *default_completion, int shell) {
+    $assert_nonnull(progname);
+    if (shell & CROWN_COMPLETION_ZSH) {
+        $crown_puts("#!/usr/bin/env zsh\n\n");
+    } else if (shell & CROWN_COMPLETION_BASH) {
+        $crown_puts("#!/usr/bin/env bash\n\n");
+    }
+
+    size_t opt_len = CROWN_OPTIONS_LENGTH;
+
+    // Sets all environment variables to the top
+    $range(0, opt_len, i) {
+        const Crown_Option opt = CROWN_OPTIONS[i];
+        if (opt.env.name && opt.env.value)
+            $crown_printf("%s=\"%s\"\n", opt.env.name, opt.env.value);
+    }
+    $crown_putc('\n');
+
+    // TODO: Having issues to print files+directories in a portable way that works for both bash
+    // and zsh
+    const char *completion = default_completion;
+    if (!completion) {
+        // completion = "echo \"$(_complete_file)\"";
+    }
+
+    $crown_puts("global_flags=(\n");
+    $range(0, opt_len, i) {
+        const Crown_Option opt = CROWN_OPTIONS[i];
+        const char *sopt = opt.short_opt;
+        const char *lopt = opt.long_opt;
+        const char *desc = opt.desc;
+
+        if (lopt) {
+            if (desc) {
+                $crown_printf("  \"--%s: %s\"\n", lopt, desc);
+            } else {
+                $crown_printf("  \"--%s\"\n", lopt);
+            }
+        }
+        if (sopt) {
+            if (desc) {
+                $crown_printf("  \"-%s: %s\"\n", sopt, desc);
+            } else {
+                $crown_printf("  \"-%s\"\n", sopt);
+            }
+        }
+    }
+    $crown_puts(")\n\n");
+
+    // Generates all the functions responsible for the completions
+    //
+    // args.name = "PATH"
+    // args.completion = "ls"
+    //
+    // _PATH() {
+    //   ls
+    // }
+    $range(0, opt_len, i) {
+        const Crown_Option opt = CROWN_OPTIONS[i];
+        const char *name = opt.arg.name;
+        const char *completion = opt.arg.completion;
+
+        if (!name || !completion) continue;
+
+        char ARG[CROWN_BUFFER];
+        crown_normalize_name(ARG, name, CROWN_BUFFER);
+
+        const int completion_len = strlen(completion);
+
+        $crown_printf("_%s() {\n", name);
+
+        for (int j = 0; j < completion_len;) {
+            int newline = index_of(completion + j, '\n', completion_len - j);
+
+            if (newline < 0) {
+                // no more newlines, print the rest
+                $crown_printf("  %.*s\n", completion_len - j, completion + j);
+                break;
+            }
+
+            $crown_printf("  %.*s\n", newline, completion + j);
+            j += newline + 1; // +1 to skip '\n'
+        }
+
+        $crown_puts("}\n");
+    }
+
+    $crown_putc('\n');
+
+    // This amazing strategy has been taken from
+    // https://mill-build.org/blog/14-bash-zsh-completion.html
+
+    // The only difference between the Bash and Zsh in here is the default_level and starting idx
+    //
+    // Bash "words[1]" refers to the current word, but Zsh also counts the program name so
+    // it starts at words[2].
+    //
+    // Bash is zero indexed, Zsh is 1 indexed (like Lua)
+    if (shell & CROWN_COMPLETION_BASH) {
+        int default_bash = 1;
+        crown_generate_completion(0, opt_len, completion, default_bash);
+    }
+    if (shell & CROWN_COMPLETION_ZSH) {
+        int default_zsh = 2;
+        crown_generate_completion(1, opt_len, completion, default_zsh);
+    }
+    // $crown_puts(
+    //     "_complete_file() {\n"
+    //     "  if [ -n \"${BASH_VERSION:-}\" ]; then\n"
+    //     "      local IFS=$'\n'\n"
+    //     "      COMPREPLY=($(compgen -f -- \"$DIR\" 2>/dev/null))\n"
+    //     "  elif [ -n \"${ZSH_VERSION:-}\" ]; then\n"
+    //     "      _files -g \"$DIR*\"\n"
+    //     "  fi\n"
+    //     "  return 0\n"
+    //     "}\n");
+
+    if (shell & CROWN_COMPLETION_BASH) {
+        $crown_puts(
+            "_complete_bash() {\n"
+            "  local IFS=$'\\n'\n"
+            "  local raw=($(_generate_completions_bash \"$COMP_CWORD\" \"${COMP_WORDS[@]}\"))\n"
+            "  local trimmed=()\n"
+            "  trimmed+=(\"${raw[@]}\")\n"
+            "  \n"
+            "  if ((${#raw[@]} == 1)); then\n"
+            "    trimmed+=(\"${raw[0]%%:*}\")\n"
+            "  fi\n"
+            "  \n"
+            "  COMPREPLY=( \"${trimmed[@]}\" )\n"
+            "}\n");
+    }
+
+    if (shell & CROWN_COMPLETION_ZSH) {
+        $crown_puts(
+            "_complete_zsh() {\n"
+            "  local -a raw trimmed\n"
+            "  local IFS=$'\\n'\n"
+            "  raw=($(_generate_completions_zsh \"$CURRENT\" \"${words[@]}\"))\n"
+            "  \n"
+            "  for d in $raw; do trimmed+=( \"${d%%:*}\" ); done\n"
+            "  if (( ${#raw} == 1 )); then\n"
+            "    trimmed+=( \"${raw[1]}\" )\n"
+            "    raw+=( \"${trimmed[1]}\" )\n"
+            "  fi\n"
+            "  \n"
+            "  compadd -d raw -- $trimmed\n"
+            "}\n");
+    }
+
+    $crown_puts("\n");
+
+    if (shell & CROWN_COMPLETION_BASH) {
+        $crown_printf(
+            "if [ -n \"${BASH_VERSION:-}\" ]; then\n"
+            "  complete -F _complete_bash %s\n"
+            "fi\n",
+            progname);
+    }
+    if (shell & CROWN_COMPLETION_ZSH) {
+        $crown_printf(
+            "if [ -n \"${ZSH_VERSION:-}\" ]; then\n"
+            "  compdef _complete_zsh %s\n"
+            "fi\n",
+            progname);
+    }
 }
 
-// Helper function
-AOCDEF void crown_bashgen_options(CrownOpts *cmds, int indent) {
-	CrownOpts *curr_cmd = cmds == NULL ? Program->flags : cmds;
-	$assert(curr_cmd != NULL);
-
-	$range(0, curr_cmd->len, i) {
-		char ARG[CROWN_BUFFER];
-		CrownOption flags = curr_cmd->data[i];
-		CrownArgument arg = Program->args->data[flags.args];
-		if (arg.name) crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
-		const char *SHORT_FLAG = flags.short_opt;
-		const char *LONG_FLAG = flags.long_opt;
-
-		$assert(LONG_FLAG || SHORT_FLAG, "Option doesn't has a short or long flag");
-
-		crown_indent_completion(indent);
-		if (LONG_FLAG && SHORT_FLAG)
-			CROWN_PRINTF("  %s|%s)\n", SHORT_FLAG, LONG_FLAG);
-		else if (LONG_FLAG)
-			CROWN_PRINTF("  %s)\n", LONG_FLAG);
-		else if (SHORT_FLAG)
-			CROWN_PRINTF("  %s)\n", SHORT_FLAG);
-
-		if (arg.name) {
-			crown_indent_completion(indent);
-			CROWN_PRINTF("    echo \"$(_%s)\"\n", ARG);
-		}
-		crown_indent_completion(indent);
-		CROWN_PRINTF("    return 0\n");
-		crown_indent_completion(indent);
-		CROWN_PRINTF("    ;;\n");
-	}
-}
-
-void crown_print_subcmd_completion(CrownCommand cmd, int indent) {
-	crown_indent_completion(indent);
-	CROWN_PUTS("    comp=(\n");
-	$range(0, cmd.subcmd->len, j) {
-		CrownCommand completion_cmd = cmd.subcmd->data[j];
-		bool has_desc = completion_cmd.desc != NULL ? true : false;
-		crown_indent_completion(indent);
-		if (has_desc)
-			CROWN_PRINTF("      \"%s: %s\"\n", completion_cmd.name, completion_cmd.desc);
-		else
-			CROWN_PRINTF("      \"%s\"\n", completion_cmd.name);
-	}
-	$range(0, cmd.flags->len, j) {
-		CrownOption completion_opt = cmd.flags->data[j];
-		bool has_desc = completion_opt.desc != NULL ? true : false;
-		if (completion_opt.short_opt) {
-			crown_indent_completion(indent);
-			if (has_desc)
-				CROWN_PRINTF("      \"%s: %s\"\n", completion_opt.short_opt, completion_opt.desc);
-			else
-				CROWN_PRINTF("      \"%s\"\n", completion_opt.short_opt);
-		}
-		if (completion_opt.long_opt) {
-			crown_indent_completion(indent);
-			if (has_desc)
-				CROWN_PRINTF("      \"%s: %s\"\n", completion_opt.long_opt, completion_opt.desc);
-			else
-				CROWN_PRINTF("      \"%s\"\n", completion_opt.long_opt);
-		}
-	}
-	crown_indent_completion(indent);
-	CROWN_PUTS("    )\n");
-	crown_indent_completion(indent);
-	CROWN_PUTS("    for elem in \"${comp[@]}\"; do\n");
-	crown_indent_completion(indent);
-	CROWN_PUTS("      if [[ $elem == \"$current_word\"* ]]; then echo \"$elem\"; fi\n");
-	crown_indent_completion(indent);
-	CROWN_PUTS("    done\n");
-}
-
-// Helper function
-AOCDEF void crown_bashgen_subcommand(CrownCmds *cmds, int indent, int level) {
-	CrownCmds *curr_cmd = cmds == NULL ? Program->subcmd : cmds;
-	$assert(curr_cmd != NULL);
-
-	$range(0, curr_cmd->len, i) {
-		char ARG[CROWN_BUFFER];
-		CrownCommand cmd = curr_cmd->data[i];
-		CrownArgument arg = Program->args->data[cmd.args];
-
-		bool has_arg = arg.name != NULL && cmd.args != 0 ? true : false;
-		bool has_comp = arg.completion != NULL && cmd.args != 0 ? true : false;
-
-		if (arg.name) crown_normalize_name(ARG, arg.name, CROWN_BUFFER);
-
-		crown_indent_completion(indent);
-		CROWN_PRINTF("  %s)\n", cmd.name);
-
-		if (cmd.subcmd && cmd.subcmd->data || cmd.flags && cmd.flags->data) {
-			crown_indent_completion(indent + 4);
-			crown_bashgen_case_prev_open(level + 1);
-			$range(0, cmd.subcmd->len, j) {
-				crown_bashgen_subcommand(cmd.subcmd, indent + 6, level + 1);
-			}
-			$range(0, cmd.flags->len, j) {
-				crown_bashgen_options(cmd.flags, indent + 6);
-			}
-			crown_bashgen_case_prev_close(indent + 4);
-		}
-
-		if (has_arg && has_comp) {
-			crown_indent_completion(indent);
-			CROWN_PRINTF("    echo \"$(_%s)\"\n", ARG);
-			if (cmd.subcmd != NULL) {
-				eprintf("%s[WARNING]%s The command %s has subcommands and an argument. "
-						"Crown expects to be either one or the other\n",
-						COLOR_YELLOW,
-						COLOR_RESET,
-						cmd.name);
-			}
-		} else {
-			if (cmd.subcmd->len > 0 || cmd.flags->len > 0)
-				crown_print_subcmd_completion(cmd, indent);
-		}
-
-		if (cmd.subcmd == NULL) indent -= 4;
-		crown_indent_completion(indent);
-		CROWN_PRINTF("    return 0\n");
-		crown_indent_completion(indent);
-		CROWN_PRINTF("    ;;\n");
-	}
-}
-
-AOCDEF void crown_bashgen_env_vars(const CrownEnv *env, size_t envc) {
-	if (env == NULL || envc == 0) return;
-	$assert(envc <= Program->args->len);
-	for (size_t j = 0; j < envc; j++) {
-		if (env[j].opt == NULL || env[j].opt->args == 0) continue;
-
-		const char *arg_name = Program->args->data[env->opt->args].name;
-
-		$assert(arg_name != NULL);
-		if (!cstr_eq(arg_name, env->name)) continue;
-
-		CROWN_PUTS("  for ((i = 0; i < ${#words[@]}; i++)); do\n");
-		if (env[j].opt->short_opt && env[j].opt->long_opt) {
-			CROWN_PRINTF(
-					"    if [[ \"${words[i]}\" == \"%s\" ]] || [[ \"${words[i]}\" == \"%s\" ]] && ((i + 1 < ${#words[@]})); then\n",
-					env[j].opt->short_opt,
-					env[j].opt->long_opt);
-		} else if (env[j].opt->short_opt) {
-			CROWN_PRINTF(
-					"    if [[ \"${words[i]}\" == \"%s\" ]] && ((i + 1 < ${#words[@]})); then\n",
-					env[j].opt->long_opt);
-		} else if (env[j].opt->long_opt) {
-			CROWN_PRINTF(
-					"    if [[ \"${words[i]}\" == \"%s\" ]] && ((i + 1 < ${#words[@]})); then\n",
-					env[j].opt->short_opt);
-		}
-		CROWN_PRINTF("       %s=\"${words[i + 1]}\"\n", env->name);
-		CROWN_PUTS("       break\n");
-		CROWN_PUTS("    fi\n");
-		CROWN_PUTS("  done\n");
-		CROWN_PUTC('\n');
-	}
-}
-
-void crown_generate_completion(const CrownEnv *env, int envc, int default_level) {
-	if (default_level == 1)
-		CROWN_PUTS("_generate_completions_bash() {\n");
-	else if (default_level == 2)
-		CROWN_PUTS("_generate_completions_zsh() {\n");
-
-	CROWN_PUTS("  local idx=\"$1\"; shift\n"
-			   "  local words=( \"$@\" )\n"
-			   "  local current_word=${words[idx]}\n"
-			   "  local prev_word=${words[idx - 1]}\n"
-			   "  local level=${#words[@]}\n"
-			   "\n");
-	CROWN_PUTS("  local global_commands=(\n");
-	$range(0, Program->subcmd->len, i) {
-		CrownCommand completion_cmd = Program->subcmd->data[i];
-		const char *completion_desc = completion_cmd.desc;
-
-		bool has_desc = completion_desc != NULL ? true : false;
-
-		if (completion_cmd.name) {
-			if (has_desc) {
-				CROWN_PRINTF("    \"%s: %s\"\n", completion_cmd.name, completion_desc);
-			} else {
-				CROWN_PRINTF("    \"%s\"\n", completion_cmd.name);
-			}
-		}
-	}
-	CROWN_PUTS("  )\n");
-	CROWN_PUTS("  local global_flags=(\n");
-	$range(0, Program->flags->len, i) {
-		CrownOption completion_flag = Program->flags->data[i];
-		const char *completion_desc = completion_flag.desc;
-
-		bool has_desc = completion_desc != NULL ? true : false;
-
-		if (completion_flag.long_opt) {
-			if (has_desc) {
-				CROWN_PRINTF("    \"%s: %s\"\n", completion_flag.long_opt, completion_desc);
-			} else {
-				CROWN_PRINTF("    \"%s\"\n", completion_flag.long_opt);
-			}
-		} else if (completion_flag.short_opt) {
-			if (has_desc) {
-				CROWN_PRINTF("    \"%s: %s\"\n", completion_flag.short_opt, completion_desc);
-			} else {
-				CROWN_PRINTF("   \"%s\"\n", completion_flag.short_opt);
-			}
-		}
-	}
-	CROWN_PUTS("  )\n");
-	CROWN_PUTS("\n");
-
-	crown_bashgen_env_vars(env, envc);
-
-	// Argument completion
-	CROWN_PRINTF("  case \"${words[%d]}\" in\n", default_level);
-	// Commands
-
-	crown_bashgen_subcommand(NULL, 0, default_level);
-	// Flags
-	crown_bashgen_options(NULL, 0);
-	CROWN_PUTS("  esac\n");
-
-	// case "$prev_word" in
-	// "apple")
-	//   printf "red\nblue\n"
-	//   return 0
-	//   ;;
-	// esac
-	CROWN_PUTS("  if [[ \"${current_word}\" == -* ]]; then\n");
-	CROWN_PUTS("  for elem in \"${global_flags[@]}\"; do\n"
-			   "    if [[ $elem == \"$current_word\"* ]]; then\n"
-			   "     echo \"$elem\";\n"
-			   "    fi\n"
-			   "  done\n");
-	CROWN_PUTS("    return 0\n");
-	CROWN_PUTS("  fi\n");
-
-	CROWN_PUTS("  for elem in \"${global_commands[@]}\"; do\n"
-			   "    if [[ $elem == \"$current_word\"* ]]; then\n"
-			   "     echo \"$elem\";\n"
-			   "    fi\n"
-			   "  done\n"
-			   "}\n"
-			   "\n");
-}
-
-#define CROWN_COMPLETION_BASH (1 << 0)
-#define CROWN_COMPLETION_ZSH (1 << 1)
-AOCDEF void crown_completion(const CrownEnv *env, size_t envc, int shell) {
-	if (shell & CROWN_COMPLETION_ZSH) {
-		CROWN_PUTS("#!/usr/bin/env zsh\n\n");
-	} else if (shell & CROWN_COMPLETION_BASH) {
-		CROWN_PUTS("#!/usr/bin/env bash\n\n");
-	}
-
-	// Sets all environment variables to the top
-	for (size_t i = 0; i < envc; i++)
-		CROWN_PRINTF("%s=\"%s\"\n", env[i].name, env[i].value);
-
-	CROWN_PUTC('\n');
-
-	// Generates all the functions responsible for the completions
-	//
-	// args.name = "PATH"
-	// args.completion = "ls"
-	//
-	// _PATH() {
-	//   ls
-	// }
-	for (size_t i = 0; i < Program->args->len; i++) {
-		CrownArgument args = Program->args->data[i];
-		char ARG[CROWN_BUFFER];
-		if (args.completion)
-			crown_normalize_name(ARG, args.name, CROWN_BUFFER);
-		else
-			continue;
-		const char *arg_comp = args.completion;
-		const int arg_comp_len = strlen(arg_comp);
-
-		CROWN_PRINTF("_%s() {\n", args.name);
-
-		for (int j = 0; j < arg_comp_len;) {
-			int newline = index_of(arg_comp + j, '\n', arg_comp_len - j);
-
-			if (newline < 0) {
-				// no more newlines, print the rest
-				CROWN_PRINTF("  %.*s\n", arg_comp_len - j, arg_comp + j);
-				break;
-			}
-
-			CROWN_PRINTF("  %.*s\n", newline, arg_comp + j);
-			j += newline + 1; // +1 to skip '\n'
-		}
-
-		CROWN_PUTS("}\n");
-	}
-
-	CROWN_PUTC('\n');
-
-	// This amazing strategy has been taken from
-	// https://mill-build.org/blog/14-bash-zsh-completion.html
-
-	// TODO: The only difference between the bash and zsh in here is the default_level
-	//
-	// In bash, words[1] "refers" to the current word, but zsh also counts the program name so
-	// it starts at words[2].
-	//
-	// A simple solution would be store a level variable and increment it. But what if I wanted
-	// to support more specific features from zsh or bash that are not compatible? Splitting
-	// the function may be a more decent approach on extensibility.
-	if (shell & CROWN_COMPLETION_BASH) {
-		int default_bash = 1;
-		crown_generate_completion(env, envc, default_bash);
-	}
-	if (shell & CROWN_COMPLETION_ZSH) {
-		int default_zsh = 2;
-		crown_generate_completion(env, envc, default_zsh);
-	}
-
-	if (shell & CROWN_COMPLETION_BASH) {
-		CROWN_PUTS(
-				"_complete_bash() {\n"
-				"  local IFS=$'\\n'\n"
-				"  local raw=($(_generate_completions_bash \"$COMP_CWORD\" \"${COMP_WORDS[@]}\"))\n"
-				"  local trimmed=()\n"
-				"  trimmed+=(\"${raw[@]}\")\n"
-				"  \n"
-				"  if ((${#raw[@]} == 1)); then\n"
-				"    trimmed+=(\"${raw[0]%%:*}\")\n"
-				"  fi\n"
-				"  \n"
-				"  COMPREPLY=( \"${trimmed[@]}\" )\n"
-				"}\n");
-	}
-
-	if (shell & CROWN_COMPLETION_ZSH) {
-		CROWN_PUTS("_complete_zsh() {\n"
-				   "  local -a raw trimmed\n"
-				   "  local IFS=$'\\n'\n"
-				   "  raw=($(_generate_completions_zsh \"$CURRENT\" \"${words[@]}\"))\n"
-				   "  \n"
-				   "  for d in $raw; do trimmed+=( \"${d%%:*}\" ); done\n"
-				   "  if (( ${#raw} == 1 )); then\n"
-				   "    trimmed+=( \"${raw[1]}\" )\n"
-				   "    raw+=( \"${trimmed[1]}\" )\n"
-				   "  fi\n"
-				   "  \n"
-				   "  compadd -d raw -- $trimmed\n"
-				   "}\n");
-	}
-
-	CROWN_PUTS("\n");
-
-	if (shell & CROWN_COMPLETION_BASH) {
-		CROWN_PRINTF("if [ -n \"${BASH_VERSION:-}\" ]; then\n"
-					 "  complete -F _complete_bash %s\n"
-					 "fi\n",
-					 Program->name);
-	}
-	if (shell & CROWN_COMPLETION_ZSH) {
-		CROWN_PRINTF("if [ -n \"${ZSH_VERSION:-}\" ]; then\n"
-					 "  compdef _complete_zsh %s\n"
-					 "fi\n",
-					 Program->name);
-	}
-}
-
-AOCDEF void crown_normalize_name(char *buff, const char *str, size_t buff_size) {
-	if (!buff || !str || buff_size == 0) {
-		if (buff && buff_size > 0) buff[0] = '\0';
-		return;
-	}
-
-	size_t i = 0;
-
-	for (; *str && i < buff_size; str++) {
-		if (isalnum(*str) || *str == '_') {
-			buff[i++] = *str;
-		} else {
-			buff[i++] = '_';
-		}
-	}
-
-	if (i < buff_size)
-		buff[i] = '\0';
-	else
-		buff[buff_size - 1] = '\0';
-
-	if (i > 0 && isdigit(buff[0])) {
-		memmove(buff + 1, buff, i);
-		buff[0] = '_';
-	}
-}
-
-// crown_help
-
-// Helper function
-AOCDEF void crown_print_header(const char *msg) {
-	CROWN_PRINTF("%s%s%s", CROWN_HEADER_COLOR, msg, COLOR_RESET);
-}
-
-// Helper function
-AOCDEF int crown_help_qsort_cmd(const void *a, const void *b) {
-	const CrownCommand *CMD_A = (const CrownCommand *)a;
-	const CrownCommand *CMD_B = (const CrownCommand *)b;
-
-	return strcmp(CMD_A->name, CMD_B->name);
-}
-
-// Helper function
-AOCDEF const char *qsort_get_opt(const CrownOption *flag) {
-	if (flag->short_opt) return flag->short_opt;
-	if (flag->long_opt) return flag->long_opt;
-	return "";
-}
-
-// Helper function
-AOCDEF int crown_help_qsort_opt(const void *a, const void *b) {
-	const CrownOption *FLAG_A = (const CrownOption *)a;
-	const CrownOption *FLAG_B = (const CrownOption *)b;
-
-	return strcmp(qsort_get_opt(FLAG_A), qsort_get_opt(FLAG_B));
-}
-
-// Helper function
-AOCDEF bool crown_has_commands(CrownCommand *cmds) {
-	CrownCmds *cmd = cmds && cmds->subcmd != NULL ? cmds->subcmd : Program->subcmd;
-	if (cmd == NULL) return false;
-	if (cmd->len == 0) return false;
-#ifndef NDEBUG
-	$assert(cmd->data != NULL, "No command is defined, but length is %zu\n", cmd->len);
-	for (size_t i = 0; i < cmd->len; i++)
-		$assert(cmd->data[i].name != NULL, "Found a subcommand without name in %s", cmds->name);
-#endif
-	return true;
-}
-
-// Helper function
-AOCDEF bool crown_has_options(CrownCommand *cmds) {
-	CrownOpts *opt = cmds && cmds->flags != NULL ? cmds->flags : Program->flags;
-	if (opt == NULL) return false;
-	if (opt->len == 0) return false;
-#ifndef NDEBUG
-	$assert(opt->data != NULL, "No option is defined, but length is %zu\n", opt->len);
-	for (size_t i = 0; i < opt->len; i++)
-		$assert(opt->data[i].short_opt != NULL || opt->data[i].long_opt != NULL,
-			   "Found a option without a least one short/long flag in %s",
-			   cmds->name);
-#endif
-	return true;
-}
-
-// Used in crown_help_commands and crown_help
-#define crown_help_command(command)                                                        \
-	do {                                                                                   \
-		CrownArgument arg = Program->args->data[(command)->args];                          \
-		if (arg.name) {                                                                    \
-			CROWN_PRINTF("  %s%s%s [%s]\n",                                                \
-						 CROWN_COMMAND_COLOR,                                              \
-						 (command)->name,                                                  \
-						 COLOR_RESET,                                                      \
-						 arg.name);                                                        \
-		} else {                                                                           \
-			CROWN_PRINTF("  %s%s%s\n", CROWN_COMMAND_COLOR, (command)->name, COLOR_RESET); \
-		}                                                                                  \
-	} while (0)
-
-#define crown_help_usage(command)                                                         \
-	do {                                                                                  \
-		CrownArgument arg = Program->args->data[(command)->args];                         \
-		if (arg.name) {                                                                   \
-			CROWN_PRINTF(" %s%s%s [%s]\n",                                                \
-						 CROWN_COMMAND_COLOR,                                             \
-						 (command)->name,                                                 \
-						 COLOR_RESET,                                                     \
-						 arg.name);                                                       \
-		} else {                                                                          \
-			CROWN_PRINTF(" %s%s%s\n", CROWN_COMMAND_COLOR, (command)->name, COLOR_RESET); \
-		}                                                                                 \
-	} while (0)
-
-// Commands:
-//   cmd2 [ARG]
-//       Description
-
-// Helper function
-AOCDEF void crown_help_commands(CrownCommand *cmds) {
-	crown_print_header("Commands:\n");
-
-	const CrownCmds *COMMAND = cmds && cmds->subcmd != NULL ? cmds->subcmd : Program->subcmd;
-
-	for (size_t i = 0; i < COMMAND->len; i++) {
-		if (COMMAND->data == NULL) continue;
-		CrownCommand cmd = COMMAND->data[i];
-
-		crown_help_command(&cmd);
-
-		if (cmd.desc && cmd.desc[0] != '\0') {
-			crown_iprint(cmd.desc, CROWN_INDENTATION);
-			CROWN_PUTC('\n');
-		}
-	}
-	CROWN_PUTC('\n');
-}
-
-#define crown_help_option(opt)                                                     \
-	do {                                                                           \
-		const char *SHORT_OPT = (opt)->short_opt;                                  \
-		const char *LONG_OPT = (opt)->long_opt;                                    \
-		CrownArgument arg = Program->args->data[(opt)->args];                      \
-		if (SHORT_OPT && LONG_OPT) {                                               \
-			CROWN_PRINTF("  %s%s%s, %s%s%s",                                       \
-						 CROWN_COMMAND_COLOR,                                      \
-						 SHORT_OPT,                                                \
-						 COLOR_RESET,                                              \
-						 CROWN_COMMAND_COLOR,                                      \
-						 LONG_OPT,                                                 \
-						 COLOR_RESET);                                             \
-		} else if (LONG_OPT) {                                                     \
-			CROWN_PRINTF("  %s%s%s", CROWN_COMMAND_COLOR, LONG_OPT, COLOR_RESET);  \
-		} else if (SHORT_OPT) {                                                    \
-			CROWN_PRINTF("  %s%s%s", CROWN_COMMAND_COLOR, SHORT_OPT, COLOR_RESET); \
-		} else {                                                                   \
-			continue;                                                              \
-		}                                                                          \
-		if (arg.name) CROWN_PRINTF(" [%s]", arg.name);                             \
-	} while (0)
-
-// Options:
-//   -s, --short [ARG]
-//   -l, --long [ARG]
-//   -h, --help
-//       Description
-
-// Helper function
-AOCDEF void crown_help_options(CrownCommand *cmds) {
-	crown_print_header("Options:\n");
-
-	const CrownOpts *FLAG = cmds && cmds->flags != NULL ? cmds->flags : Program->flags;
-
-	for (size_t i = 0; i < FLAG->len; i++) {
-		if (FLAG->data == NULL) continue;
-		CrownOption flags = FLAG->data[i];
-
-		crown_help_option(&flags);
-
-		CROWN_PUTC('\n');
-		if (flags.desc && flags.desc[0] != '\0') {
-			crown_iprint(flags.desc, CROWN_INDENTATION);
-			CROWN_PUTC('\n');
-		}
-	}
-	CROWN_PUTC('\n');
-}
-
-// TODO: when no argument is initialized, this segfaults
-AOCDEF void crown_help(CrownCommand *null cmd) {
-	// NULL in case you want to print the general flags and commands
-	if (cmd == NULL) {
-		qsort(Program->subcmd->data,
-			  Program->subcmd->len,
-			  sizeof(CrownCommand),
-			  crown_help_qsort_cmd);
-		qsort(Program->flags->data, Program->flags->len, sizeof(CrownOption), crown_help_qsort_opt);
-
-		// program name | program description
-		CROWN_PRINTF("%s | %s\n\n", Program->name, Program->desc);
-
-		// Usage: program usage
-		crown_print_header("Usage:");
-		printf(" %s%s%s %s\n\n", CROWN_COMMAND_COLOR, Program->name, COLOR_RESET, Program->usage);
-	} else {
-		qsort(cmd->subcmd->data, cmd->subcmd->len, sizeof(CrownCommand), crown_help_qsort_cmd);
-		qsort(cmd->flags->data, cmd->flags->len, sizeof(CrownOption), crown_help_qsort_opt);
-
-		// command name | command description
-		CROWN_PRINTF("%s\n\n", cmd->desc);
-
-		crown_print_header("Usage:");
-		crown_help_usage(cmd);
-		CROWN_PUTC('\n');
-	}
-	if (crown_has_commands(cmd)) crown_help_commands(cmd);
-	if (crown_has_options(cmd)) crown_help_options(cmd);
-}
-
-AOCDEF void crown_dump_args(FILE *fp, CrownArgs *args, size_t indent) {
-	crown_indent_completion(indent - 2);
-	fprintf(fp, ".args = &(CrownArgs) {\n");
-	crown_indent_completion(indent);
-	fprintf(fp, ".cap = %zu,\n", args->len);
-	crown_indent_completion(indent);
-	fprintf(fp, ".len = %zu,\n", args->len);
-	crown_indent_completion(indent);
-	if (args->len > 0) {
-		fprintf(fp, ".data = (CrownArgument[]) {\n");
-		$range(0, args->len, i) {
-			CrownArgument arg = args->data[i];
-
-			crown_indent_completion(indent + 2);
-			fprintf(fp, "{\n");
-
-			crown_indent_completion(indent + 4);
-			if (arg.name) {
-				fprintf(fp, ".name = \"%s\",\n", arg.name);
-			} else {
-				fprintf(fp, ".name = NULL,\n");
-			}
-
-			crown_indent_completion(indent + 4);
-			fprintf(fp, ".completion = ");
-			if (arg.completion) {
-				int completion_len = strlen(arg.completion);
-				fputc('"', fp);
-				for (int j = 0; j < completion_len; j++) {
-					if (arg.completion[j] == '\n') {
-						fputc('\\', fp);
-						fputc('n', fp);
-						continue;
-					} else if (arg.completion[j] == '"') {
-						fputc('\\', fp);
-						fputc('"', fp);
-						continue;
-					}
-					fputc(arg.completion[j], fp);
-				}
-				fprintf(fp, "\",\n");
-			} else {
-				fprintf(fp, "NULL,\n");
-			}
-
-			crown_indent_completion(indent + 2);
-			fprintf(fp, "},\n"); // CrownArgument
-		}
-		crown_indent_completion(indent);
-		fprintf(fp, "},\n"); // CrownArgument[]
-		crown_indent_completion(indent - 2);
-		fprintf(fp, "},\n"); // CrownArgs
-	} else {
-		fprintf(fp, ".data = NULL,\n");
-	}
-}
-
-AOCDEF void crown_dump_opt(FILE *fp, CrownOpts *opts, size_t indent) {
-	crown_indent_completion(indent - 2);
-	fprintf(fp, ".flags = &(CrownOpts) {\n");
-	crown_indent_completion(indent);
-	fprintf(fp, ".cap = %zu,\n", opts->len);
-	crown_indent_completion(indent);
-	fprintf(fp, ".len = %zu,\n", opts->len);
-	crown_indent_completion(indent);
-	fprintf(fp, ".data = (CrownOption[]) {\n");
-	$range(0, opts->len, i) {
-		CrownOption opt = opts->data[i];
-
-		crown_indent_completion(indent + 2);
-		fprintf(fp, "{\n");
-
-		crown_indent_completion(indent + 4);
-		if (opt.short_opt) {
-			fprintf(fp, ".short_opt = \"%s\",\n", opt.short_opt);
-		} else {
-			fprintf(fp, ".short_opt = NULL,\n");
-		}
-
-		crown_indent_completion(indent + 4);
-		if (opt.long_opt) {
-			fprintf(fp, ".long_opt = \"%s\",\n", opt.long_opt);
-		} else {
-			fprintf(fp, ".long_opt = NULL,\n");
-		}
-
-		crown_indent_completion(indent + 4);
-		if (opt.desc) {
-			fprintf(fp, ".desc = \"%s\",\n", opt.desc);
-		} else {
-			fprintf(fp, ".desc = NULL,\n");
-		}
-
-		crown_indent_completion(indent + 4);
-		fprintf(fp, ".args = %d,\n", opt.args);
-
-		crown_indent_completion(indent + 2);
-		fprintf(fp, "},\n"); // CrownOption
-	}
-	crown_indent_completion(indent);
-	fprintf(fp, "},\n"); // CrownOption[]
-	crown_indent_completion(indent - 2);
-	fprintf(fp, "},\n"); // CrownOpts
-}
-
-AOCDEF void crown_dump_cmd(FILE *fp, CrownCmds *cmds, size_t indent) {
-	crown_indent_completion(indent - 2);
-	fprintf(fp, ".subcmd = &(CrownCmds) {\n");
-	crown_indent_completion(indent);
-	fprintf(fp, ".cap = %zu,\n", cmds->len);
-	crown_indent_completion(indent);
-	fprintf(fp, ".len = %zu,\n", cmds->len);
-	crown_indent_completion(indent);
-	fprintf(fp, ".data = (CrownCommand[]) {\n");
-	$range(0, cmds->len, i) {
-		CrownCommand cmd = cmds->data[i];
-
-		crown_indent_completion(indent + 2);
-		fprintf(fp, "{\n");
-
-		crown_indent_completion(indent + 4);
-		if (cmd.name) {
-			fprintf(fp, ".name = \"%s\",\n", cmd.name);
-		} else {
-			fprintf(fp, ".name = NULL,\n");
-		}
-
-		crown_indent_completion(indent + 4);
-		if (cmd.desc) {
-			fprintf(fp, ".desc = \"%s\",\n", cmd.desc);
-		} else {
-			fprintf(fp, ".desc = NULL,\n");
-		}
-
-		crown_indent_completion(indent + 4);
-		fprintf(fp, ".args = %d,\n", cmd.args);
-
-		if (cmd.subcmd && cmd.subcmd->len > 0) {
-			crown_dump_cmd(fp, cmd.subcmd, indent + 6);
-		}
-		if (cmd.flags && cmd.flags->len > 0) {
-			crown_dump_opt(fp, cmd.flags, indent + 6);
-		}
-		crown_indent_completion(indent + 2);
-		fprintf(fp, "},\n"); // CrownCommand
-	}
-	crown_indent_completion(indent);
-	fprintf(fp, "},\n"); // CrownCommand[]
-	crown_indent_completion(indent - 2);
-	fprintf(fp, "},\n"); // CrownCmds
-}
-
-AOCDEF void crown_dump(FILE *fp) {
-	$assert_nonnull(fp);
-
-	fprintf(fp, "(CrownProgram) {\n");
-	crown_indent_completion(2);
-	fprintf(fp, ".name = \"%s\",\n", Program->name);
-	crown_indent_completion(2);
-	fprintf(fp, ".desc = \"%s\",\n", Program->desc);
-	crown_indent_completion(2);
-	fprintf(fp, ".usage = \"%s\",\n", Program->usage);
-
-	if (Program->subcmd && Program->subcmd->len > 0) {
-		crown_dump_cmd(fp, Program->subcmd, 4);
-	} else {
-		crown_indent_completion(2);
-		fprintf(fp, ".subcmd = NULL,\n");
-	}
-
-	if (Program->flags && Program->flags->len > 0) {
-		crown_dump_opt(fp, Program->flags, 4);
-	} else {
-		crown_indent_completion(2);
-		fprintf(fp, ".flags = NULL,\n");
-	}
-
-	if (Program->args && Program->args->len > 0) {
-		crown_dump_args(fp, Program->args, 4);
-	} else {
-		crown_indent_completion(2);
-		fprintf(fp, ".args = NULL,\n");
-	}
-	fprintf(fp, "};\n");
+void crown_normalize_name(char *buff, const char *str, size_t buff_size) {
+    $assert_nonnull(buff);
+    $assert_nonnull(str);
+    if (!buff || !str || buff_size == 0) {
+        if (buff && buff_size > 0) buff[0] = '\0';
+        return;
+    }
+
+    size_t i = 0;
+
+    for (; *str && i < buff_size; str++) {
+        if (isalnum(*str) || *str == '_') {
+            buff[i++] = *str;
+        } else {
+            buff[i++] = '_';
+        }
+    }
+
+    if (i < buff_size)
+        buff[i] = '\0';
+    else
+        buff[buff_size - 1] = '\0';
+
+    if (i > 0 && isdigit(buff[0])) {
+        memmove(buff + 1, buff, i);
+        buff[0] = '_';
+    }
 }
 
 // CLI Argument Parser
 
-AOCDEF char *crown_getarg(char *argv[], int argc) {
-	if (optind >= argc) return NULL;
-	return argv[optind++];
+AOCDEF char *crown_getarg(int argc, char *argv[]) {
+    if (OPTIND >= argc) return NULL;
+    return argv[OPTIND++];
 }
 
-AOCDEF int crown_getopt(CrownCommand *null cmds, char *argv[], int argc) {
-	const char *arg = crown_getarg(argv, argc);
-	optcur = (char *)arg;
+const char *crown_parse_shortopt(int argc, char *argv[]) {
+    char short_opt[2] = { 0 };
+    short_opt[0] = *OPTCURR;
 
-	if (!arg) return CrownEndOfArgs; // This should never happen...
-	if (arg[0] != '-') return CrownNotOpt;
+    size_t *i = hmap_get_value(&CROWN_HASHMAP, cstr_to_slice(short_opt));
+    if (!i) return "option not found";
+    Crown_Option opt = CROWN_OPTIONS[*i];
+    $assert(opt.fn, "function not set for flag '%s'", opt.short_opt);
 
-	const CrownOption *opt = cmds && cmds->flags != NULL ? cmds->flags->data : Program->flags->data;
-	const size_t len = cmds && cmds->flags != NULL ? cmds->flags->len : Program->flags->len;
-
-	if (opt == NULL) return CrownNotDefined;
-
-	for (size_t i = 0; i < len; i++) {
-		const char *long_opt = opt[i].long_opt;
-		const char *short_opt = opt[i].short_opt;
-		const size_t flag_arg_idx = opt[i].args;
-		const char *flag_arg = Program->args && Program->args->data != NULL ?
-									   Program->args->data[flag_arg_idx].name :
-									   NULL;
-
-		if (long_opt != NULL && cstr_eq(arg, long_opt)) {
-			if (flag_arg != NULL) {
-				optarg = crown_getarg(argv, argc);
-				if (optarg == NULL || optarg[0] == '-') return CrownMissingOptarg;
-			}
-			return i; // Success
-		}
-
-		if (short_opt != NULL && cstr_eq(arg, short_opt)) {
-			if (flag_arg != NULL) {
-				optarg = crown_getarg(argv, argc);
-				if (optarg == NULL || optarg[0] == '-') return CrownMissingOptarg;
-			}
-			return i; // Success
-		}
-	}
-	return CrownNotFound;
+    OPTCURR++;
+    OPTARG = *(argv + 1);
+    Crown_Fn fn = opt.fn;
+    return fn(argc, argv, &opt);
 }
 
-AOCDEF int crown_getcmd(CrownCommand *null cmds, char *argv[], int argc) {
-	const CrownCommand *opt = cmds && cmds->subcmd != NULL ? cmds->subcmd->data :
-															 Program->subcmd->data;
-	const size_t len = cmds && cmds->subcmd != NULL ? cmds->subcmd->len : Program->subcmd->len;
+const char *crown_parse_longopt(int argc, char *argv[]) {
+    char *flag;
+    char long_opt[256] = { 0 };
 
-	if (opt == NULL) return CrownNotDefined;
+    char *idx = (char *)memchr(OPTCURR, CROWN_SEPARATOR, strlen(OPTCURR));
+    if (idx) {
+        size_t len = idx - OPTCURR;
+        if (len > 255) return "flag is too long";
+        memcpy(long_opt, OPTCURR, len);
+        flag = long_opt;
+    } else {
+        flag = OPTCURR;
+    }
 
-	for (size_t i = 0; i < len; i++) {
-		const char *cmd = opt[i].name;
-		const size_t cmd_arg_idx = opt[i].args;
-		const char *cmd_arg = Program->args && Program->args->data != NULL ?
-									  Program->args->data[cmd_arg_idx].name :
-									  NULL;
-		const CrownCommand *cmd_subcmd =
-				opt[i].subcmd && opt[i].subcmd->data != NULL ? opt[i].subcmd->data : NULL;
-
-		if (cmd != NULL && cstr_eq(optcur, cmd)) {
-			if (cmd_arg != NULL) {
-				optarg = crown_getarg(argv, argc);
-				if (optarg == NULL || optarg[0] == '-') return CrownMissingOptarg;
-			}
-			return i; // Success
-		}
-	}
-	return CrownNotDefined;
+    size_t *i = hmap_get_value(&CROWN_HASHMAP, cstr_to_slice(flag));
+    if (!i) return "option not found";
+    Crown_Option opt = CROWN_OPTIONS[*i];
+    $assert(opt.fn, "function not set for flag '%s'", opt.long_opt);
+    OPTCURR = idx;
+    OPTARG = *(argv + 1);
+    Crown_Fn fn = opt.fn;
+    return fn(argc, argv, &opt);
 }
 
-AOCDEF void crown_iprint(const char *msg, int indent) {
-	struct winsize w;
-	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 || w.ws_col == 0) {
-		w.ws_col = 80;
-	}
-	const int WIDTH = w.ws_col;
+const char *crown_parse(int argc, char *argv[]) {
+    OPTOPT = crown_getarg(argc, argv);
+    OPTCURR = OPTOPT;
+    $assert(OPTCURR, "OPTIND > argc");
 
-	CROWN_PRINTF("%-*s", indent, "");
-	int line_pos = indent;
+    if (*OPTCURR != '-') return CROWN_NOT_OPT;
+    OPTCURR++;
 
-	const char *START = msg;
-	const char *END = msg;
+    if (*OPTCURR == '-') {
+        OPTCURR++;
+        return crown_parse_longopt(argc, argv);
+    }
 
-	while (*END) {
-		if (*END == '\n') {
-			CROWN_PUTC('\n');
-			CROWN_PRINTF("%*s", indent, "");
-			line_pos = indent;
-			END++;
-			continue;
-		}
-		while (isspace((unsigned char)*END))
-			END++;
-
-		if (*END == ' ') break;
-
-		START = END;
-		while (*END && !isspace((unsigned char)*END))
-			END++;
-
-		int word_len = END - START;
-
-		if (line_pos + word_len > WIDTH && line_pos > indent) {
-			CROWN_PRINTF("\n%*s", indent, "");
-			line_pos = indent;
-		}
-
-		CROWN_PRINTF("%.*s", word_len, START);
-		line_pos += word_len;
-
-		if (*END && line_pos < WIDTH) {
-			CROWN_PUTC(' ');
-			line_pos++;
-		}
-	}
-	CROWN_PUTC(' ');
+    while (*OPTCURR && *OPTCURR != CROWN_SEPARATOR) {
+        const char *err = crown_parse_shortopt(argc, argv);
+        if (err) return err;
+    }
+    return NULL;
 }
-#endif // AOC_CROWN
 
-#ifdef TUNIT
-TEST(crown_normalize_name) {
-#define crown_normalize_name_test(string, match)                        \
-	do {                                                                \
-		char funcname[64];                                              \
-		crown_normalize_name(funcname, "" string "", sizeof(funcname)); \
-		$assert(cstr_eq("" match "", funcname), "strings don't match"); \
-	} while (0)
+void crown_help_options(void) {
+    size_t opt_len = CROWN_OPTIONS_LENGTH;
+    $range(0, opt_len, i) {
+        const Crown_Option opt = CROWN_OPTIONS[i];
 
-	crown_normalize_name_test("id|url|tag", "id_url_tag");
-	crown_normalize_name_test("<TAG>", "_TAG_");
-	crown_normalize_name_test("[TAG]", "_TAG_");
-	crown_normalize_name_test("field=id URL TAG NOTE TITLE", "field_id_URL_TAG_NOTE_TITLE");
-	crown_normalize_name_test("ENTER || TAG || TITLE && NOTE", "ENTER____TAG____TITLE____NOTE");
-	crown_normalize_name_test("path/to/directory", "path_to_directory");
-	crown_normalize_name_test("%cache", "_cache");
-	crown_normalize_name_test("email@go.com", "email_go_com");
-	crown_normalize_name_test("!STRING", "_STRING");
-	crown_normalize_name_test("^message$", "_message_");
-	crown_normalize_name_test("AND * NOT * NEXT", "AND___NOT___NEXT");
-	crown_normalize_name_test("try-next", "try_next");
+        const char *desc = opt.desc;
+        const char *arg = opt.arg.name;
+        const char *sopt = opt.short_opt;
+        const char *lopt = opt.long_opt;
+
+        if (sopt && lopt) {
+            $crown_printf(
+                "  %s%s%s, %s%s%s", CROWN_COMMAND_COLOR, sopt, COLOR_RESET, CROWN_COMMAND_COLOR,
+                lopt, COLOR_RESET);
+        } else if (lopt) {
+            $crown_printf("  %s%s%s", CROWN_COMMAND_COLOR, lopt, COLOR_RESET);
+        } else if (sopt) {
+            $crown_printf("  %s%s%s", CROWN_COMMAND_COLOR, sopt, COLOR_RESET);
+        } else {
+            continue;
+        }
+
+        if (arg) $crown_printf(" [%s]", arg);
+        $crown_putc('\n');
+
+        if (desc && desc[0] != '\0') {
+            crown_iprint(desc, CROWN_INDENTATION);
+            $crown_putc('\n');
+        }
+    }
+    $crown_putc('\n');
 }
-#endif
 
-#endif // AOC_CROWN_H_
+void crown_help(const char *progname, const char *desc, const char *usage) {
+    // program | description
+    $crown_printf("%s | %s\n\n", progname, desc);
+    // Usage: program usage
+    $crown_printf("%s%s%s", CROWN_HEADER_COLOR, "Usage:", COLOR_RESET);
+    printf(" %s%s%s %s\n\n", CROWN_COMMAND_COLOR, progname, COLOR_RESET, usage);
+    // Options:
+    //   -s, --short [ARG]
+    //   -l, --long [ARG]
+    //   -h, --help
+    //       Description
+    $crown_printf("%s%s%s\n", CROWN_HEADER_COLOR, "Options:", COLOR_RESET);
+    crown_help_options();
+}
+
+void crown_iprint(const char *msg, int indent) {
+    struct winsize w;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 || w.ws_col == 0) {
+        w.ws_col = 80;
+    }
+    const int WIDTH = w.ws_col;
+
+    $crown_printf("%-*s", indent, "");
+    int line_pos = indent;
+
+    const char *START = msg;
+    const char *END = msg;
+
+    while (*END) {
+        if (*END == '\n') {
+            $crown_putc('\n');
+            $crown_printf("%*s", indent, "");
+            line_pos = indent;
+            END++;
+            continue;
+        }
+        while (isspace((unsigned char)*END))
+            END++;
+
+        if (*END == ' ') break;
+
+        START = END;
+        while (*END && !isspace((unsigned char)*END))
+            END++;
+
+        int word_len = END - START;
+
+        if (line_pos + word_len > WIDTH && line_pos > indent) {
+            $crown_printf("\n%*s", indent, "");
+            line_pos = indent;
+        }
+
+        $crown_printf("%.*s", word_len, START);
+        line_pos += word_len;
+
+        if (*END && line_pos < WIDTH) {
+            $crown_putc(' ');
+            line_pos++;
+        }
+    }
+    $crown_putc(' ');
+}
+
+const char *crown_get_separator_value(const char *arg) {
+    if (!arg) return NULL;
+    if (*arg == CROWN_SEPARATOR) return ++arg;
+    return NULL;
+}
+
+bool crown_is_next_option(void) {
+    if (!OPTARG) return false;
+    if (OPTARG[0] == '-') {
+        return true;
+    }
+    return false;
+}
+
+const char *crown_get_value(int argc, char **argv, const char *arg) {
+    const char *value undefined;
+    value = crown_get_separator_value(arg);
+    if (!value) {
+        if (crown_is_next_option()) return NULL;
+        value = crown_getarg(argc, argv);
+        if (!value) return NULL;
+    }
+    return value;
+}
+
+#ifdef CROWN_EXTRA
+const char *crown_collect_char_env(int argc, char **argv, Crown_Option *opt) {
+    const char **v = (const char **)opt->var;
+
+    const char *value = crown_get_separator_value(OPTCURR);
+    if (value) {
+        *v = value;
+    } else {
+        $assert(opt->env.name);
+        const char *env = getenv(opt->env.name);
+        if (env) {
+            *v = env;
+        } else {
+            $assert(opt->env.value);
+            *v = opt->env.value;
+        }
+    }
+
+    // printf("[%d] %s\n", optind, *v);
+
+    return NULL;
+}
+
+const char *crown_collect_int(int argc, char **argv, Crown_Option *opt) {
+    long long *v = (long long *)opt->var;
+
+    const char *value = crown_get_value(argc, argv, OPTCURR);
+    if (!value) return "missing argument";
+    *v = cstr_to_llong(value, *v);
+
+    // printf("[%d] %lld\n", optind, *v);
+
+    return NULL;
+}
+
+const char *crown_collect_uint(int argc, char **argv, Crown_Option *opt) {
+    unsigned long long *v = (unsigned long long *)opt->var;
+
+    const char *value = crown_get_value(argc, argv, OPTCURR);
+    if (!value) return "missing argument";
+    *v = cstr_to_ullong(value, *v);
+
+    // printf("[%d] %llu\n", optind, *v);
+
+    return NULL;
+}
+
+const char *crown_collect_bool(int argc, char **argv, Crown_Option *opt) {
+    bool *v = (bool *)opt->var;
+
+    const char *value = crown_get_separator_value(OPTCURR);
+    if (value) {
+        *v = cstr_to_bool(value, *v);
+    } else {
+        *v = !*v;
+    }
+
+    // printf("[%d] %s\n", optind, *v ? "true" : "false");
+
+    return NULL;
+}
+#endif // CROWN_EXTRA
+
+void crown_init(void) {
+    if (!hmap_init(&CROWN_HASHMAP, 256)) return;
+    const Crown_Option *opts = CROWN_OPTIONS;
+
+    for (; opts && opts->short_opt || opts->long_opt; opts++) {
+        size_t i = CROWN_OPTIONS_LENGTH++;
+        const Crown_Option opt = *opts;
+
+        da_insert(&CROWN_HASHMAP, i);
+
+        if (opt.short_opt) {
+            Hash_Entry_Tmpl *entry = hmap_prepare(&CROWN_HASHMAP, cstr_to_slice(opt.short_opt));
+            if (entry) {
+                entry->value_idx = CROWN_HASHMAP.len - 1;
+            }
+        }
+        if (opt.long_opt) {
+            Hash_Entry_Tmpl *entry = hmap_prepare(&CROWN_HASHMAP, cstr_to_slice(opt.long_opt));
+            if (entry) {
+                entry->value_idx = CROWN_HASHMAP.len - 1;
+            }
+        }
+    }
+}
+
+const char *crown_hash_dump(void *x, size_t idx) {
+    static char buff[32] = { 0 };
+    size_t *y = (size_t *)x;
+
+    memset(buff, 0, 32);
+    snprintf(buff, 32, "%zu", y[idx]);
+
+    return buff;
+}
+
+void crown_deinit(void) {
+    hmap_free(&CROWN_HASHMAP);
+}
+
+void crown_compile(FILE *fd) {
+    hmap_dump(fd, &CROWN_HASHMAP, "Crown_Hashmap", "size_t", crown_hash_dump);
+}
+#endif // CROWN
+
+#endif // CROWN_H_

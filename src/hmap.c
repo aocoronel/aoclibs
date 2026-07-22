@@ -186,41 +186,63 @@ bool _hmap_init(Hash_Map_Tmpl *map, const size_t capacity, const size_t sizeof_e
     return true;
 }
 
-void hmap_dump(void *map, const char *map_name, const char *type, Hash_Map_Dump_Fn fn) {
+void hmap_dump(FILE *fd, void *map, const char *map_name, const char *type, Hash_Map_Dump_Fn fn) {
+    $assert_nonnull(fn);
     Hash_Map_Tmpl *m = (Hash_Map_Tmpl *)map;
-    printf("(%s) {\n", map_name);
-    printf("    .entries = {\n");
-    printf("        .len = %zu,\n", m->entries.len);
-    printf("        .cap = %zu,\n", m->entries.cap);
-    printf("        .data = (Hash_Entry_Tmpl[]) {\n");
+    fprintf(fd, "(%s) {\n", map_name);
+    fprintf(fd, "    .entries = {\n");
+    fprintf(fd, "        .len = %zu,\n", m->entries.len);
+    fprintf(fd, "        .cap = %zu,\n", m->entries.cap);
+    fprintf(fd, "        .data = (const Hash_Entry_Tmpl[]) {\n");
 
-    Slice _null = { .data = "{ 0 }", .len = 6 };
     $range(0, m->entries.cap, i) {
+        $assert(i < 259);
         Hash_Entry_Tmpl e = m->entries.data[i];
-        Slice key = e.hash == 0 ? _null : e.key;
-        printf(
+        if (e.hash == 0) {
+            fprintf(fd, "            ");
+            for (; i < m->entries.cap; i++) {
+                Hash_Entry_Tmpl e = m->entries.data[i];
+                if (e.hash != 0) break;
+                fprintf(fd, "{ 0 },");
+            }
+            fprintf(fd, "\n");
+            if (i < m->entries.cap) {
+                Hash_Entry_Tmpl e = m->entries.data[i];
+                fprintf(
+                    fd,
+                    "            {\n"
+                    "                .hash = %zuULL,\n"
+                    "                .key = { .data = \"%.*s\", .len = %zu },\n"
+                    "                .meta = %u,\n"
+                    "                .value_idx = %zu,\n"
+                    "            },\n",
+                    e.hash, $view_slice(e.key), e.key.len, e.meta, e.value_idx);
+            }
+            continue;
+        }
+        fprintf(
+            fd,
             "            {\n"
             "                .hash = %zuULL,\n"
-            "                .key = %.*s,\n"
+            "                .key = { .data = \"%.*s\", .len = %zu },\n"
             "                .meta = %u,\n"
             "                .value_idx = %zu,\n"
             "            },\n",
-            e.hash, $view_slice(key), e.meta, e.value_idx);
+            e.hash, $view_slice(e.key), e.key.len, e.meta, e.value_idx);
     }
-    printf("        },\n"); // data
-    printf("    },\n"); // entries
-    printf(
+    fprintf(fd, "        },\n"); // data
+    fprintf(fd, "    },\n"); // entries
+    fprintf(
+        fd,
         "    .len = %zu,\n"
         "    .cap = %zu,\n",
         m->len, m->cap);
-    printf("    .data = (%s[]) {\n", type);
+    fprintf(fd, "    .data = (const %s[]) {\n", type);
     $range(0, m->len, i) {
-        float *floats = (float *)m->data;
-        const char *buff = fn(m->data, i);
-        printf("        %f,\n", floats[i]);
+        fprintf(fd, "        %s,\n", fn(m->data, i));
     }
-    printf("    },\n");
-    printf("}\n"); // map_name
+    fprintf(fd, "    },\n");
+    fprintf(fd, "}\n"); // map_name
 }
 
 void *_hmap_insert(Hash_Map_Tmpl *map, const Slice key) {
@@ -320,7 +342,7 @@ SKIP_TEST(hashmap_test) {
     $assert(hmap_get(&map, world2) == 456.0, "values don't match");
     $assert(hmap_get(&map, world3) == 456.0, "values don't match");
 
-	// Example only, not tested
+    // Example only, not tested
     // hmap_dump(&map, "TestHashMap", "float", foo);
 
     hmap_remove(&map, hello);
