@@ -105,7 +105,7 @@ crown_help(const char *restrict progname, const char *restrict desc, const char 
 AOCDEF void crown_compile(FILE *fd);
 
 // Init the hashmap
-AOCDEF void crown_init(void);
+AOCDEF const char *null crown_init(void);
 
 // Deinit the hashmap
 AOCDEF void crown_deinit(void);
@@ -759,8 +759,8 @@ const char *crown_collect_bool(int argc, char **argv, Crown_Option *opt) {
 }
 #endif // CROWN_EXTRA
 
-void crown_init(void) {
-    if (!hmap_init(&CROWN_HASHMAP, 256)) return;
+const char *null crown_init(void) {
+    if (!hmap_init(&CROWN_HASHMAP, 256)) return "out of memory";
     size_t i = 0;
     const Crown_Option *opts = (const Crown_Option *)CROWN_OPTION;
     for (; opts && opts->short_opt || opts->long_opt; opts++) {
@@ -771,17 +771,24 @@ void crown_init(void) {
         if (opt.short_opt) {
             Hash_Entry_Tmpl *entry = hmap_prepare(&CROWN_HASHMAP, cstr_to_slice(opt.short_opt));
             if (entry) {
+                $assert(entry->hash == 0, "the option '%s' was already inserted", opt.short_opt);
                 entry->value_idx = CROWN_HASHMAP.len - 1;
+            } else {
+                return "out of memory";
             }
         }
         if (opt.long_opt) {
             Hash_Entry_Tmpl *entry = hmap_prepare(&CROWN_HASHMAP, cstr_to_slice(opt.long_opt));
             if (entry) {
+                $assert(entry->hash == 0, "the option '%s' was already inserted", opt.long_opt);
                 entry->value_idx = CROWN_HASHMAP.len - 1;
+            } else {
+                return "out of memory";
             }
         }
         i++;
     }
+    return NULL;
 }
 
 const char *crown_hash_dump(void *x, size_t idx) {
