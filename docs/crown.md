@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
     const char *path = NULL;
     unsigned long long my_uint = 0ULL;
 
+    // clang-format off
     const Crown_Option options[] = {
       // short, long, description
       { "s", "short", "Short message",
@@ -40,13 +41,16 @@ int main(int argc, char *argv[]) {
       },
       { 0 },
     };
+    // clang-format on
 
     // Always skip the program name
     const char *progname = crown_getarg(argc, argv);
 
-    crown_init();
+    size_t opt_len = 0;
+    crown_init(options, &opt_len);
     while (OPTIND < argc) {
-        const char *err = crown_parse(argc, argv);
+        const char *err = crown_parse(options, argc, argv);
+		if (!err) continue;
         if (err != CROWN_NOT_OPT) {
             printf("error: %s: %s\n", err, OPTOPT);
             continue;
@@ -61,9 +65,9 @@ int main(int argc, char *argv[]) {
 
     crown_deinit();
 
-    crown_help("bmark", "minimalistic bookmark manager", "[OPTIONS]");
+    crown_help(options, opt_len, "bmark", "minimalistic bookmark manager", "[OPTIONS]");
 
-    crown_completion("bmark", NULL, CROWN_COMPLETION_BASH | CROWN_COMPLETION_ZSH);
+    crown_completion(options, opt_len, "bmark", NULL, CROWN_COMPLETION_BASH | CROWN_COMPLETION_ZSH);
 
     return 0;
 }
