@@ -23,14 +23,16 @@ int main(int argc, char *argv[]) {
     const Crown_Option options[] = {
       // short, long, description
       { "s", "short", "Short message",
+        // The "fn" is always required, the "var" is only required, depending on which function
+        // you use
+        .fn = crown_collect_bool, .var = &my_bool,
         // If a flag accepts an argument, you can describe it. You can do whatever
         // This is only used in the help message and completion script
-        .fn = crown_collect_bool, .var = &my_bool,
         .arg = { "bool", NULL },
       },
-      { "i", "int", "Set int",
+      { "u", "uint", "Set int",
         .fn = crown_collect_uint, .var = &my_uint,
-        .arg = { "int", NULL },
+        .arg = { "uint", NULL },
       },
       { "p", "path", "Set path",
         .fn = crown_collect_char_env, .var = &path,
@@ -50,7 +52,7 @@ int main(int argc, char *argv[]) {
     crown_init(options, &opt_len);
     while (OPTIND < argc) {
         const char *err = crown_parse(options, argc, argv);
-		if (!err) continue;
+        if (!err) continue;
         if (err != CROWN_NOT_OPT) {
             printf("error: %s: %s\n", err, OPTOPT);
             continue;

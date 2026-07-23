@@ -71,16 +71,17 @@ extern char *OPTCURR;
 // CROWN_NOT_OPT :: you may use this to parse positional arguments
 //
 // Example:
-//  crown_init();
-//  while (OPTIND < argc) {
-//      const char *err = crown_parse(argc, argv);
-//      if (err != CROWN_NOT_OPT) {
-//          printf("error: %s: %s\n", err, OPTOPT);
-//          continue;
-//      }
-//      // parse positional arguments manually
-//  }
-//  crown_deinit();
+//   size_t opt_len = 0;
+//   crown_init(options, &opt_len);
+//   while (OPTIND < argc) {
+//       const char *err = crown_parse(options, argc, argv);
+//       if (!err) continue;
+//       if (err != CROWN_NOT_OPT) {
+//           printf("error: %s: %s\n", err, OPTOPT);
+//           continue;
+//       }
+//       // parse positional arguments manually
+//   }
 AOCDEF const char *crown_parse(const Crown_Option opts[], int argc, char *argv[]);
 
 #define CROWN_COMPLETION_BASH (1 << 0)
