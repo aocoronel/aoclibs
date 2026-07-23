@@ -37,11 +37,11 @@ int main(int argc, char *argv[]) {
       { "f", "file", "Set path",
         .fn = crown_collect_char_env, .var = &path,
         .arg = { "filepath", NULL },
-		// Environment used in the completion script, and may be used in the callback
-		// If the env is equal to the argument name, the script will collect the env value, and
-		// all other completions that depends on it will have it updated
-		// Say that one flag gets file completions from $DIR, and another flag sets $DIR, if $DIR is
-		// previously set, and the file flag is used, the completions will use the set path, for example
+        // Environment used in the completion script, and may be used in the callback
+        // If the env is equal to the argument name, the script will collect the env value, and
+        // all other completions that depends on it will have it updated
+        // Say that one flag gets file completions from $DIR, and another flag sets $DIR, if $DIR is
+        // previously set, and the file flag is used, the completions will use the set path, for example
         .env = "filepath",
       },
       { 0 },
@@ -54,8 +54,8 @@ int main(int argc, char *argv[]) {
 
     crown_init();
 
-	// The user may pass something like:
-	// ./program -psu:355 --short:false
+    // The user may pass something like:
+    // ./program -psu:355 --short:false
     while (OPTIND < argc) {
         const char *err = crown_parse(argc, argv);
         if (!err) continue;
