@@ -34,24 +34,30 @@ int main(int argc, char *argv[]) {
         .fn = crown_collect_uint, .var = &my_uint,
         .arg = { "uint", NULL },
       },
-      { "p", "path", "Set path",
+      { "f", "file", "Set path",
         .fn = crown_collect_char_env, .var = &path,
-        .arg = { "FILEPATH", NULL },
-        // If an environment is set, and has the same name as the argument, the completion script
-        // will always keep it updated, so other completions can use it
-        .env = { "FILEPATH", "~/" },
+        .arg = { "filepath", NULL },
+		// Environment used in the completion script, and may be used in the callback
+		// If the env is equal to the argument name, the script will collect the env value, and
+		// all other completions that depends on it will have it updated
+		// Say that one flag gets file completions from $DIR, and another flag sets $DIR, if $DIR is
+		// previously set, and the file flag is used, the completions will use the set path, for example
+        .env = "filepath",
       },
       { 0 },
     };
     // clang-format on
+    $crown_set(options);
 
     // Always skip the program name
     const char *progname = crown_getarg(argc, argv);
 
-    size_t opt_len = 0;
-    crown_init(options, &opt_len);
+    crown_init();
+
+	// The user may pass something like:
+	// ./program -psu:355 --short:false
     while (OPTIND < argc) {
-        const char *err = crown_parse(options, argc, argv);
+        const char *err = crown_parse(argc, argv);
         if (!err) continue;
         if (err != CROWN_NOT_OPT) {
             printf("error: %s: %s\n", err, OPTOPT);
@@ -67,9 +73,9 @@ int main(int argc, char *argv[]) {
 
     crown_deinit();
 
-    crown_help(options, opt_len, "bmark", "minimalistic bookmark manager", "[OPTIONS]");
+    crown_help("bmark", "minimalistic bookmark manager", "[OPTIONS]");
 
-    crown_completion(options, opt_len, "bmark", NULL, CROWN_COMPLETION_BASH | CROWN_COMPLETION_ZSH);
+    crown_completion("bmark", NULL, CROWN_COMPLETION_BASH | CROWN_COMPLETION_ZSH);
 
     return 0;
 }
