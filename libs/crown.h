@@ -41,6 +41,7 @@ struct Crown_Option {
     struct {
         const char *name;
         const char *completion;
+        bool required;
     } arg;
 
     const char *env;
@@ -573,6 +574,7 @@ void crown_help_options() {
 
         const char *desc = opt.desc;
         const char *arg = opt.arg.name;
+        const char *env = opt.env;
         const char *sopt = opt.short_opt;
         const char *lopt = opt.long_opt;
 
@@ -588,7 +590,17 @@ void crown_help_options() {
             continue;
         }
 
-        if (arg) $crown_printf(" [%s]", arg);
+        if (arg) {
+            if (env && cstr_eq(env, arg)) {
+                $crown_printf(" $%s", arg);
+            } else {
+                if (opt.arg.required) {
+                    $crown_printf(" <%s>", arg);
+                } else {
+                    $crown_printf(" [%s]", arg);
+                }
+            }
+        }
         $crown_putc('\n');
 
         if (desc && desc[0] != '\0') {

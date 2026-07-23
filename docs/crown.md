@@ -28,15 +28,17 @@ int main(int argc, char *argv[]) {
         .fn = crown_collect_bool, .var = &my_bool,
         // If a flag accepts an argument, you can describe it. You can do whatever
         // This is only used in the help message and completion script
-        .arg = { "bool", NULL },
+        // The required field is only used in the help message, to help the user understand how to use
+        // the program
+        .arg = { "bool", NULL, .required = false },
       },
       { "u", "uint", "Set int",
         .fn = crown_collect_uint, .var = &my_uint,
-        .arg = { "uint", NULL },
+        .arg = { "uint", NULL, .required = true },
       },
       { "f", "file", "Set path",
         .fn = crown_collect_char_env, .var = &path,
-        .arg = { "filepath", NULL },
+        .arg = { "filepath", NULL, .required = false },
         // Environment used in the completion script, and may be used in the callback
         // If the env is equal to the argument name, the script will collect the env value, and
         // all other completions that depends on it will have it updated
