@@ -78,9 +78,7 @@
 void heap_trace_summary(FILE *fd);
 int heap_count_leaks(void);
 
-/*
- * Logs formatted message to tunit.txt
-*/
+// Logs formatted message to tunit.txt
 static inline void tunit_log(const char *fmt, ...);
 
 typedef void (*TestFunc)(void);
@@ -301,7 +299,7 @@ static inline void tunit_run_all_tests(void) {
         stderr, "%d succeed, %d failed (%.2fms total)\n", TESTS_RUN - TESTS_FAIL, TESTS_FAIL,
         TESTS_TIME);
 
-	heap_trace_summary(stderr);
+    heap_trace_summary(stderr);
 }
 
 static inline void tunit_init_log(const char *log_path) {
@@ -356,11 +354,6 @@ static inline void tunit_free(void) {
 }
 
 int main(void) {
-    srand((unsigned)time(NULL));
-    char perturb[16];
-    snprintf(perturb, sizeof(perturb), "%d", (rand() % 255) + 1);
-    setenv("MALLOC_PERTURB_", perturb, 1);
-
     tunit_init_log("tunit.log");
     tunit_log_begin_end("Initializing test");
     tunit_run_all_tests();
