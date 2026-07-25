@@ -105,7 +105,21 @@
 #define $assert(...)
 #else
 #ifdef TUNIT
+extern const char *CURRENT_TEST;
+static inline void tunit_fail(void);
 #define $assert(expr, ...) $tunit_assert(expr, __VA_ARGS__)
+#define $tunit_assert(expr, ...)                                                        \
+    do {                                                                                \
+        if (!(expr)) {                                                                  \
+            fprintf(                                                                    \
+                stderr, " %s:%d: Assertion failed in test %s: %s:", __FILE__, __LINE__, \
+                CURRENT_TEST ? CURRENT_TEST : "(unknown)", #expr);                      \
+            fprintf(stderr, " " __VA_ARGS__);                                           \
+            fputc('\n', stderr);                                                        \
+            tunit_fail();                                                               \
+            abort();                                                                    \
+        }                                                                               \
+    } while (0)
 #else
 #define $assert(expr, ...) ((expr) ? (void)0 : $abort("Assertion failed: " #expr, __VA_ARGS__))
 #endif

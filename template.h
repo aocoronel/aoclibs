@@ -51,8 +51,8 @@
 #include "./include/types.h"
 #include "./include/base.h"
 #include "./include/cfg.h"
-#include "./include/tunit.h" // TUNIT
 #include "./include/alloc.h"
+#include "./include/tunit.h" // TUNIT
 
 // Vendor
 #include "./vendor/rapidhash.h"

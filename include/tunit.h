@@ -33,6 +33,7 @@
     }                                                                      \
     static void test_##desc(void)
 
+#ifndef $tunit_assert
 #define $tunit_assert(expr, ...)                                                        \
     do {                                                                                \
         if (!(expr)) {                                                                  \
@@ -45,6 +46,7 @@
             abort();                                                                    \
         }                                                                               \
     } while (0)
+#endif
 
 #define SKIP_TEST(desc)                                                    \
     static void test_##desc(void);                                         \
@@ -53,8 +55,6 @@
     }                                                                      \
     static void test_##desc(void)
 #endif
-
-#define $assert_heap_trace() $assert(heap_count_leaks == 0, "memory leak");
 
 #ifdef TUNIT
 #define _POSIX_C_SOURCE 200809L
@@ -75,8 +75,10 @@
 #include <string.h>
 #endif
 
+#ifdef AOC_ALLOC_H_
 void heap_trace_summary(FILE *fd);
 int heap_count_leaks(void);
+#endif
 
 // Logs formatted message to tunit.txt
 static inline void tunit_log(const char *fmt, ...);
@@ -98,7 +100,7 @@ static int TESTS_FAIL = 0;
 static int TESTS_SKIP = 0;
 static int TESTS_LEAKS = 0;
 static double TESTS_TIME = 0.0;
-static const char *CURRENT_TEST = NULL;
+const char *CURRENT_TEST = NULL;
 
 static jmp_buf TUNIT_JUMP;
 static volatile int TUNIT_TIMEOUT_OCCURRED = 0;
@@ -217,13 +219,18 @@ static inline void tunit_run_single_test(TUnit_Test *test) {
 #else
 static inline void tunit_run_single_test(TUnit_Test *test) {
     double duration_ms = 0.0;
+#ifdef AOC_ALLOC_H_
     int leaks_begin = heap_count_leaks();
+#endif
     CURRENT_TEST = test->description;
     TUNIT_TIMEOUT_OCCURRED = 0;
 
     clock_gettime(CLOCK_MONOTONIC, &TUNIT_START_TIME);
 
     int jump_val = setjmp(TUNIT_JUMP);
+#ifdef AOC_ALLOC_H_
+    int leaks = heap_count_leaks() - leaks_begin;
+#endif
     if (jump_val == 0) {
         signal(SIGSEGV, tunit_segfault_handler);
         signal(SIGALRM, tunit_timeout_handler);
@@ -238,33 +245,42 @@ static inline void tunit_run_single_test(TUnit_Test *test) {
 
         duration_ms = tunit_get_time_diff_ms(&TUNIT_START_TIME);
 
-        int leaks = heap_count_leaks() - leaks_begin;
+#ifdef AOC_ALLOC_H_
         if (leaks > 0) {
             TESTS_LEAKS++;
             fprintf(stderr, " ok: %s %.2fms (%d leaks)\r\n", CURRENT_TEST, duration_ms, leaks);
         } else {
             fprintf(stderr, " ok: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
         }
+#else
+        fprintf(stderr, " ok: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
+#endif
     } else if (jump_val == 1) { /* Assertion fail or crash */
         duration_ms = tunit_get_time_diff_ms(&TUNIT_START_TIME);
 
-        int leaks = heap_count_leaks() - leaks_begin;
+#ifdef AOC_ALLOC_H_
         if (leaks > 0) {
             TESTS_LEAKS++;
             fprintf(stderr, " fail: %s %.2fms (%d leaks)\r\n", CURRENT_TEST, duration_ms, leaks);
         } else {
             fprintf(stderr, " fail: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
         }
+#else
+        fprintf(stderr, " fail: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
+#endif
     } else if (jump_val == 2) { /* Skipped test */
         duration_ms = tunit_get_time_diff_ms(&TUNIT_START_TIME);
 
-        int leaks = heap_count_leaks() - leaks_begin;
+#ifdef AOC_ALLOC_H_
         if (leaks > 0) {
             TESTS_LEAKS++;
             fprintf(stderr, " skip: %s %.2fms (%d leaks)\r\n", CURRENT_TEST, duration_ms, leaks);
         } else {
             fprintf(stderr, " skip: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
         }
+#else
+        fprintf(stderr, " skip: %s %.2fms\r\n", CURRENT_TEST, duration_ms);
+#endif
     }
     TESTS_TIME += duration_ms;
 }
@@ -299,7 +315,9 @@ static inline void tunit_run_all_tests(void) {
         stderr, "%d succeed, %d failed (%.2fms total)\n", TESTS_RUN - TESTS_FAIL, TESTS_FAIL,
         TESTS_TIME);
 
+#ifdef AOC_ALLOC_H_
     heap_trace_summary(stderr);
+#endif
 }
 
 static inline void tunit_init_log(const char *log_path) {
