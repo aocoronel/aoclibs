@@ -20,6 +20,9 @@
 #define $$declare(name) name name
 #define $declare(type) typedef type $$declare
 
+// base.h
+$declare(struct)(Source_Code_Location);
+
 // buddy.h
 $declare(struct)(Buddy_Block);
 $declare(struct)(Buddy_Page);
