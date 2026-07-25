@@ -31,6 +31,7 @@ c++ @build++ && ./merge
 
 | Library                    | Description                       |
 |----------------------------|-----------------------------------|
+| alloc.h                    | Allocator interface               |
 | base.h                     | Handful aliases and macros        |
 | buddy.h                    | Buddy allocator                   |
 | calculus.h                 | Math                              |
@@ -40,7 +41,6 @@ c++ @build++ && ./merge
 | file.h                     | File operations                   |
 | fork.h                     | Fork high-level wrappers          |
 | fquery.h                   | "Regex"-like based on functions   |
-| heap_trace.h               | Catch malloc/calloc/realloc leaks |
 | hmap.h                     | Unordered hashmap                 |
 | io.h                       | Input/output simple functions     |
 | libc.h                     | Most included libc libraries      |
