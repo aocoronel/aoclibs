@@ -46,13 +46,13 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
-#include "./include/types.h"
+
 #include "./include/libc.h"
+#include "./include/types.h"
 #include "./include/base.h"
 #include "./include/cfg.h"
-
-#include "./include/heap_trace.h" // HEAP_DEBUG
 #include "./include/tunit.h" // TUNIT
+#include "./include/alloc.h"
 
 // Vendor
 #include "./vendor/rapidhash.h"

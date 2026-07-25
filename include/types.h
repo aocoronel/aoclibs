@@ -1,7 +1,6 @@
 #ifndef AOC_TYPES_H_
 #define AOC_TYPES_H_
 
-#include "alloc.h"
 #ifndef __cplusplus
 
 // C forces you to do this, when you want to define a struct that uses itself

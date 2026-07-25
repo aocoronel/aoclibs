@@ -54,17 +54,7 @@
     static void test_##desc(void)
 #endif
 
-#ifdef HEAP_TRACE
-// heap_count_leaks is defined in heap_trace.h
-#define no_debug_malloc no_debug_malloc
-#define no_debug_free no_debug_free
 #define $assert_heap_trace() $assert(heap_count_leaks == 0, "memory leak");
-#else
-#define heap_count_leaks 0
-#define no_debug_malloc malloc
-#define no_debug_free free
-#define $assert_heap_trace()
-#endif
 
 #ifdef TUNIT
 #define _POSIX_C_SOURCE 200809L
@@ -84,6 +74,9 @@
 #ifdef TUNIT_SUBPROCESS
 #include <string.h>
 #endif
+
+void heap_trace_summary(FILE *fd);
+int heap_count_leaks(void);
 
 /*
  * Logs formatted message to tunit.txt
@@ -226,7 +219,7 @@ static inline void tunit_run_single_test(TUnit_Test *test) {
 #else
 static inline void tunit_run_single_test(TUnit_Test *test) {
     double duration_ms = 0.0;
-    int leaks_begin = heap_count_leaks;
+    int leaks_begin = heap_count_leaks();
     CURRENT_TEST = test->description;
     TUNIT_TIMEOUT_OCCURRED = 0;
 
@@ -247,7 +240,7 @@ static inline void tunit_run_single_test(TUnit_Test *test) {
 
         duration_ms = tunit_get_time_diff_ms(&TUNIT_START_TIME);
 
-        int leaks = heap_count_leaks - leaks_begin;
+        int leaks = heap_count_leaks() - leaks_begin;
         if (leaks > 0) {
             TESTS_LEAKS++;
             fprintf(stderr, " ok: %s %.2fms (%d leaks)\r\n", CURRENT_TEST, duration_ms, leaks);
@@ -257,7 +250,7 @@ static inline void tunit_run_single_test(TUnit_Test *test) {
     } else if (jump_val == 1) { /* Assertion fail or crash */
         duration_ms = tunit_get_time_diff_ms(&TUNIT_START_TIME);
 
-        int leaks = heap_count_leaks - leaks_begin;
+        int leaks = heap_count_leaks() - leaks_begin;
         if (leaks > 0) {
             TESTS_LEAKS++;
             fprintf(stderr, " fail: %s %.2fms (%d leaks)\r\n", CURRENT_TEST, duration_ms, leaks);
@@ -267,7 +260,7 @@ static inline void tunit_run_single_test(TUnit_Test *test) {
     } else if (jump_val == 2) { /* Skipped test */
         duration_ms = tunit_get_time_diff_ms(&TUNIT_START_TIME);
 
-        int leaks = heap_count_leaks - leaks_begin;
+        int leaks = heap_count_leaks() - leaks_begin;
         if (leaks > 0) {
             TESTS_LEAKS++;
             fprintf(stderr, " skip: %s %.2fms (%d leaks)\r\n", CURRENT_TEST, duration_ms, leaks);
@@ -279,7 +272,7 @@ static inline void tunit_run_single_test(TUnit_Test *test) {
 }
 #endif
 static inline void tunit_register_test(const char *desc, void (*func)(void), size_t timeout) {
-    TUnit_Test *tc = no_debug_malloc(sizeof(TUnit_Test));
+    TUnit_Test *tc = malloc(sizeof(TUnit_Test));
     tc->description = desc;
     tc->func = func;
     tc->next = NULL;
@@ -308,23 +301,7 @@ static inline void tunit_run_all_tests(void) {
         stderr, "%d succeed, %d failed (%.2fms total)\n", TESTS_RUN - TESTS_FAIL, TESTS_FAIL,
         TESTS_TIME);
 
-#ifdef HEAP_TRACE
-    {
-        __heap_trace_entry *curr = __entry_head;
-        fprintf(
-            stderr, "%d total allocations, %d total frees, %d active allocations (leaks)\n",
-            __trace_alloc_count, __trace_free_count, __trace_alloc_count - __trace_free_count);
-        while (curr) {
-            fprintf(
-                stderr, "%zu bytes at %s() in %s:%d (ptr: %p)\n", curr->size, curr->func,
-                curr->file, curr->line, curr->ptr);
-            curr = curr->next;
-        }
-        if (__trace_alloc_count == __trace_free_count) {
-            fprintf(stderr, "No memory leaks detected.\n");
-        }
-    }
-#endif
+	heap_trace_summary(stderr);
 }
 
 static inline void tunit_init_log(const char *log_path) {
@@ -371,7 +348,7 @@ static inline void tunit_free(void) {
     TUnit_Test *cur = TUNIT_HEAD;
     while (cur) {
         TUnit_Test *next = cur->next;
-        no_debug_free(cur);
+        free(cur);
         cur = next;
     }
     TUNIT_HEAD = NULL;

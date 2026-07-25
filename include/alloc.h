@@ -137,9 +137,6 @@ AOCDEF void libc_munmap(void *ctx, void *ptr);
 
 #endif // ALLOC_VMEM
 
-// Returns how many leaks found
-#define heap_count_leaks heap_trace_alloc_count - heap_trace_free_count
-
 struct Heap_Trace_Entry {
     void *ptr;
     size_t size;
@@ -154,6 +151,8 @@ extern int heap_trace_free_count;
 // Prints allocation and free count.
 // If there was a leak, print the source of the leak
 void heap_trace_summary(FILE *fd);
+
+int heap_count_leaks(void);
 
 #ifdef NDEBUG
 #define $heap_trace_add_entry(ptr, size, loc)
@@ -359,12 +358,16 @@ void heap_trace_remove_entry(void *ptr) {
 }
 #endif
 
+int heap_count_leaks(void) {
+    return heap_trace_alloc_count - heap_trace_free_count;
+}
+
 void heap_trace_summary(FILE *fd) {
 #ifdef NDEBUG
     fprintf(fd, "Memory Report: Debugging is disabled\n");
 #else
     int leaks, allocations, frees;
-    leaks = heap_count_leaks;
+    leaks = heap_count_leaks();
     allocations = heap_trace_alloc_count;
     frees = heap_trace_free_count;
     fprintf(fd, "Memory Report: %d leaks, %d allocations, %d frees\n", leaks, allocations, frees);
