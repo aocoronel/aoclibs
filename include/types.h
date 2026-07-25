@@ -1,6 +1,7 @@
 #ifndef AOC_TYPES_H_
 #define AOC_TYPES_H_
 
+#include "alloc.h"
 #ifndef __cplusplus
 
 // C forces you to do this, when you want to define a struct that uses itself
@@ -19,6 +20,12 @@
 //   }
 #define $$declare(name) name name
 #define $declare(type) typedef type $$declare
+
+// alloc.h
+$declare(struct)(General_Allocator);
+$declare(struct)(Buffer_Allocator);
+$declare(struct)(Fixed_Buffer);
+$declare(struct)(Heap_Trace_Entry);
 
 // base.h
 $declare(struct)(Source_Code_Location);

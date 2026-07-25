@@ -13,11 +13,6 @@ typedef void (*Buffer_Allocator_Free_Fn)(void *ctx, void *ptr);
 typedef void (*Buffer_Allocator_Destroy_Fn)(void *ctx);
 typedef void (*Buffer_Allocator_Reset_Fn)(void *ctx);
 
-typedef struct General_Allocator const General_Allocator;
-typedef struct Buffer_Allocator const Buffer_Allocator;
-typedef struct Context_Allocator const Context_Allocator;
-typedef struct Fixed_Buffer Fixed_Buffer;
-
 // General_Allocator vs Buffer_Allocator
 //
 // Something common in modern languages is a single allocator interface for every possible allocator
@@ -31,22 +26,19 @@ typedef struct Fixed_Buffer Fixed_Buffer;
 
 // For malloc/mmap
 struct General_Allocator {
-    const General_Allocator_Alloc_Fn alloc;
-    const General_Allocator_Realloc_Fn realloc;
-    const General_Allocator_Free_Fn free;
+    const General_Allocator_Alloc_Fn allocate;
+    const General_Allocator_Realloc_Fn reallocate;
+    const General_Allocator_Free_Fn deallocate;
+    void *context;
 };
 
 // For buddy/arena/stack/bump allocators
 struct Buffer_Allocator {
-    const Buffer_Allocator_Alloc_Fn alloc;
-    const Buffer_Allocator_Realloc_Fn realloc;
-    const Buffer_Allocator_Free_Fn free;
+    const Buffer_Allocator_Alloc_Fn allocate;
+    const Buffer_Allocator_Realloc_Fn reallocate;
+    const Buffer_Allocator_Free_Fn deallocate;
     const Buffer_Allocator_Destroy_Fn destroy;
     const Buffer_Allocator_Reset_Fn reset;
-};
-
-struct Context_Allocator {
-    const General_Allocator allocator;
     void *context;
 };
 
@@ -56,7 +48,8 @@ struct Fixed_Buffer {
     char *data;
 };
 
-extern const General_Allocator LIBC_MALLOC;
+#define LIBC_MALLOC libc_malloc, libc_realloc, libc_free
+#define FIXED_BUFFER_ALLOCATOR fballoc, fbrealloc, fbdealloc, fbdestroy, fbreset
 
 AOCDEF void *libc_malloc(void *ctx, size_t size);
 AOCDEF void *libc_realloc(void *ctx, void *ptr, size_t size);
@@ -65,31 +58,53 @@ AOCDEF void libc_free(void *ctx, void *ptr);
 #define TEMPORARY_ALLOCATOR_GLOBAL_BUFFER_CAPACITY (8 * 1024 * 1024)
 
 extern char TEMPORARY_ALLOCATOR_GLOBAL_BUFFER[TEMPORARY_ALLOCATOR_GLOBAL_BUFFER_CAPACITY];
-extern const Buffer_Allocator FIXED_BUFFER_ALLOCATOR;
 
 // Fixed-size buffer allocation
 // Not thread-safe. This will only become thread-safe once I started to mess with threads in C,
 // something I only played in Rust so far
-AOCDEF void *balloc(void *ctx, size_t size);
-AOCDEF void *brealloc(void *ctx, void *ptr, size_t oldsz, size_t newsz);
+AOCDEF void *fballoc(void *ctx, size_t size);
+AOCDEF void *fbrealloc(void *ctx, void *ptr, size_t oldsz, size_t newsz);
 // No-op. To reset just set Fixed_Buffer.len to 0
-AOCDEF void bfree(void *ctx, void *ptr);
-AOCDEF void breset(void *ctx);
-AOCDEF void bdestroy(void *ctx);
+AOCDEF void fbdealloc(void *ctx, void *ptr);
+AOCDEF void fbdestroy(void *ctx);
+AOCDEF void fbreset(void *ctx);
 
-#define $alloc(size) alloc((size), context_allocator)
-#define $resize(ptr, size) resize((ptr), (size), context_allocator)
-#define $dealloc(ptr) dealloc((ptr), context_allocator)
+#define $general_allocator const General_Allocator *general_allocator
+#define $buffer_allocator const Buffer_Allocator *buffer_allocator
 
-#define $context_allocator const Context_Allocator *context_allocator
+// These macros are an exception on the $macro() convention. Reason: too verbose
+#define alloc(size) general_alloc((size), general_allocator $$source_code_location)
+#define resize(ptr, size) general_resize((ptr), (size), general_allocator $$source_code_location)
+#define dealloc(ptr) general_dealloc((ptr), general_allocator)
+#define balloc(size) buffer_alloc((size), buffer_allocator $$source_code_location)
+#define bresize(ptr, oldsz, newsz) \
+    buffer_resize((ptr), (oldsz), (newsz), buffer_allocator $$source_code_location)
+#define bdealloc(ptr) buffer_dealloc((ptr), buffer_allocator)
+#define bdestroy() buffer_destroy(buffer_allocator)
 
-AOCDEF void *alloc(size_t size, $context_allocator);
-AOCDEF void dealloc(void *ptr, $context_allocator);
-AOCDEF void *resize(void *ptr, size_t size, $context_allocator);
+AOCDEF void *general_alloc(size_t size, $general_allocator $source_code_location);
+AOCDEF void *general_resize(void *ptr, size_t size, $general_allocator $source_code_location);
+AOCDEF void general_dealloc(void *ptr, $general_allocator);
 
-#define $define_context_allocator(...)                                        \
-    const Context_Allocator *context_allocator = &(const Context_Allocator) { \
+AOCDEF void *buffer_alloc(size_t size, $buffer_allocator $source_code_location);
+AOCDEF void *
+buffer_resize(void *ptr, size_t oldsz, size_t newsz, $buffer_allocator $source_code_location);
+AOCDEF void buffer_dealloc(void *ptr, $buffer_allocator);
+#define breset() buffer_reset(buffer_allocator)
+AOCDEF void buffer_reset($buffer_allocator);
+
+// alloc.h doesn't touch heap_entry in this function, so if there were initialization, the user
+// must remove it from the entry manually
+AOCDEF void buffer_destroy($buffer_allocator);
+
+#define $define_general_allocator(...)                                        \
+    const General_Allocator *general_allocator = &(const General_Allocator) { \
         __VA_ARGS__                                                           \
+    }
+
+#define $define_buffer_allocator(...)                                      \
+    const Buffer_Allocator *buffer_allocator = &(const Buffer_Allocator) { \
+        __VA_ARGS__                                                        \
     }
 
 #ifdef ALLOC_VMEM
@@ -102,19 +117,19 @@ typedef struct Virtual_Memory Virtual_Memory;
 #include <sys/mman.h>
 
 struct Virtual_Memory {
-    void *__addr;
-    int __prot;
-    int __flags;
-    int __fd;
-    off_t __offset;
+    void *addr;
+    int prot;
+    int flags;
+    int fd;
+    off_t offset;
 
-    int __remap_flags;
+    int remap_flags;
 
     // libc_mmap and libc_mremap writes to this, so libc_munmap knows how to free the pages
-    size_t __size;
+    size_t size;
 };
 
-extern const General_Allocator LIBC_MMAP;
+#define LIBC_MMAP libc_mmap, libc_mremap, libc_munmap
 
 AOCDEF void *null libc_mmap(void *ctx, size_t size);
 AOCDEF void *null libc_mremap(void *ctx, void *ptr, size_t size);
@@ -122,47 +137,67 @@ AOCDEF void libc_munmap(void *ctx, void *ptr);
 
 #endif // ALLOC_VMEM
 
+// Returns how many leaks found
+#define heap_count_leaks heap_trace_alloc_count - heap_trace_free_count
+
+struct Heap_Trace_Entry {
+    void *ptr;
+    size_t size;
+    Source_Code_Location loc;
+    struct Heap_Trace_Entry *next;
+};
+
+extern Heap_Trace_Entry *heap_trace_entry_head;
+extern int heap_trace_alloc_count;
+extern int heap_trace_free_count;
+
+// Prints allocation and free count.
+// If there was a leak, print the source of the leak
+void heap_trace_summary(FILE *fd);
+
+#ifdef NDEBUG
+#define $heap_trace_add_entry(ptr, size, loc)
+#define $heap_trace_remove_entry(ptr)
+#else
+#define $heap_trace_add_entry(ptr, size, loc) heap_trace_add_entry((ptr), (size), (loc))
+#define $heap_trace_remove_entry(ptr) heap_trace_remove_entry((ptr))
+#endif
+
+void heap_trace_add_entry(void *ptr, size_t size $source_code_location);
+void heap_trace_remove_entry(void *ptr);
+
 #ifdef AOC_IMPLEMENTATION
+
+Heap_Trace_Entry *heap_trace_entry_head = NULL;
+int heap_trace_alloc_count = 0;
+int heap_trace_free_count = 0;
 
 char TEMPORARY_ALLOCATOR_GLOBAL_BUFFER[TEMPORARY_ALLOCATOR_GLOBAL_BUFFER_CAPACITY];
 
-const General_Allocator LIBC_MALLOC = { libc_malloc, libc_realloc, libc_free };
-const Buffer_Allocator FIXED_BUFFER_ALLOCATOR = { balloc, brealloc, bfree, bdestroy, breset };
-
 #ifdef ALLOC_VMEM
-
-const General_Allocator LIBC_MMAP = { libc_mmap, libc_mremap, libc_munmap };
-
 void *libc_mmap(void *ctx, size_t size) {
-    struct Virtual_Memory *vm = (struct Virtual_Memory *)ctx;
-    struct Virtual_Memory v = *vm;
+    Virtual_Memory *vm = (Virtual_Memory *)ctx;
+    Virtual_Memory v = *vm;
 
-    vm->__size = size;
-    void *p = mmap(v.__addr, size, v.__prot, v.__flags, v.__fd, v.__offset);
+    vm->size = size;
+    void *p = mmap(v.addr, size, v.prot, v.flags, v.fd, v.offset);
     if (p == MAP_FAILED) return NULL;
     return p;
 }
 
 void *libc_mremap(void *ctx, void *ptr, size_t size) {
-    struct Virtual_Memory *vm = (struct Virtual_Memory *)ctx;
-    struct Virtual_Memory v = *vm;
-
-    size_t old_size = vm->__size;
-    vm->__size = size;
-    void *p = mremap(ptr, old_size, size, vm->__remap_flags);
+    Virtual_Memory *vm = (Virtual_Memory *)ctx;
+    size_t old_size = vm->size;
+    vm->size = size;
+    void *p = mremap(ptr, old_size, size, vm->remap_flags);
     if (p == MAP_FAILED) return NULL;
     return p;
 }
 
 void libc_munmap(void *ctx, void *ptr) {
-    struct Virtual_Memory *vm = (struct Virtual_Memory *)ctx;
-    struct Virtual_Memory v = *vm;
-
-    int ret = munmap(ptr, v.__size);
-    if (ret != 0) {
-        fprintf(stderr, "%s\n", strerror(errno));
-        abort();
-    }
+    Virtual_Memory *vm = (Virtual_Memory *)ctx;
+    // Deallocation should always succeed. If this fails, it's bad API usage
+    $assert(munmap(ptr, vm->size) == 0, "%s", strerror(errno));
 }
 #endif // ALLOC_VMEM
 
@@ -181,7 +216,7 @@ void libc_free(void *ctx, void *ptr) {
     free(ptr);
 }
 
-void *balloc(void *ctx, size_t size) {
+void *fballoc(void *ctx, size_t size) {
     Fixed_Buffer *fa = (Fixed_Buffer *)ctx;
 
     if (size + fa->len > fa->cap) return NULL;
@@ -196,7 +231,7 @@ void *balloc(void *ctx, size_t size) {
     return ret;
 }
 
-void *brealloc(void *ctx, void *ptr, size_t oldsz, size_t newsz) {
+void *fbrealloc(void *ctx, void *ptr, size_t oldsz, size_t newsz) {
     Fixed_Buffer *fa = (Fixed_Buffer *)ctx;
 
     if (newsz <= oldsz) return ptr;
@@ -212,39 +247,144 @@ void *brealloc(void *ctx, void *ptr, size_t oldsz, size_t newsz) {
     return ret;
 }
 
-void bfree(void *ctx, void *ptr) {
+void fbdealloc(void *ctx, void *ptr) {
     (void)ctx;
     (void)ptr;
 }
 
-void breset(void *ctx) {
+void fbreset(void *ctx) {
     Fixed_Buffer *fa = (Fixed_Buffer *)ctx;
     fa->len = 0;
 }
 
-void bdestroy(void *ctx) {
+void fbdestroy(void *ctx) {
     Fixed_Buffer *fa = (Fixed_Buffer *)ctx;
     fa->len = 0;
 }
 
-void *alloc(size_t size, $context_allocator) {
-    return context_allocator->allocator.alloc(context_allocator->context, size);
+void *general_alloc(size_t size, $general_allocator $source_code_location) {
+    void *ptr = general_allocator->allocate(general_allocator->context, size);
+    if (!ptr) return NULL;
+    $heap_trace_add_entry(ptr, size, source_code_location);
+    return ptr;
 }
 
-void *resize(void *ptr, size_t size, $context_allocator) {
-    return context_allocator->allocator.realloc(context_allocator->context, ptr, size);
+void *general_resize(void *ptr, size_t size, $general_allocator $source_code_location) {
+    $assert_nonnull(ptr);
+
+    void *new_ptr = general_allocator->reallocate(general_allocator->context, ptr, size);
+    if (!new_ptr) return NULL;
+
+    Heap_Trace_Entry **entry_ptr = &heap_trace_entry_head;
+    $heap_trace_remove_entry(ptr);
+
+    $heap_trace_add_entry(new_ptr, size, source_code_location);
+    return new_ptr;
 }
 
-void dealloc(void *ptr, $context_allocator) {
-    context_allocator->allocator.free(context_allocator->context, ptr);
+void general_dealloc(void *ptr, $general_allocator) {
+    $assert_nonnull(ptr);
+    $heap_trace_remove_entry(ptr);
+    general_allocator->deallocate(general_allocator->context, ptr);
+}
+
+void *buffer_alloc(size_t size, $buffer_allocator $source_code_location) {
+    void *ptr = buffer_allocator->allocate(buffer_allocator->context, size);
+    if (!ptr) return NULL;
+    $heap_trace_add_entry(ptr, size, source_code_location);
+    return ptr;
+}
+
+void *
+buffer_resize(void *ptr, size_t oldsz, size_t newsz, $buffer_allocator $source_code_location) {
+    $assert_nonnull(ptr);
+
+    void *new_ptr = buffer_allocator->reallocate(buffer_allocator->context, ptr, oldsz, newsz);
+    if (!new_ptr) return NULL;
+
+    Heap_Trace_Entry **entry_ptr = &heap_trace_entry_head;
+    $heap_trace_remove_entry(ptr);
+
+    $heap_trace_add_entry(new_ptr, newsz, source_code_location);
+    return new_ptr;
+}
+
+void buffer_dealloc(void *ptr, $buffer_allocator) {
+    $assert_nonnull(ptr);
+    $heap_trace_remove_entry(ptr);
+    buffer_allocator->deallocate(buffer_allocator->context, ptr);
+}
+
+void buffer_reset($buffer_allocator) {
+    buffer_allocator->reset(buffer_allocator->context);
+}
+
+void buffer_destroy($buffer_allocator) {
+    buffer_allocator->destroy(buffer_allocator->context);
+}
+
+#ifdef NDEBUG
+void heap_trace_add_entry(void *ptr, size_t size $source_code_location) {
+    return;
+}
+
+void heap_trace_remove_entry(void *ptr) {
+    return;
+}
+#else
+void heap_trace_add_entry(void *ptr, size_t size $source_code_location) {
+    Heap_Trace_Entry *entry = (Heap_Trace_Entry *)malloc(sizeof(Heap_Trace_Entry));
+    $assert(entry, "out of memory");
+
+    entry->ptr = ptr;
+    entry->size = size;
+    entry->loc = source_code_location;
+    entry->next = heap_trace_entry_head;
+    heap_trace_entry_head = entry;
+    heap_trace_alloc_count++;
+}
+
+void heap_trace_remove_entry(void *ptr) {
+    Heap_Trace_Entry **curr = &heap_trace_entry_head;
+    while (*curr) {
+        if ((*curr)->ptr == ptr) {
+            Heap_Trace_Entry *to_free = *curr;
+            *curr = to_free->next;
+            free(to_free);
+            heap_trace_free_count++;
+            return;
+        }
+        curr = &(*curr)->next;
+    }
+}
+#endif
+
+void heap_trace_summary(FILE *fd) {
+#ifdef NDEBUG
+    fprintf(fd, "Memory Report: Debugging is disabled\n");
+#else
+    int leaks, allocations, frees;
+    leaks = heap_count_leaks;
+    allocations = heap_trace_alloc_count;
+    frees = heap_trace_free_count;
+    fprintf(fd, "Memory Report: %d leaks, %d allocations, %d frees\n", leaks, allocations, frees);
+    if (leaks == 0) return;
+    Heap_Trace_Entry *curr = heap_trace_entry_head;
+    while (curr) {
+        fprintf(
+            fd, "%zu bytes at %s() in %s:%d (ptr: %p)\n", curr->size, curr->loc.funcname,
+            curr->loc.filename, curr->loc.line, curr->ptr);
+        curr = curr->next;
+    }
+#endif
 }
 
 #endif // AOC_IMPLEMENTATION
 
-// void foo($context_allocator) {
-//     void *ptr = $alloc(200);
-//     ptr = $resize(ptr, 300);
-//     $dealloc(ptr);
+// void foo($general_allocator) {
+//     void *ptr = alloc(200);
+//     ptr = resize(ptr, 300);
+//     dealloc(ptr);
 // }
 //
 // int main(int argc, char *argv[]) {
@@ -252,35 +392,39 @@ void dealloc(void *ptr, $context_allocator) {
 // #ifdef ALLOC_VMEM
 //     {
 //         Virtual_Memory vm = {
-//             .__addr = NULL,
-//             .__flags = MAP_PRIVATE | MAP_ANONYMOUS,
-//             .__prot = PROT_READ | PROT_WRITE,
-//             .__fd = -1,
-//             .__offset = 0,
-//             .__remap_flags = MREMAP_MAYMOVE,
+//             .addr = NULL,
+//             .flags = MAP_PRIVATE | MAP_ANONYMOUS,
+//             .prot = PROT_READ | PROT_WRITE,
+//             .fd = -1,
+//             .offset = 0,
+//             .remap_flags = MREMAP_MAYMOVE,
 //         };
-//         $define_context_allocator(LIBC_MMAP, &vm);
-//         void *ptr = $alloc(200);
-//         ptr = $resize(ptr, 300);
-//         $dealloc(ptr);
+//
+//         $define_general_allocator(LIBC_MMAP, &vm);
+//         void *ptr = alloc(200);
+//         ptr = resize(ptr, 300);
+//         dealloc(ptr);
 //     }
 // #endif
 //
 //     // calls fixed buffer allocator
 //     {
-//         Fixed_Buffer fa = { .buffer = TEMPORARY_ALLOCATOR_GLOBAL_BUFFER,
+//         Fixed_Buffer fa = { .data = TEMPORARY_ALLOCATOR_GLOBAL_BUFFER,
 //                             .cap = TEMPORARY_ALLOCATOR_GLOBAL_BUFFER_CAPACITY };
-//         Context_Allocator *a = &(Context_Allocator){ FIXED_BUFFER_ALLOCATOR, &fa };
-//         void *ptr = alloc(200, a);
-//         ptr = resize(ptr, 300, a);
-//         dealloc(ptr, a);
+//
+//         $define_buffer_allocator(FIXED_BUFFER_ALLOCATOR, &fa);
+//         void *ptr = balloc(200);
+//         ptr = bresize(ptr, 200, 300);
+//         bdealloc(ptr);
 //     }
 //
 //     // calls malloc
 //     {
-//         $define_context_allocator(LIBC_MALLOC);
-//         foo(context_allocator);
+//         $define_general_allocator(LIBC_MALLOC);
+//         foo(general_allocator);
 //     }
+//
+//     heap_trace_summary(stderr);
 //
 //     return 0;
 // }
