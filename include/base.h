@@ -29,11 +29,30 @@
 // Sometimes variables are left undefined on purpose, but there is not indicator of such
 #define undefined
 
-// Macros for renaming purposes
-#ifndef __cplusplus
-#define inline __attribute__((__gnu_inline__)) inline
+#ifdef atomic
+#error "atomic() is defined"
 #endif
+
+// Macros for renaming purposes
+#ifdef __cplusplus
+#define restrict
+#define atomic(type) std::atomic<type>
+#else
+
+#define inline __attribute__((__gnu_inline__)) inline
 #define restrict __restrict
+#define atomic(type) _Atomic(type)
+
+#ifndef thread_local
+#define thread_local _Thread_local
+#endif // thread_local
+
+#ifndef static_assert
+#define static_assert _Static_assert
+#endif // static_assert
+
+#endif // __cplusplus
+
 // This macro is an exception on the $macro() convention. Reason: it's a C23 keyword.
 #define typeof(type) __typeof__((type))
 // C++ auto in C as a GNU extension: #define auto __auto_type
