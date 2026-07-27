@@ -13,4 +13,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __cplusplus
+#include <atomic>
+#else
+#include <stdatomic.h>
+#endif
+
 #endif
