@@ -67,6 +67,9 @@ $declare(struct)(rc);
 // stack.h
 $declare(struct)(Stack);
 
+// thread.h
+$declare(struct)(Range);
+
 #endif // __cplusplus
 
 #endif // AOC_TYPES_H_
