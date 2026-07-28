@@ -182,9 +182,10 @@ int main(int argc, char *argv[]) {
 		fclose(fp);
 	}
 
-	{
+	if (!disable_tunit) {
+#define OPTIMIZE "-O2", "-flto", "-fPIC"
+
 		Fork_Options opt = { 0 };
-#define OPTIMIZZ "-O2", "-flto", "-fPIC"
 		char *compile_args[] = { C_COMPILER,  "-std=c11",  "-c",  "-o",
 			                     "aoclibs.o", "aoclibs.c", "-lm", NULL };
 		opt.argv = compile_args;
