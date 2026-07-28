@@ -329,37 +329,53 @@ void general_dealloc(void *ptr, $general_allocator) {
 }
 
 void *buffer_alloc(size_t size, $buffer_allocator $source_code_location) {
+	$thread_alloc_init();
 	void *ptr = buffer_allocator->allocate(buffer_allocator->context, size);
-	if (!ptr) return NULL;
+	if (!ptr) {
+		$thread_alloc_return_error();
+	}
 	$heap_trace_add_entry(ptr, size, source_code_location);
-	return ptr;
+	$thread_alloc_return(ptr);
 }
 
 void *
 buffer_resize(void *ptr, size_t oldsz, size_t newsz, $buffer_allocator $source_code_location) {
 	$assert_nonnull(ptr);
 
+	$thread_alloc_init();
+
 	void *new_ptr = buffer_allocator->reallocate(buffer_allocator->context, ptr, oldsz, newsz);
-	if (!new_ptr) return NULL;
+	if (!new_ptr) {
+		$thread_alloc_return_error();
+	}
 
 	Heap_Trace_Entry **entry_ptr = &heap_trace_entry_head;
 	$heap_trace_remove_entry(ptr);
 
 	$heap_trace_add_entry(new_ptr, newsz, source_code_location);
-	return new_ptr;
+	$thread_alloc_return(new_ptr);
 }
 
 void buffer_dealloc(void *ptr, $buffer_allocator) {
+#ifdef THREAD
+	if (!is_thrd0()) return;
+#endif
 	$assert_nonnull(ptr);
 	$heap_trace_remove_entry(ptr);
 	buffer_allocator->deallocate(buffer_allocator->context, ptr);
 }
 
 void buffer_reset($buffer_allocator) {
+#ifdef THREAD
+	if (!is_thrd0()) return;
+#endif
 	buffer_allocator->reset(buffer_allocator->context);
 }
 
 void buffer_destroy($buffer_allocator) {
+#ifdef THREAD
+	if (!is_thrd0()) return;
+#endif
 	buffer_allocator->destroy(buffer_allocator->context);
 }
 

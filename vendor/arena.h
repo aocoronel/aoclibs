@@ -23,7 +23,6 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "base.h"
-#include "thread.h"
 
 typedef struct Arena_Region Arena_Region;
 typedef struct Arena Arena;
@@ -234,19 +233,7 @@ AOCDEF void arena_free_region(Arena_Region *r) {
 AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
 	$assert_nonnull(a != NULL);
 
-#ifdef THREAD
-	static void *result;
-
-	if (!is_thrd0()) {
-		ckp;
-		void *ptr = result;
-		ckp;
-		return ptr;
-	}
-#endif
-
-	const size_t size = (size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t)
-	                                                               $thread(*thread_count());
+	const size_t size = (size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t);
 
 	if (a->end == NULL) {
 		$assert(a->begin == NULL);
@@ -255,14 +242,7 @@ AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
 
 		a->end = arena_new_region(capacity);
 		if (a->end == NULL) {
-#ifdef THREAD
-			result = NULL;
-			ckp;
-			ckp;
-			return result;
-#else
 			return NULL;
-#endif
 		}
 
 		a->begin = a->end;
@@ -278,14 +258,7 @@ AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
 		if (capacity < size) capacity = size;
 		a->end->next = arena_new_region(capacity);
 		if (a->end->next == NULL) {
-#ifdef THREAD
-			result = NULL;
-			ckp;
-			ckp;
-			return result;
-#else
 			return NULL;
-#endif
 		}
 		a->end = a->end->next;
 	}
@@ -301,17 +274,9 @@ AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
 	}
 #endif
 
-#ifdef THREAD
-	result = &a->end->data[a->end->len];
-	a->end->len += size;
-	ckp;
-	ckp;
-	return result;
-#else
 	void *result = &a->end->data[a->end->len];
 	a->end->len += size;
 	return result;
-#endif
 }
 
 AOCDEF void *arena_calloc(Arena *a, const size_t size_bytes) {
@@ -391,9 +356,6 @@ AOCDEF void arena_reset(Arena *a) {
 
 AOCDEF void arena_destroy(Arena *a) {
 	$assert_nonnull(a != NULL);
-#ifdef THREAD
-	if (!is_thrd0()) return;
-#endif
 	Arena_Region *r = a->begin;
 	while (r) {
 		Arena_Region *r0 = r;
