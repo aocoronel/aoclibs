@@ -58,7 +58,6 @@ c++ @build++ && ./merge
 |----------------------------|------------------------------------|
 | [crown.h](./docs/crown.md) | Full-blown CLI suite               |
 | debug.h                    | Simple signal handler              |
-| ini.h                      | INI parser                         |
 | lexer.h                    | Simple lexer                       |
 | spinner.h                  | Simple spinner without allocations |
 
