@@ -3,7 +3,6 @@
 
 #include "base.h"
 
-#include <bits/pthreadtypes.h>
 #include <execinfo.h>
 #include <signal.h>
 #include <pthread.h>
