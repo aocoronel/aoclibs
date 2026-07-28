@@ -29,14 +29,9 @@
  * SOFTWARE.
 */
 
-// === Config ===
-
-// Disable colors
-// #define FEATURE_DISABLE_COLORS
-
-// === Function Definitions ===
-
-// Enabled with AOC_IMPLEMENTATION
+// Use -DAOC_IMPLEMENTATION
+//
+// For configuration macros see cfg.h
 
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 700
@@ -46,19 +41,25 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
+// The order matters
 
+// Essential
+#include "./include/cfg.h"
+#include "./include/base.h"
 #include "./include/libc.h"
 #include "./include/types.h"
-#include "./include/base.h"
-#include "./include/cfg.h"
-#include "./include/alloc.h"
-#include "./include/tunit.h" // TUNIT
+#include "./include/defer.h"
 
-// Vendor
+// Frameworks
+#include "./include/thread.h"
+#include "./include/alloc.h"
+#include "./include/tunit.h" // -DTUNIT
+
+// Vendored
 #include "./vendor/rapidhash.h"
 #include "./vendor/arena.h"
 
-// Standalones
+// Base libraries
 #include "./include/da.h"
 #include "./include/calculus.h"
 #include "./include/colors.h"
@@ -67,21 +68,16 @@
 #include "./include/pp.h"
 #include "./include/cstr.h"
 #include "./include/fquery.h"
-
 #include "./include/printfc.h"
-
 #include "./include/io.h"
-
 #include "./include/rc.h"
-
 #include "./include/file.h"
 #include "./include/fork.h"
 #include "./include/map.h"
 #include "./include/hmap.h"
 
 // Libraries
-#include "./libs/lexer.h" // LEXER
-#include "./libs/crown.h" // AOC_CROWN
-#include "./libs/debug.h" // AOC_DEBUG
-#include "./libs/spinner.h" // AOC_SPINNER
-#include "./libs/ini.h" // AOC_SPINNER
+#include "./libs/lexer.h" // -DLEXER
+#include "./libs/crown.h" // -DCROWN
+#include "./libs/debug.h" // -DAOC_DEBUG
+#include "./libs/spinner.h" // -DAOC_SPINNER
