@@ -29,34 +29,37 @@ c++ @build++ && ./merge
 
 ### Base libraries
 
-| Library                    | Description                       |
-|----------------------------|-----------------------------------|
-| alloc.h                    | Allocator interface               |
-| base.h                     | Handful aliases and macros        |
-| buddy.h                    | Buddy allocator                   |
-| calculus.h                 | Math                              |
-| colors.h                   | Terminal colors                   |
-| cstr.h                     | C String operations and slices    |
-| da.h                       | Heap/stack-based dynamic arrays   |
-| file.h                     | File operations                   |
-| fork.h                     | Fork high-level wrappers          |
-| fquery.h                   | "Regex"-like based on functions   |
-| hmap.h                     | Unordered hashmap                 |
-| io.h                       | Input/output simple functions     |
-| libc.h                     | Most included libc libraries      |
-| map.h                      | Ordered map                       |
-| pp.h                       | Pointer Pool                      |
-| types.h                    | Forward declared types            |
-| printfc.h                  | printf() with colors              |
-| rc.h                       | String type powered by da.h       |
-| stack.h                    | Stack allocator                   |
-| [tunit.h](./include/tunit.h) | Test Unit                         |
+| Library                      | Description                      |
+|------------------------------|----------------------------------|
+| alloc.h                      | Allocator interface              |
+| base.h                       | Handful aliases and macros       |
+| buddy.h                      | Buddy allocator                  |
+| calculus.h                   | Math                             |
+| cfg.h                        | Configuration macros             |
+| colors.h                     | Terminal colors                  |
+| cstr.h                       | C String operations and slices   |
+| da.h                         | Heap/stack-based dynamic arrays  |
+| defer.h                      | Portable defer                   |
+| file.h                       | File operations                  |
+| fork.h                       | Fork high-level wrappers         |
+| fquery.h                     | "Regex"-like based on functions  |
+| hmap.h                       | Unordered hashmap                |
+| io.h                         | Input/output simple functions    |
+| libc.h                       | Most included libc libraries     |
+| map.h                        | Ordered map                      |
+| pp.h                         | Pointer Pool                     |
+| printfc.h                    | printf() with colors             |
+| rc.h                         | String type powered by da.h      |
+| stack.h                      | Stack allocator                  |
+| thread.h                     | Threading framework              |
+| [tunit.h](./include/tunit.h) | Test Unit                        |
+| types.h                      | Forward declared types           |
 
 ### Libraries
 
 | Library                    | Description                        |
 |----------------------------|------------------------------------|
-| [crown.h](./libs/crown.h) | Full-blown CLI suite               |
+| [crown.h](./libs/crown.h)  | Full-blown CLI suite               |
 | debug.h                    | Simple signal handler              |
 | lexer.h                    | Simple lexer                       |
 | spinner.h                  | Simple spinner without allocations |
