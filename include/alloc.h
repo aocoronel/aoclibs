@@ -2,6 +2,9 @@
 #define AOC_ALLOC_H_
 
 #include "base.h"
+#include "thread.h"
+#include <stdint.h>
+#include <stdio.h>
 
 typedef void *(*General_Allocator_Alloc_Fn)(void *ctx, size_t size);
 typedef void *(*General_Allocator_Realloc_Fn)(void *ctx, void *ptr, size_t size);
@@ -220,8 +223,6 @@ void *fballoc(void *ctx, size_t size) {
 
 	if (size + fa->len > fa->cap) return NULL;
 
-	// We can either synchronize just here, or split the buffer across threads, so they never
-	// touch each thread dedicated space
 	size_t offset = fa->len;
 	fa->len += size;
 
@@ -261,30 +262,70 @@ void fbdestroy(void *ctx) {
 	fa->len = 0;
 }
 
+#ifdef THREAD
+#define $thread_alloc_init()  \
+	static void *_result;     \
+                              \
+	if (!is_thrd0()) {        \
+		ckp;                  \
+		void *_ptr = _result; \
+		ckp;                  \
+		return _ptr;          \
+	}
+#define $thread_alloc_return_error() \
+	_result = NULL;                  \
+	ckp;                             \
+	ckp;                             \
+	return NULL;
+#define $thread_alloc_return(ptr) \
+	_result = (ptr);              \
+	ckp;                          \
+	ckp;                          \
+	return (ptr);
+#else
+#define $thread_alloc_init()
+#define $thread_alloc_return_error() return NULL
+#define $thread_alloc_return(ptr) return ptr
+#endif
+
 void *general_alloc(size_t size, $general_allocator $source_code_location) {
-	void *ptr = general_allocator->allocate(general_allocator->context, size);
-	if (!ptr) return NULL;
+	$thread_alloc_init();
+	void *ptr =
+	    general_allocator->allocate(general_allocator->context, size $thread(*thread_count()));
+	printf("allocated %zu\n", size * thread_count());
+	if (!ptr) {
+		$thread_alloc_return_error();
+	}
 	$heap_trace_add_entry(ptr, size, source_code_location);
-	return ptr;
+	$thread_alloc_return(ptr);
 }
 
 void *general_resize(void *ptr, size_t size, $general_allocator $source_code_location) {
 	$assert_nonnull(ptr);
 
+	$thread_alloc_init();
+
 	void *new_ptr = general_allocator->reallocate(general_allocator->context, ptr, size);
-	if (!new_ptr) return NULL;
+	printf("reallocated %zu\n", size * thread_count());
+	if (!new_ptr) {
+		$thread_alloc_return_error();
+	}
 
 	Heap_Trace_Entry **entry_ptr = &heap_trace_entry_head;
 	$heap_trace_remove_entry(ptr);
 
 	$heap_trace_add_entry(new_ptr, size, source_code_location);
-	return new_ptr;
+	$thread_alloc_return(new_ptr);
 }
 
 void general_dealloc(void *ptr, $general_allocator) {
+#ifdef THREAD
+	if (!is_thrd0()) return;
+#endif
 	$assert_nonnull(ptr);
 	$heap_trace_remove_entry(ptr);
 	general_allocator->deallocate(general_allocator->context, ptr);
+	printf("freed\n");
 }
 
 void *buffer_alloc(size_t size, $buffer_allocator $source_code_location) {
