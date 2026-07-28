@@ -50,13 +50,13 @@ c++ @build++ && ./merge
 | printfc.h                  | printf() with colors              |
 | rc.h                       | String type powered by da.h       |
 | stack.h                    | Stack allocator                   |
-| [tunit.h](./docs/tunit.md) | Test Unit                         |
+| [tunit.h](./include/tunit.h) | Test Unit                         |
 
 ### Libraries
 
 | Library                    | Description                        |
 |----------------------------|------------------------------------|
-| [crown.h](./docs/crown.md) | Full-blown CLI suite               |
+| [crown.h](./libs/crown.h) | Full-blown CLI suite               |
 | debug.h                    | Simple signal handler              |
 | lexer.h                    | Simple lexer                       |
 | spinner.h                  | Simple spinner without allocations |

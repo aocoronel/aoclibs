@@ -51,7 +51,7 @@
 #include "./include/defer.h"
 
 // Frameworks
-#include "./include/thread.h"
+#include "./include/thread.h" // -DTHREAD
 #include "./include/alloc.h"
 #include "./include/tunit.h" // -DTUNIT
 
