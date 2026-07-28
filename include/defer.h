@@ -1,6 +1,8 @@
 #ifndef AOC_DEFER_H_
 #define AOC_DEFER_H_
 
+// Stolen from: https://antonz.org/defer-in-c/
+
 #define $$defer_cat(a, b) a##b
 #define $defer_cat(a, b) $$defer_cat(a, b)
 
