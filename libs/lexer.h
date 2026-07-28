@@ -132,8 +132,8 @@ typedef struct {
 
 typedef struct {
 	Lexer_Source_Location loc;
-	Lexer_Token_Kind kind;
 	Slice text;
+	Lexer_Token_Kind kind;
 
 	union {
 		struct {
@@ -958,10 +958,14 @@ bool lexer_next(Lexer *l, Lexer_Token *out) {
 			lexer_next_char(l);
 			if (lexer_peek2(l) == '.') {
 				lexer_next_char(l);
-				*out = (Lexer_Token){ .loc = loc, .text = "...", .kind = Lex_Tok_Ellipsis };
+				out->kind = Lex_Tok_Ellipsis;
+				out->text = $slice("...");
+				out->loc = loc;
 			} else {
 				lexer_next_char(l);
-				*out = (Lexer_Token){ .loc = loc, .text = "..", .kind = Lex_Tok_DoubleDot };
+				out->kind = Lex_Tok_DoubleDot;
+				out->text = $slice("..");
+				out->loc = loc;
 			}
 			return true;
 		}
@@ -1064,6 +1068,7 @@ const char *lexer_kind_to_string(Lexer_Token_Kind k) {
 	case Lex_Tok_Unknown:
 		return "Unknown";
 	}
+	$unreachable("not all cases were handled");
 }
 #endif
 

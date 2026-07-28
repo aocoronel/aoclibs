@@ -3,6 +3,7 @@
 
 #include "base.h"
 
+#include <bits/pthreadtypes.h>
 #include <execinfo.h>
 #include <signal.h>
 #include <pthread.h>
@@ -38,18 +39,7 @@
 // main() is fake
 #define main(...)                                                         \
 	_main(int argc, char *argv[], char *env[]);                           \
-	void *thread_call_main(void *arg) {                                   \
-		struct __main_args {                                              \
-			size_t id;                                                    \
-			char **argv;                                                  \
-			char **env;                                                   \
-			int argc;                                                     \
-		};                                                                \
-		struct __main_args *args = (struct __main_args *)arg;             \
-		THREAD_ID = args->id;                                             \
-		int ret = _main(args->argc, args->argv, args->env);               \
-		return (void *)(uintptr_t)ret;                                    \
-	}                                                                     \
+	void *thread_call_main(void *arg);                                    \
 	int main(int argc, char *argv[], char *env[]) {                       \
 		struct __main_args {                                              \
 			size_t id;                                                    \
@@ -146,7 +136,12 @@ extern unsigned char GLOBAL_BROADCAST[MAX_ALIGNMENT];
 
 // Number of CPUs. Use thread_count()
 extern size_t THREAD_COUNT;
+
+#ifdef __TINYC__
+extern pthread_key_t THREAD_ID;
+#else
 extern thread_local size_t THREAD_ID;
+#endif
 
 extern pthread_barrier_t GLOBAL_BARRIER;
 
@@ -182,7 +177,12 @@ atomic(size_t) GLOBAL_TASK;
 unsigned char GLOBAL_BROADCAST[MAX_ALIGNMENT];
 
 size_t THREAD_COUNT;
+
+#ifdef __TINYC__
+pthread_key_t THREAD_ID;
+#else
 thread_local size_t THREAD_ID;
+#endif
 
 pthread_barrier_t GLOBAL_BARRIER;
 
@@ -196,6 +196,11 @@ const size_t thread_count(void) {
 
 const size_t thread_id(void) {
 #ifdef THREAD
+#ifdef __TINYC__
+	size_t *id = pthread_getspecific(THREAD_ID);
+	return *id;
+#else
+#endif
 	return THREAD_ID;
 #else
 	return 0;
@@ -297,6 +302,27 @@ void debug_signal_handler(int sig) {
 	size_t size = backtrace(array, 128);
 	backtrace_symbols_fd(array, size, fileno(stderr));
 	abort();
+}
+
+int _main(int argc, char *argv[], char *env[]);
+void *thread_call_main(void *arg) {
+	struct __main_args {
+		size_t id;
+		char **argv;
+		char **env;
+		int argc;
+	};
+	struct __main_args *args = (struct __main_args *)arg;
+#ifdef __TINYC__
+	pthread_key_create(&THREAD_ID, free);
+	size_t *id = malloc(sizeof(size_t));
+	*id = args->id;
+	pthread_setspecific(THREAD_ID, id);
+#else
+	THREAD_ID = args->id;
+#endif
+	int ret = _main(args->argc, args->argv, args->env);
+	return (void *)(uintptr_t)ret;
 }
 
 #endif // AOC_IMPLEMENTATION

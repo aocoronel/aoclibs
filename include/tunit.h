@@ -88,7 +88,6 @@ Notice we just compile the entirety of tunit.h without optimization flags, and t
 
 #ifndef TUNIT
 #define TEST(...)
-#define $assert(...)
 #define SKIP_TEST(...)
 #define TEST_TIMEOUT(...)
 #else

@@ -24,7 +24,7 @@ struct Hash_Map_Tmpl {
 };
 
 #define hmap_init(map, capacity) \
-	(typeof((map)))_hmap_init((Hash_Map_Tmpl *)map, (capacity), sizeof(*(map)->entries.data))
+	_hmap_init((Hash_Map_Tmpl *)map, (capacity), sizeof(*(map)->entries.data))
 AOCDEF bool _hmap_init(Hash_Map_Tmpl *map, const size_t capacity, const size_t sizeof_entry);
 
 #define hmap_resize(map, new_capacity) _hmap_resize((Hash_Map_Tmpl *)map, (new_capacity))
