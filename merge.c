@@ -27,7 +27,7 @@ void read_source_files(File_Type ft, struct stat *st, const char *path);
 bool read_file(const char *file, bool ignore_include) {
 	FILE *fp = fopen(file, "r");
 	if (!fp) {
-		eprintf("File not found: %s\n", file);
+		eprintf("error: file '%s' not found, skipping\n", file);
 		return false;
 	}
 
@@ -96,20 +96,12 @@ void read_source_files(File_Type ft, struct stat *st, const char *path) {
 
 #define STRING                     \
 	"#define AOC_IMPLEMENTATION\n" \
-	"#define AOC_CROWN\n"          \
-	"#include \"aoclibs.h\"\n"     \
-	"#include <string.h>\n"        \
-	"#include <stdlib.h>\n"
+	"#define AOC_SPINNER\n"        \
+	"#define CROWN\n"              \
+	"#define LEXER\n"              \
+	"#include \"aoclibs.h\"\n"
 
-#define STRING_MAIN                        \
-	"#define AOC_IMPLEMENTATION\n"         \
-	"#define AOC_CROWN\n"                  \
-	"#include \"aoclibs.h\"\n"             \
-	"#include <string.h>\n"                \
-	"#include <stdlib.h>\n"                \
-	"int main(int argc, char *argv[]) {\n" \
-	"        return 0;\n"                  \
-	"}\n"
+#define STRING_MAIN "#include \"aoclibs.h\"\n"
 
 // I didn't want to deploy crown, so I made this silly flag parsing
 #define flag(var, string)                     \
@@ -131,11 +123,9 @@ void usage() {
 // TODO: add option to strip tests from header files
 int main(int argc, char *argv[]) {
 	bool disable_tunit = false;
-	bool compile_object = false;
 	bool print_usage = false;
 
 	flag(disable_tunit, "-no-test");
-	flag(compile_object, "-obj");
 	flag(print_usage, "-h");
 
 	if (print_usage) {
@@ -162,19 +152,17 @@ int main(int argc, char *argv[]) {
 
 	fclose(output);
 
-	{
+	if (!disable_tunit) {
 		FILE *fp = fopen("test.c", "w");
 		if (!fp) {
 			perror("fopen(test.c, w)");
 			return 1;
 		}
-		disable_tunit ? fwrite(STRING_MAIN, sizeof(char), $strlen(STRING_MAIN), fp) :
-		                fwrite(STRING, sizeof(char), $strlen(STRING), fp);
-
+		fwrite(STRING_MAIN, sizeof(char), $strlen(STRING_MAIN), fp);
 		fclose(fp);
 	}
 
-	if (compile_object) {
+	{
 		FILE *fp = fopen("aoclibs.c", "w");
 		if (!fp) {
 			perror("fopen(aoclibs, w)");
@@ -186,9 +174,28 @@ int main(int argc, char *argv[]) {
 
 	{
 		Fork_Options opt = { 0 };
-		char *compile_args[] = { C_COMPILER, "-std=c11", "-o", "test", "test.c", "-lm",
-			                     // "-DTUNIT_SUBPROCESS",
-			                     "-DHEAP_TRACE", disable_tunit ? NULL : (char *)"-DTUNIT", NULL };
+#define OPTIMIZZ "-O2", "-flto", "-fPIC"
+		char *compile_args[] = { C_COMPILER,  "-std=c11",  "-c",  "-o",
+			                     "aoclibs.o", "aoclibs.c", "-lm", NULL };
+		opt.argv = compile_args;
+		opt.err = true;
+		Cmd_Result output = { 0 };
+		int status = run_cmd(&output, opt);
+
+		if (status != 0) {
+			eprintf("%s", output.err.data);
+			eprintf("Failed to build aoclibs.h. Got error: %d\n", status);
+			return 1;
+		} else {
+			eprintf("Generated aoclibs.o\n");
+		}
+	}
+
+	if (!disable_tunit) {
+		Fork_Options opt = { 0 };
+		// "-DTUNIT_SUBPROCESS",
+		char *compile_args[] = { C_COMPILER, "-std=c11",  "-o",      "test", "test.c",
+			                     "-lm",      "aoclibs.o", "-DTUNIT", NULL };
 		opt.argv = compile_args;
 		opt.err = true;
 		Cmd_Result output = { 0 };
@@ -220,24 +227,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	if (!disable_tunit) fputc('\n', stderr);
-
-	if (compile_object) {
-		Fork_Options opt = { 0 };
-		char *compile_args[] = { C_COMPILER, "-std=c11",  "-c",        "-O2", "-flto", "-fPIC",
-			                     "-o",       "aoclibs.o", "aoclibs.c", "-lm", NULL };
-		opt.argv = compile_args;
-		opt.err = true;
-		Cmd_Result output = { 0 };
-		int status = run_cmd(&output, opt);
-
-		if (status != 0) {
-			eprintf("%s", output.err.data);
-			eprintf("Failed to build aoclibs.h. Got error: %d\n", status);
-			return 1;
-		} else {
-			eprintf("Generated aoclibs.o\n");
-		}
-	}
 
 	eprintf("Generated ./aoclibs.h\n");
 

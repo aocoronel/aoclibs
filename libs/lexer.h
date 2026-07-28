@@ -176,6 +176,37 @@ typedef struct {
 	size_t error_count;
 } Lexer;
 
+bool lexer_eof(const Lexer *l);
+unsigned char lexer_peek(const Lexer *l);
+unsigned char lexer_peek2(const Lexer *l);
+char lexer_next_char(Lexer *l);
+char lexer_jump(Lexer *l, size_t n);
+void lexer_skip_whitespace(Lexer *l);
+void lexer_skip_newline(Lexer *l);
+void lex_printf(
+    Lexer *l, const Lexer_Source_Location *loc, const char *color, const char *level,
+    const char *fmt, ...) $attr_printf(5, 6);
+char lexer_expect(Lexer *l, char expected);
+Lexer_Token lexer_unknown(Lexer *l);
+Lexer_Token lexer_lit(Lexer *l, const char *lit, Lexer_Token_Kind kind);
+unsigned hex_val_of_char(char c);
+Lexer_Token lexer_char(Lexer *l, Lexer_String_Encoding encode);
+Lexer_Token lexer_string(Lexer *l, Lexer_String_Encoding encode);
+bool lexer_is_identifier(char c);
+bool lexer_is_identifier2(char c);
+Lexer_Token lexer_operator(Lexer *l);
+bool lexer_is_comment(Lexer *l, Slice comment);
+void lexer_comment(Lexer *l);
+Lexer_Token lexer_identifier(Lexer *l);
+extern const uint8_t encodings[128];
+void lexer_skip_digits(Lexer *l, int base);
+Lexer_Token lexer_number(Lexer *l);
+bool lexer_next(Lexer *l, Lexer_Token *out);
+bool lexer_next_peak(Lexer *l, Lexer_Token *out, Lexer_Config *cfg);
+Lexer lexer_init(const char *filename, const char *contents, size_t length, Lexer_Config settings);
+const char *lexer_kind_to_string(Lexer_Token_Kind k);
+
+#ifdef AOC_IMPLEMENTATION
 bool lexer_eof(const Lexer *l) {
 	return l->pos >= l->end;
 }
@@ -234,9 +265,6 @@ void lexer_skip_newline(Lexer *l) {
 
 void lex_printf(
     Lexer *l, const Lexer_Source_Location *loc, const char *color, const char *level,
-    const char *fmt, ...) $attr_printf(5, 6);
-void lex_printf(
-    Lexer *l, const Lexer_Source_Location *loc, const char *color, const char *level,
     const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
@@ -272,7 +300,6 @@ char lexer_expect(Lexer *l, char expected) {
 	return '\0';
 }
 
-Lexer_Token lexer_unknown(Lexer *l);
 Lexer_Token lexer_lit(Lexer *l, const char *lit, Lexer_Token_Kind kind) {
 	$assert(strlen(lit) == 1, "literals passed to lexer_lit() should be one byte");
 	Lexer_Source_Location loc = l->loc;
@@ -290,7 +317,6 @@ Lexer_Token lexer_lit(Lexer *l, const char *lit, Lexer_Token_Kind kind) {
     };
 }
 
-unsigned hex_val_of_char(char c);
 Lexer_Token lexer_char(Lexer *l, Lexer_String_Encoding encode) {
 	Lexer_Source_Location loc = l->loc;
 
@@ -657,7 +683,7 @@ void lexer_comment(Lexer *l) {
 	}
 }
 
-static const uint8_t encodings[128] = {
+const uint8_t encodings[128] = {
 	['L'] = Lex_Encoding_Wide,
 	['u'] = Lex_Encoding_U16,
 	['U'] = Lex_Encoding_U32,
@@ -1039,6 +1065,7 @@ const char *lexer_kind_to_string(Lexer_Token_Kind k) {
 		return "Unknown";
 	}
 }
+#endif
 
 // Example:
 // void pretty_print_token(Lexer_Token token) {

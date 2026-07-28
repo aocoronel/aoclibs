@@ -79,5 +79,4 @@
 // Libraries
 #include "./libs/lexer.h" // -DLEXER
 #include "./libs/crown.h" // -DCROWN
-#include "./libs/debug.h" // -DAOC_DEBUG
 #include "./libs/spinner.h" // -DAOC_SPINNER

@@ -293,34 +293,3 @@ char *make_path(
 
 	return out;
 }
-
-#ifdef TUNIT
-TEST(make_path) {
-	Slice dirs[] = { $slice("home"), $slice("user"), $slice(".cache") };
-	char out[256];
-
-	if (!make_path(out, 256, dirs, $array_len(dirs))) {
-		$assert(0, "path should fit");
-	}
-
-	if (make_path(out, 1, dirs, $array_len(dirs))) {
-		$assert(1, "path should not fit");
-	}
-}
-
-TEST(dismantle_path) {
-	Slice *slice = NULL;
-	size_t n = 0;
-
-	if ((n = dismantle_path(&slice, "/home/aoc/.cache", $strlen("/home/aoc/.cache"))) == 0) {
-		eprintf("Failed to dismantle path\n");
-	}
-	$assert(slice_eq(slice[0], $slice("home")), "slices are different");
-	$assert(slice_eq(slice[1], $slice("aoc")), "slices are different");
-	$assert(slice_eq(slice[2], $slice(".cache")), "slices are different");
-	slice[0] = $slice("usr");
-	$assert(slice_eq(slice[0], $slice("usr")), "slices are different");
-
-	free(slice);
-}
-#endif

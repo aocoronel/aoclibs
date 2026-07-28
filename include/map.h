@@ -111,4 +111,39 @@ int map_binary_search(struct Map_Tmpl *map, const unsigned char k);
 #include "map.c"
 #endif
 
+#ifdef TUNIT
+typedef struct TUnitMap {
+	size_t len;
+	size_t cap;
+	struct TUnitMap *data;
+
+	bool occupied;
+	char key;
+	int value;
+} TUnitMap;
+
+TEST(map_test) {
+	TUnitMap map = { 0 };
+	Arena arena = { 0 };
+
+	map_insert(&arena, &map, $slice("hello"), 20);
+
+	TUnitMap *m = map_get(&map, $slice("hello"));
+	$assert(m->value == 20, "wrong value");
+
+	map_set(&map, $slice("hello"), 23);
+	$assert(m->value == 23, "wrong value");
+
+	TUnitMap *m2 = map_prepare(&arena, &map, $slice("hello2"));
+	$assert(m2->occupied == false, "should not be occupied");
+
+	// rc buff = { 0 };
+	// map_dump(&map, &buff);
+	// if (!map_delete(&map, $slice("hello"))) {
+	//     printf("Failed to delete!\n");
+	// }
+	arena_destroy(&arena);
+}
+#endif
+
 #endif
