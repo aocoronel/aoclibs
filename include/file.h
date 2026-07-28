@@ -102,6 +102,7 @@ AOCDEF char *null make_path(
 #include "file.c"
 #endif
 
+// TEST_BEGIN
 #ifdef TUNIT
 TEST(make_path) {
 	Slice dirs[] = { $slice("home"), $slice("user"), $slice(".cache") };
@@ -132,5 +133,6 @@ TEST(dismantle_path) {
 	free(slice);
 }
 #endif
+// TEST_END
 
 #endif // AOC_FILE_H_

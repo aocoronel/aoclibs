@@ -98,6 +98,7 @@ void hmap_dump(FILE *fp, void *map, const char *map_name, const char *type, Hash
 #include "hmap.c"
 #endif
 
+// TEST_BEGIN
 #ifdef TUNIT
 typedef struct TestHashMap {
 	HASHMAP(float);
@@ -146,5 +147,6 @@ SKIP_TEST(hashmap_test) {
 	hmap_free(&map);
 }
 #endif
+// TEST_END
 
 #endif // AOC_HASHMAP_H_

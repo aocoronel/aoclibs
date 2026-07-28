@@ -16,6 +16,8 @@
 FILE *output = NULL;
 const char *file_to_open = NULL;
 
+bool disable_tunit = false;
+
 #ifdef __cplusplus__
 char *C_COMPILER = "g++";
 #else
@@ -72,6 +74,15 @@ bool read_file(const char *file, bool ignore_include) {
 				continue;
 			}
 			continue;
+		} else if (disable_tunit && MERGE_MATCH("// TEST_BEGIN") != SIZE_MAX) {
+			while ((nread = read_by_delim(&buffer, &size, '\n', fp)) != SIZE_MAX) {
+				line_count++;
+				if (MERGE_MATCH("// TEST_END") != SIZE_MAX) {
+					goto out;
+				}
+			}
+out:
+			continue;
 		} else if ((pos = MERGE_MATCH("#pragma once")) != SIZE_MAX) {
 			continue;
 		}
@@ -116,13 +127,10 @@ void usage() {
 	eprintf(
 	    "Usage: merge [OPTIONS]\n"
 	    "  -h Displays this message and exits\n"
-	    "  -obj Also emits object file\n"
-	    "  -no-test Disable TUnit tests\n");
+	    "  -no-test Disable TUnit tests and strip them from aoclibs.h\n");
 }
 
-// TODO: add option to strip tests from header files
 int main(int argc, char *argv[]) {
-	bool disable_tunit = false;
 	bool print_usage = false;
 
 	flag(disable_tunit, "-no-test");
@@ -151,6 +159,8 @@ int main(int argc, char *argv[]) {
 	fputs("#endif // AOC_H\n", output);
 
 	fclose(output);
+
+	eprintf("Generated ./aoclibs.h\n");
 
 	if (!disable_tunit) {
 		FILE *fp = fopen("test.c", "w");
@@ -187,7 +197,7 @@ int main(int argc, char *argv[]) {
 			eprintf("Failed to build aoclibs.h. Got error: %d\n", status);
 			return 1;
 		} else {
-			eprintf("Generated aoclibs.o\n");
+			eprintf("Generated ./aoclibs.o\n");
 		}
 	}
 
@@ -208,7 +218,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	{
+	if (!disable_tunit) {
 		Fork_Options opt = { 0 };
 		char *run_args[] = { "./test", NULL };
 		opt.argv = run_args;
@@ -227,8 +237,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	if (!disable_tunit) fputc('\n', stderr);
-
-	eprintf("Generated ./aoclibs.h\n");
 
 	return 0;
 }

@@ -111,6 +111,7 @@ int map_binary_search(struct Map_Tmpl *map, const unsigned char k);
 #include "map.c"
 #endif
 
+// TEST_BEGIN
 #ifdef TUNIT
 typedef struct TUnitMap {
 	size_t len;
@@ -145,5 +146,6 @@ TEST(map_test) {
 	arena_destroy(&arena);
 }
 #endif
+// TEST_END
 
 #endif
