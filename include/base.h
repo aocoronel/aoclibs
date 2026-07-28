@@ -5,11 +5,6 @@
 #define _XOPEN_SOURCE 700
 #endif
 
-// Most used LibC libraries
-#include "libc.h"
-#include "types.h"
-#include "cfg.h"
-
 // AOCDEF can modify prefixes in all functions. Example:
 //  #define AOCDEF static inline
 //  #define AOCDEF extern "C"
@@ -20,6 +15,12 @@
 #ifndef AOCDEF
 #define AOCDEF
 #endif
+
+// Most used LibC libraries
+#include "libc.h"
+#include "types.h"
+#include "cfg.h"
+#include "defer.h"
 
 // Assumes all pointers are not nullable. "null" tells the pointer can be NULL.
 // NOTE: If an argument accepts NULL or returns NULL, and the annotation is not present, assume it's
@@ -78,17 +79,6 @@
 // $cat(ident, fier) -> identifier
 #define $cat(x, y) $$cat(x, y)
 #define $$cat(x, y) x##y
-
-struct Defer_Context {
-    void (*fn)(void *);
-    void *arg;
-};
-
-AOCDEF void defer_fn(struct Defer_Context *ctx);
-
-#define defer(fn, ptr)                               \
-    struct Defer_Context $cat(_defer_var_, __LINE__) \
-        __attribute__((cleanup(defer_fn))) = { (void (*)(void *))(fn), (void *)(ptr) }
 
 // $stringify(identifier) -> "identifier"
 #define $stringify(x) #x
@@ -214,11 +204,5 @@ struct Source_Code_Location {
         $asan_unpoison_memory_region(ptr, size); \
         $msan_unpoison(ptr, size);               \
     } while (0)
-
-#ifdef AOC_IMPLEMENTATION
-AOCDEF void _defer_cleanup(struct Defer_Context *ctx) {
-    if (ctx->fn) ctx->fn(ctx->arg);
-}
-#endif
 
 #endif // AOC_BASE_H_
