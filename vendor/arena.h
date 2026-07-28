@@ -245,11 +245,7 @@ AOCDEF void *arena_alloc(Arena *a, const size_t size_bytes) {
     }
 #endif
 
-#ifdef THREAD
-    const size_t size = (size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t);
-#else
-    const size_t size = (size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t) * thread_count();
-#endif
+    const size_t size = (size_bytes + sizeof(uintptr_t) - 1) / sizeof(uintptr_t) $thread(* thread_count());
 
     if (a->end == NULL) {
         $assert(a->begin == NULL);

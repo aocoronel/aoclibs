@@ -21,7 +21,7 @@
 #define ckp pthread_barrier_wait(&GLOBAL_BARRIER);
 
 // Synchronize variables
-#define broadcast(output, val)                                                 \
+#define $broadcast(output, val)                                                \
     do {                                                                       \
         static_assert(sizeof(*(output)) <= MAX_ALIGNMENT, "output too large"); \
         if_thrd0 {                                                             \
@@ -34,10 +34,27 @@
     } while (0)
 
 // main() is fake
-void *thread_call_main(void *arg);
 #define main(...)                                                         \
     _main(int argc, char *argv[], char *env[]);                           \
+    void *thread_call_main(void *arg) {                                   \
+        struct __main_args {                                              \
+            size_t id;                                                    \
+            char **argv;                                                  \
+            char **env;                                                   \
+            int argc;                                                     \
+        };                                                                \
+        struct __main_args *args = (struct __main_args *)arg;             \
+        THREAD_ID = args->id;                                             \
+        int ret = _main(args->argc, args->argv, args->env);               \
+        return (void *)(uintptr_t)ret;                                    \
+    }                                                                     \
     int main(int argc, char *argv[], char *env[]) {                       \
+        struct __main_args {                                              \
+            size_t id;                                                    \
+            char **argv;                                                  \
+            char **env;                                                   \
+            int argc;                                                     \
+        };                                                                \
         struct __main_args args[MAX_THREAD_COUNT];                        \
         pthread_t tid[MAX_THREAD_COUNT];                                  \
                                                                           \
@@ -62,7 +79,7 @@ void *thread_call_main(void *arg);
     int _main(int argc, char *argv[], char *env[])
 #else
 #define ckp
-#define broadcast(output, val)
+#define $broadcast(output, val) *(output) = (val)
 #define main(...)                                   \
     _main(int argc, char *argv[], char *env[]);     \
     int main(int argc, char *argv[], char *env[]) { \
@@ -72,43 +89,52 @@ void *thread_call_main(void *arg);
 #endif
 
 // Thread 0 is special, and is responsible for critical codepath
+#ifdef THREAD
 #define if_thrd0 if (is_thrd0())
-
 #define ckp_thrd0 \
     ckp;          \
     if (is_thrd0())
+#define $thread(...) __VA_ARGS__
+#else
+#define if_thrd0 if (true)
+#define ckp_thrd0 if (true)
+#define $thread(...)
+#endif
 
-int _main(int argc, char *argv[], char *env[]);
+// I put several hours in this thing, but I couldn't find any good solution for dynamic dispatch
+// No matter using global variables, static variables, atomics, states or whatever, the implementation
+// is never safe for recursion and nesting, which causes deadlocks
+//
+// This is only guaranteed to work properly if you use this were you are sure it will never recurse
+//
+// For simplicity I left it as a global variable, because it doesn't matter
+#ifdef THREAD
+extern atomic(size_t) GLOBAL_TASK;
+size_t global_task_init(atomic(size_t) * task);
+#define $dtask(count)                                              \
+    for (size_t it = global_task_init(&GLOBAL_TASK); it < (count); \
+         it = atomic_fetch_add(&GLOBAL_TASK, 1))
+#else
+#define $dtask(count) for (size_t it = 0; it < (count); it++)
+#endif
 
-#define dtask(task, count) \
-    for (size_t it = task_index((task)); !task_done(it, (count)); it = task_index((task)))
-
-#define utask(range) for (size_t it = (range)->begin; it < (range)->end; it++)
-
-typedef atomic(size_t) Task;
+// Use this instead of dtask(), if you need to scale. You have to synchronize the threads if necessary.
+// The disavantage of this one compared to dtask() is that some ranges may be slower than others,
+// potentially making some threads have to wait.
+#define $task(range) for (size_t it = (range)->begin; it < (range)->end; it++)
 
 struct Range {
     size_t begin, end;
 };
 
-// TODO: I may inline this instead
-struct __main_args {
-    size_t id;
-    char **argv;
-    char **env;
-    int argc;
-};
-
 #define MAX_ALIGNMENT 32
-unsigned char GLOBAL_DATA[MAX_ALIGNMENT];
+extern unsigned char GLOBAL_BROADCAST[MAX_ALIGNMENT];
 
 // Number of CPUs. Use thread_count()
-size_t THREAD_COUNT;
-thread_local size_t THREAD_ID;
+extern size_t THREAD_COUNT;
+extern thread_local size_t THREAD_ID;
 
-pthread_barrier_t GLOBAL_BARRIER;
-
-atomic(size_t) GLOBAL_TASK;
+extern pthread_barrier_t GLOBAL_BARRIER;
 
 const size_t thread_count(void);
 const size_t thread_id(void);
@@ -128,24 +154,21 @@ int barrier_init(pthread_barrier_t *restrict barrier, unsigned int count);
 
 bool is_thrd0(void);
 
-size_t task_index(atomic(size_t) * task);
-
-void task_reset(void *arg);
-
-#define defer_task_reset(task) defer(task_reset, (task))
-
-bool task_done(size_t idx, size_t count);
-
 void broadcast_variable_thrd0(void *val, void *output, size_t size);
 void broadcast_variable(void *val, void *output, size_t size);
 
 #ifdef AOC_IMPLEMENTATION
-void *thread_call_main(void *arg) {
-    struct __main_args *args = (struct __main_args *)arg;
-    THREAD_ID = args->id;
-    int ret = _main(args->argc, args->argv, args->env);
-    return (void *)(uintptr_t)ret;
-}
+
+#ifdef THREAD
+atomic(size_t) GLOBAL_TASK;
+#endif
+
+unsigned char GLOBAL_BROADCAST[MAX_ALIGNMENT];
+
+size_t THREAD_COUNT;
+thread_local size_t THREAD_ID;
+
+pthread_barrier_t GLOBAL_BARRIER;
 
 const size_t thread_count(void) {
 #ifdef THREAD
@@ -194,32 +217,26 @@ bool is_thrd0(void) {
     return thread_id() == 0;
 }
 
-size_t task_index(atomic(size_t) * task) {
+#ifdef THREAD
+size_t global_task_init(atomic(size_t) * task) {
+    ckp;
+    atomic_store(&GLOBAL_TASK, 0);
+    ckp;
     return atomic_fetch_add(task, 1);
 }
-
-void task_reset(void *arg) {
-    atomic(size_t) *task = (atomic(size_t) *)arg;
-    ckp;
-    if_thrd0 *task = 0;
-    ckp;
-}
-
-bool task_done(size_t idx, size_t count) {
-    return (idx >= count);
-}
+#endif
 
 void broadcast_variable_thrd0(void *val, void *output, size_t size) {
     ckp; // wait all
-    memcpy(GLOBAL_DATA, val, size);
+    memcpy(GLOBAL_BROADCAST, val, size);
     ckp; // read
-    memcpy(output, GLOBAL_DATA, size);
+    memcpy(output, GLOBAL_BROADCAST, size);
 }
 
 void broadcast_variable(void *val, void *output, size_t size) {
     ckp; // wait all
     ckp; // read
-    memcpy(output, GLOBAL_DATA, size);
+    memcpy(output, GLOBAL_BROADCAST, size);
 }
 
 unsigned long nproc(void) {
@@ -267,24 +284,15 @@ int main(int argc, char **argv) {
         Range range = thread_range(101);
         size_t local_sum = 0;
 
-        utask(&range) {
+        $task(&range) {
             local_sum += it;
         }
 
-        // Neither utask or dtask synchronize, it's up you to find the best way
-        // In here, we never need to call main() again, so we can just never reset
-        //
-        // If you have several dynamic tasks that don't overlap, you can postpone syncing, so threads
-        // can continue working on the next tasks without having to wait all threads finish
-        static Task task1 = 0;
-        // task_reset(&task1);
-        dtask(&task1, 101) {
+        $dtask(101) {
             local_sum += it;
         }
 
-        static Task task2 = 0;
-        // defer_task_reset(&task2);
-        dtask(&task2, 101) {
+        $dtask(101) {
             local_sum += it;
         }
 
@@ -299,25 +307,23 @@ int main(int argc, char **argv) {
 
     { // Syncing data
         int my_int;
-        broadcast(&my_int, 34);
+        $broadcast(&my_int, 34);
         $assert(my_int == 34);
 
         int my_int2;
-        broadcast(&my_int2, 34);
+        $broadcast(&my_int2, 34);
         $assert(my_int2 == 34);
-    }
 
-    {
         struct Slice {
             const char *data;
             size_t len;
         };
         struct Slice my_slice1;
-        broadcast(&my_slice1, ((struct Slice){ "dog", 4 }));
+        $broadcast(&my_slice1, ((struct Slice){ "dog", 4 }));
         $assert(my_slice1.len == 4);
         $assert(strcmp(my_slice1.data, "dog") == 0);
         struct Slice my_slice2;
-        broadcast(&my_slice2, ((struct Slice){ "bear", 5 }));
+        $broadcast(&my_slice2, ((struct Slice){ "bear", 5 }));
         $assert(my_slice2.len == 5);
         $assert(strcmp(my_slice2.data, "bear") == 0);
     }
