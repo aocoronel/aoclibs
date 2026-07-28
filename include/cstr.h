@@ -79,8 +79,8 @@ AOCDEF long long cstr_to_llong(const char *s, const long long _default);
 #define $view_slice(r) ((int)(r).len), ((r).data)
 
 struct Slice {
-    const char *data;
-    size_t len;
+	const char *data;
+	size_t len;
 };
 
 AOCDEF Slice cstr_to_slice_from(const char *str, const size_t start, const size_t end);
@@ -99,14 +99,14 @@ AOCDEF bool slice_to_bool(Slice s, const bool _default);
 
 // Slice myslice = slice("hello, world!");
 #define $slice(s)                           \
-    (Slice) {                               \
-        .data = "" s "", .len = $strlen(s), \
-    }
+	(Slice) {                               \
+		.data = "" s "", .len = $strlen(s), \
+	}
 
 #define $rc_to_slice(rc)                      \
-    (Slice) {                                 \
-        .data = (rc)->data, .len = (rc)->len, \
-    }
+	(Slice) {                                 \
+		.data = (rc)->data, .len = (rc)->len, \
+	}
 
 // while (begin < end) {
 //     cursor = while_next_word(s, &begin, end);

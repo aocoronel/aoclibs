@@ -7,19 +7,19 @@
 #define $defer_cat(a, b) $$defer_cat(a, b)
 
 struct Defer_Context {
-    void (*fn)(void *);
-    void *arg;
+	void (*fn)(void *);
+	void *arg;
 };
 
 AOCDEF void defer_fn(struct Defer_Context *ctx);
 
-#define defer(fn, ptr)                               \
-    struct Defer_Context $defer_cat(_defer_var_, __LINE__) \
-        __attribute__((cleanup(defer_fn))) = { (void (*)(void *))(fn), (void *)(ptr) }
+#define defer(fn, ptr)                                     \
+	struct Defer_Context $defer_cat(_defer_var_, __LINE__) \
+	    __attribute__((cleanup(defer_fn))) = { (void (*)(void *))(fn), (void *)(ptr) }
 
 #ifdef AOC_IMPLEMENTATION
 AOCDEF void _defer_cleanup(struct Defer_Context *ctx) {
-    if (ctx->fn) ctx->fn(ctx->arg);
+	if (ctx->fn) ctx->fn(ctx->arg);
 }
 #endif
 

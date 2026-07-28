@@ -55,10 +55,8 @@ AOCDEF File_Type get_filetype(struct stat *restrict st, const char *restrict pat
 //
 // SIZE_MAX :: failed to allocate
 // SIZE_MAX :: EOF
-AOCDEF size_t read_by_delim(char **restrict buff,
-							size_t *restrict size,
-							const char delim,
-							FILE *restrict fd);
+AOCDEF size_t
+read_by_delim(char **restrict buff, size_t *restrict size, const char delim, FILE *restrict fd);
 
 // Reads stream by lines.
 // The slice is null terminated.
@@ -97,10 +95,8 @@ AOCDEF size_t dismantle_path(Slice **restrict out, const char *restrict path, si
 // The path is null-terminated, and is set into "out"
 //
 // NULL :: path doesn't fit in "size"
-AOCDEF char *null make_path(char *restrict out,
-							const size_t size,
-							const Slice *restrict dirs,
-							const size_t dir_count);
+AOCDEF char *null make_path(
+    char *restrict out, const size_t size, const Slice *restrict dirs, const size_t dir_count);
 
 #ifdef AOC_IMPLEMENTATION
 #include "file.c"

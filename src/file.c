@@ -273,10 +273,8 @@ size_t dismantle_path(Slice **out, const char *path, size_t len) {
 	return slices.len;
 }
 
-char *make_path(char *restrict out,
-				const size_t size,
-				const Slice *restrict dirs,
-				const size_t dir_count) {
+char *make_path(
+    char *restrict out, const size_t size, const Slice *restrict dirs, const size_t dir_count) {
 	$assert_nonnull(out);
 	$assert_nonnull(dirs);
 

@@ -90,7 +90,7 @@ struct Map_Tmpl {
 #define map_insert(arena, map, slice, val)                                                        \
 	({                                                                                            \
 		typeof(map) curr =                                                                        \
-				(typeof(map))_map_prepare((arena), (struct Map_Tmpl *)(map), (slice), sizeof((val))); \
+		    (typeof(map))_map_prepare((arena), (struct Map_Tmpl *)(map), (slice), sizeof((val))); \
 		if (!curr->occupied) {                                                                    \
 			curr->occupied = true;                                                                \
 			curr->value = (val);                                                                  \
@@ -100,10 +100,9 @@ struct Map_Tmpl {
 
 AOCDEF void
 _map_dump(struct Map_Tmpl *restrict m, rc *restrict buff, const int indent, const int depth);
-AOCDEF struct Map_Tmpl *null _map_prepare(Arena *restrict arena,
-									  struct Map_Tmpl *restrict map,
-									  const Slice slice,
-									  const size_t sizeof_value);
+AOCDEF struct Map_Tmpl *null _map_prepare(
+    Arena *restrict arena, struct Map_Tmpl *restrict map, const Slice slice,
+    const size_t sizeof_value);
 AOCDEF struct Map_Tmpl *null _map_get(struct Map_Tmpl *map, const Slice slice);
 AOCDEF
 int map_binary_search(struct Map_Tmpl *map, const unsigned char k);

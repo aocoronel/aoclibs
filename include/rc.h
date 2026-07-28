@@ -18,13 +18,13 @@ struct rcs {
 	rc *data;
 };
 
-#define rc_appendf(rc, fmt, ...)                                                                 \
-	do {                                                                                         \
-		int needed = cstr_fmt_size(fmt, __VA_ARGS__);                                            \
-		da_reserve((rc), (rc)->len + needed);                                                    \
-		int written =                                                                            \
-				cstr_fmt_write((rc)->data + (rc)->len, (rc)->cap - (rc)->len, fmt, __VA_ARGS__); \
-		(rc)->len += written;                                                                    \
+#define rc_appendf(rc, fmt, ...)                                                             \
+	do {                                                                                     \
+		int needed = cstr_fmt_size(fmt, __VA_ARGS__);                                        \
+		da_reserve((rc), (rc)->len + needed);                                                \
+		int written =                                                                        \
+		    cstr_fmt_write((rc)->data + (rc)->len, (rc)->cap - (rc)->len, fmt, __VA_ARGS__); \
+		(rc)->len += written;                                                                \
 	} while (0)
 
 // Heap concat and appending

@@ -22,78 +22,78 @@
 
 // Synchronize variables
 #define $broadcast(output, val)                                                \
-    do {                                                                       \
-        static_assert(sizeof(*(output)) <= MAX_ALIGNMENT, "output too large"); \
-        if_thrd0 {                                                             \
-            __typeof__((val)) _tmp = (val);                                    \
-            broadcast_variable_thrd0(&_tmp, (output), sizeof(*(output)));      \
-        }                                                                      \
-        else {                                                                 \
-            broadcast_variable(NULL, (output), sizeof(*(output)));             \
-        }                                                                      \
-    } while (0)
+	do {                                                                       \
+		static_assert(sizeof(*(output)) <= MAX_ALIGNMENT, "output too large"); \
+		if_thrd0 {                                                             \
+			__typeof__((val)) _tmp = (val);                                    \
+			broadcast_variable_thrd0(&_tmp, (output), sizeof(*(output)));      \
+		}                                                                      \
+		else {                                                                 \
+			broadcast_variable(NULL, (output), sizeof(*(output)));             \
+		}                                                                      \
+	} while (0)
 
 // main() is fake
 #define main(...)                                                         \
-    _main(int argc, char *argv[], char *env[]);                           \
-    void *thread_call_main(void *arg) {                                   \
-        struct __main_args {                                              \
-            size_t id;                                                    \
-            char **argv;                                                  \
-            char **env;                                                   \
-            int argc;                                                     \
-        };                                                                \
-        struct __main_args *args = (struct __main_args *)arg;             \
-        THREAD_ID = args->id;                                             \
-        int ret = _main(args->argc, args->argv, args->env);               \
-        return (void *)(uintptr_t)ret;                                    \
-    }                                                                     \
-    int main(int argc, char *argv[], char *env[]) {                       \
-        struct __main_args {                                              \
-            size_t id;                                                    \
-            char **argv;                                                  \
-            char **env;                                                   \
-            int argc;                                                     \
-        };                                                                \
-        struct __main_args args[MAX_THREAD_COUNT];                        \
-        pthread_t tid[MAX_THREAD_COUNT];                                  \
+	_main(int argc, char *argv[], char *env[]);                           \
+	void *thread_call_main(void *arg) {                                   \
+		struct __main_args {                                              \
+			size_t id;                                                    \
+			char **argv;                                                  \
+			char **env;                                                   \
+			int argc;                                                     \
+		};                                                                \
+		struct __main_args *args = (struct __main_args *)arg;             \
+		THREAD_ID = args->id;                                             \
+		int ret = _main(args->argc, args->argv, args->env);               \
+		return (void *)(uintptr_t)ret;                                    \
+	}                                                                     \
+	int main(int argc, char *argv[], char *env[]) {                       \
+		struct __main_args {                                              \
+			size_t id;                                                    \
+			char **argv;                                                  \
+			char **env;                                                   \
+			int argc;                                                     \
+		};                                                                \
+		struct __main_args args[MAX_THREAD_COUNT];                        \
+		pthread_t tid[MAX_THREAD_COUNT];                                  \
                                                                           \
-        THREAD_COUNT = nproc();                                           \
-        barrier_init(&GLOBAL_BARRIER, THREAD_COUNT);                      \
+		THREAD_COUNT = nproc();                                           \
+		barrier_init(&GLOBAL_BARRIER, THREAD_COUNT);                      \
                                                                           \
-        for (size_t i = 0; i < THREAD_COUNT; i++) {                       \
-            args[i] = (struct __main_args){ i, argv, env, argc };         \
-            int ret = thread_create(&tid[i], thread_call_main, &args[i]); \
-            if (ret != 0) {                                               \
-                fprintf(stderr, "Failed to create thread %zu\n", i);      \
-            }                                                             \
-        }                                                                 \
+		for (size_t i = 0; i < THREAD_COUNT; i++) {                       \
+			args[i] = (struct __main_args){ i, argv, env, argc };         \
+			int ret = thread_create(&tid[i], thread_call_main, &args[i]); \
+			if (ret != 0) {                                               \
+				fprintf(stderr, "Failed to create thread %zu\n", i);      \
+			}                                                             \
+		}                                                                 \
                                                                           \
-        for (size_t i = 0; i < THREAD_COUNT; i++) {                       \
-            void *status;                                                 \
-            pthread_join(tid[i], &status);                                \
-            if (status) abort();                                          \
-        }                                                                 \
-        return 0;                                                         \
-    }                                                                     \
-    int _main(int argc, char *argv[], char *env[])
+		for (size_t i = 0; i < THREAD_COUNT; i++) {                       \
+			void *status;                                                 \
+			pthread_join(tid[i], &status);                                \
+			if (status) abort();                                          \
+		}                                                                 \
+		return 0;                                                         \
+	}                                                                     \
+	int _main(int argc, char *argv[], char *env[])
 #else
 #define ckp
 #define $broadcast(output, val) *(output) = (val)
 #define main(...)                                   \
-    _main(int argc, char *argv[], char *env[]);     \
-    int main(int argc, char *argv[], char *env[]) { \
-        return _main(argc, argv, env);              \
-    }                                               \
-    int _main(int argc, char *argv[], char *env[])
+	_main(int argc, char *argv[], char *env[]);     \
+	int main(int argc, char *argv[], char *env[]) { \
+		return _main(argc, argv, env);              \
+	}                                               \
+	int _main(int argc, char *argv[], char *env[])
 #endif
 
 // Thread 0 is special, and is responsible for critical codepath
 #ifdef THREAD
 #define if_thrd0 if (is_thrd0())
 #define ckp_thrd0 \
-    ckp;          \
-    if (is_thrd0())
+	ckp;          \
+	if (is_thrd0())
 #define $thread(...) __VA_ARGS__
 #else
 #define if_thrd0 if (true)
@@ -112,8 +112,8 @@
 extern atomic(size_t) GLOBAL_TASK;
 size_t global_task_init(atomic(size_t) * task);
 #define $dtask(count)                                              \
-    for (size_t it = global_task_init(&GLOBAL_TASK); it < (count); \
-         it = atomic_fetch_add(&GLOBAL_TASK, 1))
+	for (size_t it = global_task_init(&GLOBAL_TASK); it < (count); \
+	     it = atomic_fetch_add(&GLOBAL_TASK, 1))
 #else
 #define $dtask(count) for (size_t it = 0; it < (count); it++)
 #endif
@@ -124,7 +124,7 @@ size_t global_task_init(atomic(size_t) * task);
 #define $task(range) for (size_t it = (range)->begin; it < (range)->end; it++)
 
 struct Range {
-    size_t begin, end;
+	size_t begin, end;
 };
 
 #define MAX_ALIGNMENT 32
@@ -172,107 +172,107 @@ pthread_barrier_t GLOBAL_BARRIER;
 
 const size_t thread_count(void) {
 #ifdef THREAD
-    return THREAD_COUNT;
+	return THREAD_COUNT;
 #else
-    return 1;
+	return 1;
 #endif
 }
 
 const size_t thread_id(void) {
 #ifdef THREAD
-    return THREAD_ID;
+	return THREAD_ID;
 #else
-    return 0;
+	return 0;
 #endif
 }
 
 const Range thread_range(size_t count) {
 #ifdef THREAD
-    const size_t id = thread_id();
-    const size_t t_count = thread_count();
-    const size_t values_per_thread = (count) / (t_count);
-    const size_t leftover_values_count = (count) % (t_count);
-    const size_t thread_has_leftover = ((id) < leftover_values_count);
-    const size_t leftovers_before_this_thread_idx =
-        (thread_has_leftover ? (id) : leftover_values_count);
-    const size_t thread_first_value_idx =
-        (values_per_thread * (id) + leftovers_before_this_thread_idx);
-    const size_t thread_opl_value_idx =
-        (thread_first_value_idx + values_per_thread + !!thread_has_leftover);
-    return (const Range){ thread_first_value_idx, thread_opl_value_idx };
+	const size_t id = thread_id();
+	const size_t t_count = thread_count();
+	const size_t values_per_thread = (count) / (t_count);
+	const size_t leftover_values_count = (count) % (t_count);
+	const size_t thread_has_leftover = ((id) < leftover_values_count);
+	const size_t leftovers_before_this_thread_idx =
+	    (thread_has_leftover ? (id) : leftover_values_count);
+	const size_t thread_first_value_idx =
+	    (values_per_thread * (id) + leftovers_before_this_thread_idx);
+	const size_t thread_opl_value_idx =
+	    (thread_first_value_idx + values_per_thread + !!thread_has_leftover);
+	return (const Range){ thread_first_value_idx, thread_opl_value_idx };
 #else
-    return (const Range){ 0, count };
+	return (const Range){ 0, count };
 #endif
 }
 
 int thread_create(pthread_t *restrict tid, void *(*routine)(void *), void *restrict arg) {
-    return pthread_create(tid, NULL, routine, arg);
+	return pthread_create(tid, NULL, routine, arg);
 }
 
 int barrier_init(pthread_barrier_t *restrict barrier, unsigned int count) {
-    return pthread_barrier_init(barrier, NULL, count);
+	return pthread_barrier_init(barrier, NULL, count);
 }
 
 bool is_thrd0(void) {
-    return thread_id() == 0;
+	return thread_id() == 0;
 }
 
 #ifdef THREAD
 size_t global_task_init(atomic(size_t) * task) {
-    ckp;
-    atomic_store(&GLOBAL_TASK, 0);
-    ckp;
-    return atomic_fetch_add(task, 1);
+	ckp;
+	atomic_store(&GLOBAL_TASK, 0);
+	ckp;
+	return atomic_fetch_add(task, 1);
 }
 #endif
 
 void broadcast_variable_thrd0(void *val, void *output, size_t size) {
-    ckp; // wait all
-    memcpy(GLOBAL_BROADCAST, val, size);
-    ckp; // read
-    memcpy(output, GLOBAL_BROADCAST, size);
+	ckp; // wait all
+	memcpy(GLOBAL_BROADCAST, val, size);
+	ckp; // read
+	memcpy(output, GLOBAL_BROADCAST, size);
 }
 
 void broadcast_variable(void *val, void *output, size_t size) {
-    ckp; // wait all
-    ckp; // read
-    memcpy(output, GLOBAL_BROADCAST, size);
+	ckp; // wait all
+	ckp; // read
+	memcpy(output, GLOBAL_BROADCAST, size);
 }
 
 unsigned long nproc(void) {
 #ifdef _SC_NPROCESSORS_ONLN
-    {
-        long int nprocs = sysconf(_SC_NPROCESSORS_ONLN);
-        return nprocs == 0 ? 1 : nprocs;
-    }
+	{
+		long int nprocs = sysconf(_SC_NPROCESSORS_ONLN);
+		return nprocs == 0 ? 1 : nprocs;
+	}
 #endif
 
 #ifdef _SC_NPROCESSORS_CONF
-    {
-        long int nprocs = sysconf(_SC_NPROCESSORS_CONF);
-        return nprocs == 0 ? 1 : nprocs;
-    }
+	{
+		long int nprocs = sysconf(_SC_NPROCESSORS_CONF);
+		return nprocs == 0 ? 1 : nprocs;
+	}
 #endif
 
 #if !(defined __GLIBC__ && defined __linux__) && defined HW_NCPU
-    {
-        int nprocs;
-        size_t len = sizeof(nprocs);
-        static int mib[][2] = {
+	{
+		int nprocs;
+		size_t len = sizeof(nprocs);
+		static int mib[][2] = {
 #ifdef HW_NCPUONLINE
-            { CTL_HW, HW_NCPUONLINE },
+			{ CTL_HW, HW_NCPUONLINE },
 #endif
-            { CTL_HW, HW_NCPU       }
-        };
-        for (int i = 0; i < countof(mib); i++) {
-            if (sysctl(mib[i], countof(mib[i]), &nprocs, &len, NULL, 0) == 0 &&
-                len == sizeof(nprocs) && 0 < nprocs)
-                return nprocs;
-        }
-    }
+			{ CTL_HW, HW_NCPU       }
+		};
+		for (int i = 0; i < countof(mib); i++) {
+			if (sysctl(mib[i], countof(mib[i]), &nprocs, &len, NULL, 0) == 0 &&
+			    len == sizeof(nprocs) && 0 < nprocs)
+				return nprocs;
+		}
+	}
 #endif
 
-    return 1;
+	return 1;
 }
 
 #endif // AOC_IMPLEMENTATION

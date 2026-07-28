@@ -49,7 +49,7 @@
 #define tprintfc(istty, color, level, ...)                                        \
 	do {                                                                          \
 		(istty) ? printfc(color, level, __VA_ARGS__) :                            \
-				  (fprintf(stderr, "%s: ", level), fprintf(stderr, __VA_ARGS__)); \
+		          (fprintf(stderr, "%s: ", level), fprintf(stderr, __VA_ARGS__)); \
 	} while (0)
 #define tprintfc_fatal(istty, ...) tprintfc(istty, COLOR_RED, "fatal", __VA_ARGS__)
 #define tprintfc_error(istty, ...) tprintfc(istty, COLOR_RED, "error", __VA_ARGS__)

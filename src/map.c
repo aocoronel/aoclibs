@@ -31,10 +31,9 @@ void _map_dump(struct Map_Tmpl *restrict m, rc *restrict buff, const int indent,
 	}
 }
 
-struct Map_Tmpl *_map_prepare(Arena *restrict arena,
-						  struct Map_Tmpl *restrict map,
-						  const Slice slice,
-						  const size_t sizeof_value) {
+struct Map_Tmpl *_map_prepare(
+    Arena *restrict arena, struct Map_Tmpl *restrict map, const Slice slice,
+    const size_t sizeof_value) {
 	$assert_nonnull(arena);
 	$assert_nonnull(map);
 	struct Map_Tmpl *curr = map;

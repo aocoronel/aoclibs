@@ -88,11 +88,11 @@
 
 // Using a third variable for swapping, turns this more generic than Xor
 #define $swap(x, y)        \
-    do {                   \
-        typeof(x) tmp = x; \
-        x = y;             \
-        y = tmp;           \
-    } while (0)
+	do {                   \
+		typeof(x) tmp = x; \
+		x = y;             \
+		y = tmp;           \
+	} while (0)
 
 // This is only applicable to stack allocated
 #define $array_len(array) sizeof((array)) / sizeof((array[0]))
@@ -107,8 +107,8 @@
 #define $range(init, end, it) for (size_t it = (init); it < (end); it++)
 
 #define $abort(msg, ...)                                           \
-    (fprintf(stderr, "%s: %s:%u: ", __func__, __FILE__, __LINE__), \
-     fprintf(stderr, msg " " __VA_ARGS__), fputc('\n', stderr), abort())
+	(fprintf(stderr, "%s: %s:%u: ", __func__, __FILE__, __LINE__), \
+	 fprintf(stderr, msg " " __VA_ARGS__), fputc('\n', stderr), abort())
 
 // Panic when a code is assumed to never run
 #define $unreachable(...) $abort("Unreachable code: ", __VA_ARGS__)
@@ -129,17 +129,17 @@ extern const char *CURRENT_TEST;
 static inline void tunit_fail(void);
 #define $assert(expr, ...) $tunit_assert(expr, __VA_ARGS__)
 #define $tunit_assert(expr, ...)                                                        \
-    do {                                                                                \
-        if (!(expr)) {                                                                  \
-            fprintf(                                                                    \
-                stderr, " %s:%d: Assertion failed in test %s: %s:", __FILE__, __LINE__, \
-                CURRENT_TEST ? CURRENT_TEST : "(unknown)", #expr);                      \
-            fprintf(stderr, " " __VA_ARGS__);                                           \
-            fputc('\n', stderr);                                                        \
-            tunit_fail();                                                               \
-            abort();                                                                    \
-        }                                                                               \
-    } while (0)
+	do {                                                                                \
+		if (!(expr)) {                                                                  \
+			fprintf(                                                                    \
+			    stderr, " %s:%d: Assertion failed in test %s: %s:", __FILE__, __LINE__, \
+			    CURRENT_TEST ? CURRENT_TEST : "(unknown)", #expr);                      \
+			fprintf(stderr, " " __VA_ARGS__);                                           \
+			fputc('\n', stderr);                                                        \
+			tunit_fail();                                                               \
+			abort();                                                                    \
+		}                                                                               \
+	} while (0)
 #else
 #define $assert(expr, ...) ((expr) ? (void)0 : $abort("Assertion failed: " #expr, __VA_ARGS__))
 #endif
@@ -152,8 +152,8 @@ static inline void tunit_fail(void);
 #define $assert_nonnull(expr) $assert((expr), "passing NULL pointer to Nonnull parameter")
 
 struct Source_Code_Location {
-    const char *funcname, *filename;
-    int line;
+	const char *funcname, *filename;
+	int line;
 };
 
 #ifdef NDEBUG
@@ -161,9 +161,9 @@ struct Source_Code_Location {
 #define $source_code_location
 #else
 #define $$source_code_location       \
-    , (const Source_Code_Location) { \
-        __func__, __FILE__, __LINE__ \
-    }
+	, (const Source_Code_Location) { \
+		__func__, __FILE__, __LINE__ \
+	}
 #define $source_code_location , const Source_Code_Location source_code_location
 #endif
 
@@ -194,15 +194,15 @@ struct Source_Code_Location {
 #endif
 
 #define $sanitizer_poison_memory(ptr, size)    \
-    do {                                       \
-        $asan_poison_memory_region(ptr, size); \
-        $msan_poison(ptr, size);               \
-    } while (0)
+	do {                                       \
+		$asan_poison_memory_region(ptr, size); \
+		$msan_poison(ptr, size);               \
+	} while (0)
 
 #define $sanitizer_unpoison_memory(ptr, size)    \
-    do {                                         \
-        $asan_unpoison_memory_region(ptr, size); \
-        $msan_unpoison(ptr, size);               \
-    } while (0)
+	do {                                         \
+		$asan_unpoison_memory_region(ptr, size); \
+		$msan_unpoison(ptr, size);               \
+	} while (0)
 
 #endif // AOC_BASE_H_

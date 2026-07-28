@@ -18,7 +18,7 @@ int eprintfln(const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	int ret = vfprintf(stderr, fmt, ap);
-    fputc('\n', stderr);
+	fputc('\n', stderr);
 	va_end(ap);
 	return ret;
 }
@@ -27,7 +27,7 @@ int printfln(const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	int ret = vfprintf(stdout, fmt, ap);
-    fputc('\n', stdout);
+	fputc('\n', stdout);
 	va_end(ap);
 	return ret;
 }

@@ -101,7 +101,8 @@ Fork_Result fork_cmd(Fork_Options opt) {
 		$close_fd(pipes[5]);
 		return (Fork_Result){ .pid = -1, .stdin_fd = -1, .stdout_fd = -1, .stderr_fd = -1 };
 	}
-	return (Fork_Result){ .pid = pid, .stdin_fd = fds[0], .stdout_fd = fds[1], .stderr_fd = fds[2] };
+	return (
+	    Fork_Result){ .pid = pid, .stdin_fd = fds[0], .stdout_fd = fds[1], .stderr_fd = fds[2] };
 }
 #undef $close_fd
 

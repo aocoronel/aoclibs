@@ -121,10 +121,11 @@ void read_source_files(File_Type ft, struct stat *st, const char *path) {
 	}
 
 void usage() {
-	eprintf("Usage: merge [OPTIONS]\n"
-			"  -h Displays this message and exits\n"
-			"  -obj Also emits object file\n"
-			"  -no-test Disable TUnit tests\n");
+	eprintf(
+	    "Usage: merge [OPTIONS]\n"
+	    "  -h Displays this message and exits\n"
+	    "  -obj Also emits object file\n"
+	    "  -no-test Disable TUnit tests\n");
 }
 
 // TODO: add option to strip tests from header files
@@ -168,7 +169,7 @@ int main(int argc, char *argv[]) {
 			return 1;
 		}
 		disable_tunit ? fwrite(STRING_MAIN, sizeof(char), $strlen(STRING_MAIN), fp) :
-						fwrite(STRING, sizeof(char), $strlen(STRING), fp);
+		                fwrite(STRING, sizeof(char), $strlen(STRING), fp);
 
 		fclose(fp);
 	}
@@ -185,16 +186,9 @@ int main(int argc, char *argv[]) {
 
 	{
 		Fork_Options opt = { 0 };
-		char *compile_args[] = { C_COMPILER,
-								 "-std=c11",
-								 "-o",
-								 "test",
-								 "test.c",
-								 "-lm",
-								 // "-DTUNIT_SUBPROCESS",
-								 "-DHEAP_TRACE",
-								 disable_tunit ? NULL : (char *)"-DTUNIT",
-								 NULL };
+		char *compile_args[] = { C_COMPILER, "-std=c11", "-o", "test", "test.c", "-lm",
+			                     // "-DTUNIT_SUBPROCESS",
+			                     "-DHEAP_TRACE", disable_tunit ? NULL : (char *)"-DTUNIT", NULL };
 		opt.argv = compile_args;
 		opt.err = true;
 		Cmd_Result output = { 0 };
@@ -229,8 +223,8 @@ int main(int argc, char *argv[]) {
 
 	if (compile_object) {
 		Fork_Options opt = { 0 };
-		char *compile_args[] = { C_COMPILER, "-std=c11",  "-c",		   "-O2", "-flto", "-fPIC",
-								 "-o",		 "aoclibs.o", "aoclibs.c", "-lm", NULL };
+		char *compile_args[] = { C_COMPILER, "-std=c11",  "-c",        "-O2", "-flto", "-fPIC",
+			                     "-o",       "aoclibs.o", "aoclibs.c", "-lm", NULL };
 		opt.argv = compile_args;
 		opt.err = true;
 		Cmd_Result output = { 0 };

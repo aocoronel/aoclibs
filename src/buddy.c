@@ -34,9 +34,9 @@ Buddy_Page *buddy_new_page(unsigned page_order) {
 	size_t total_size = buddy_order_size(page_order);
 
 	size_t allocated_size = sizeof(Buddy_Page) + /* struct */
-							map_bytes + /* split_map */
-							map_bytes + /* free_map */
-							total_size; /* base */
+	                        map_bytes + /* split_map */
+	                        map_bytes + /* free_map */
+	                        total_size; /* base */
 
 	// This is a classical place where you would have to allocate for 4 different things, check
 	// if they are not NULL, free everything previous to it and then return failure.

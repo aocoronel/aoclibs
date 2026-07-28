@@ -27,12 +27,11 @@
 // } MyDynamicArray;
 
 // Convenient assertions to prevent access out of bounds
-#define _assert_da_index_is_valid(da, index)                               \
-	($assert((da)->len > 0 && (da)->len < (da)->cap,                       \
-			 "invalid access to array at index %zu: len = %zu, cap = %zu", \
-			 (index),                                                      \
-			 (da)->len,                                                    \
-			 (da)->cap))
+#define _assert_da_index_is_valid(da, index)                                              \
+	($assert(                                                                             \
+	    (da)->len > 0 && (da)->len < (da)->cap,                                           \
+	    "invalid access to array at index %zu: len = %zu, cap = %zu", (index), (da)->len, \
+	    (da)->cap))
 #define _assert_da_is_not_null(da) ($assert((da)->data != NULL, "cannot modify NULL pointer"))
 
 // Zero initialize
@@ -55,10 +54,10 @@
 		(da)->data = (typeof((da)->data))ptr;                                            \
 	})
 
-#define da_reserve(da, new_cap)                                          \
-	({                                                                   \
-		(da)->data = (typeof((da)->data))_da_reserve(                    \
-				(da)->data, &(da)->cap, (new_cap), sizeof(*(da)->data)); \
+#define da_reserve(da, new_cap)                                      \
+	({                                                               \
+		(da)->data = (typeof((da)->data))_da_reserve(                \
+		    (da)->data, &(da)->cap, (new_cap), sizeof(*(da)->data)); \
 	})
 
 AOCDEF void *_da_reserve(void *data, size_t *cap, size_t new_cap, const size_t sizeof_da);
