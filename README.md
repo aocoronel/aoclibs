@@ -60,7 +60,6 @@ c++ @build++ && ./merge
 | Library                    | Description                        |
 |----------------------------|------------------------------------|
 | [crown.h](./libs/crown.h)  | Full-blown CLI suite               |
-| debug.h                    | Simple signal handler              |
 | lexer.h                    | Simple lexer                       |
 | spinner.h                  | Simple spinner without allocations |
 

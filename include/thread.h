@@ -3,6 +3,8 @@
 
 #include "base.h"
 
+#include <execinfo.h>
+#include <signal.h>
 #include <pthread.h>
 #include <unistd.h>
 
@@ -55,6 +57,12 @@
 			char **env;                                                   \
 			int argc;                                                     \
 		};                                                                \
+		signal(SIGSEGV, debug_signal_handler);                            \
+		signal(SIGINT, debug_signal_handler);                             \
+		signal(SIGFPE, debug_signal_handler);                             \
+		signal(SIGILL, debug_signal_handler);                             \
+		signal(SIGBUS, debug_signal_handler);                             \
+		signal(SIGSYS, debug_signal_handler);                             \
 		struct __main_args args[MAX_THREAD_COUNT];                        \
 		pthread_t tid[MAX_THREAD_COUNT];                                  \
                                                                           \
@@ -83,6 +91,12 @@
 #define main(...)                                   \
 	_main(int argc, char *argv[], char *env[]);     \
 	int main(int argc, char *argv[], char *env[]) { \
+		signal(SIGSEGV, debug_signal_handler);      \
+		signal(SIGINT, debug_signal_handler);       \
+		signal(SIGFPE, debug_signal_handler);       \
+		signal(SIGILL, debug_signal_handler);       \
+		signal(SIGBUS, debug_signal_handler);       \
+		signal(SIGSYS, debug_signal_handler);       \
 		return _main(argc, argv, env);              \
 	}                                               \
 	int _main(int argc, char *argv[], char *env[])
@@ -156,6 +170,8 @@ bool is_thrd0(void);
 
 void broadcast_variable_thrd0(void *val, void *output, size_t size);
 void broadcast_variable(void *val, void *output, size_t size);
+
+void debug_signal_handler(int sig);
 
 #ifdef AOC_IMPLEMENTATION
 
@@ -273,6 +289,14 @@ unsigned long nproc(void) {
 #endif
 
 	return 1;
+}
+
+void debug_signal_handler(int sig) {
+	fprintf(stderr, "%s\n", strsignal(sig));
+	void *array[128];
+	size_t size = backtrace(array, 128);
+	backtrace_symbols_fd(array, size, fileno(stderr));
+	abort();
 }
 
 #endif // AOC_IMPLEMENTATION
