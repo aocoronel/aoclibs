@@ -196,11 +196,10 @@ const size_t thread_count(void) {
 const size_t thread_id(void) {
 #ifdef THREAD
 #ifdef __TINYC__
-	size_t *id = pthread_getspecific(THREAD_ID);
-	return *id;
+	return *pthread_getspecific(THREAD_ID);
 #else
-#endif
 	return THREAD_ID;
+#endif
 #else
 	return 0;
 #endif
