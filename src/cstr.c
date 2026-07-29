@@ -233,6 +233,28 @@ long slice_to_long(Slice s, const long _default) {
 	return val;
 }
 
+long long slice_to_llong(Slice s, const long long _default) {
+	$assert_nonnull(s.data != NULL);
+	$assert(s.len < 20, "%zu", s.len);
+	char buff[20] = { 0 };
+	memcpy(buff, s.data, s.len);
+	char *endptr;
+	long long val = strtoll(buff, &endptr, 10);
+	$catch(*endptr != '\0') return _default;
+	return val;
+}
+
+unsigned long long slice_to_ullong(Slice s, const unsigned long long _default) {
+	$assert_nonnull(s.data != NULL);
+	$assert(s.len < 20, "%zu", s.len);
+	char buff[20] = { 0 };
+	memcpy(buff, s.data, s.len);
+	char *endptr;
+	unsigned long long val = strtoull(buff, &endptr, 10);
+	$catch(*endptr != '\0') return _default;
+	return val;
+}
+
 bool slice_to_bool(Slice s, const bool _default) {
 	$assert_nonnull(s.data != NULL);
 	if (slice_eq_case(s, $slice("true")) || slice_eq(s, $slice("1"))) return true;
