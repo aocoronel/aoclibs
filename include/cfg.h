@@ -38,4 +38,14 @@
 #define CONFIG_ARENA_DA_DEFAULT_CAPACITY (1 << 8) // 256 entries
 #endif
 
+// Toggles:
+
+// HEAP_TRACE_FAILURE_REPORT: When allocations fail, increment the failure counter and store source
+// code location. This is disabled by default, since you are unlikely to need it, unless you suspect
+// from allocation issues
+//
+// NDEBUG: Disables all assertions and debugging code
+//
+// ALLOC_VMEM: Enables libc's mmap() general allocator
+
 #endif // AOC_CFG_H_
