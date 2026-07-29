@@ -148,9 +148,15 @@ struct Heap_Trace_Entry {
 	struct Heap_Trace_Entry *next;
 };
 
+#ifndef NDEBUG
 extern Heap_Trace_Entry *heap_trace_entry_head;
 extern int heap_trace_alloc_count;
 extern int heap_trace_free_count;
+extern int heap_trace_failure_count;
+#endif
+
+#define HEAP_TRACE_MAX_FAILURE 32
+extern Source_Code_Location heap_trace_failure[HEAP_TRACE_MAX_FAILURE];
 
 // Prints allocation and free count.
 // If there was a leak, print the source of the leak
@@ -161,7 +167,19 @@ int heap_count_leaks(void);
 #ifdef NDEBUG
 #define $heap_trace_add_entry(ptr, size, loc)
 #define $heap_trace_remove_entry(ptr)
+#define $heap_trace_failure()
 #else
+#ifdef HEAP_TRACE_FAILURE_REPORT
+#define $heap_trace_failure()                                                    \
+	do {                                                                         \
+		if (heap_trace_failure_count < HEAP_TRACE_MAX_FAILURE) {                 \
+			heap_trace_failure[heap_trace_failure_count] = source_code_location; \
+			heap_trace_failure_count++;                                          \
+		}                                                                        \
+	} while (0)
+#else
+#define $heap_trace_failure()
+#endif // HEAP_TRACE_FAILURE_REPORT
 #define $heap_trace_add_entry(ptr, size, loc) heap_trace_add_entry((ptr), (size), (loc))
 #define $heap_trace_remove_entry(ptr) heap_trace_remove_entry((ptr))
 #endif
@@ -171,9 +189,13 @@ void heap_trace_remove_entry(void *ptr);
 
 #ifdef AOC_IMPLEMENTATION
 
+#ifndef NDEBUG
 Heap_Trace_Entry *heap_trace_entry_head = NULL;
 int heap_trace_alloc_count = 0;
 int heap_trace_free_count = 0;
+int heap_trace_failure_count = 0;
+Source_Code_Location heap_trace_failure[HEAP_TRACE_MAX_FAILURE];
+#endif
 
 char TEMPORARY_ALLOCATOR_GLOBAL_BUFFER[TEMPORARY_ALLOCATOR_GLOBAL_BUFFER_CAPACITY];
 
@@ -294,6 +316,7 @@ void *general_alloc(size_t size, $allocator $source_code_location) {
 	void *ptr =
 	    allocator->general.allocate(allocator->general.context, size $thread(*thread_count()));
 	if (!ptr) {
+		$heap_trace_failure();
 		$thread_alloc_return_error();
 	}
 	$heap_trace_add_entry(ptr, size, source_code_location);
@@ -308,10 +331,10 @@ void *general_resize(void *ptr, size_t size, $allocator $source_code_location) {
 	void *new_ptr = allocator->general.reallocate(
 	    allocator->general.context, ptr, size $thread(*thread_count()));
 	if (!new_ptr) {
+		$heap_trace_failure();
 		$thread_alloc_return_error();
 	}
 
-	Heap_Trace_Entry **entry_ptr = &heap_trace_entry_head;
 	$heap_trace_remove_entry(ptr);
 
 	$heap_trace_add_entry(new_ptr, size, source_code_location);
@@ -332,6 +355,7 @@ void *buffer_alloc(size_t size, $allocator $source_code_location) {
 	void *ptr =
 	    allocator->buffer.allocate(allocator->buffer.context, size $thread(*thread_count()));
 	if (!ptr) {
+		$heap_trace_failure();
 		$thread_alloc_return_error();
 	}
 	$heap_trace_add_entry(ptr, size, source_code_location);
@@ -347,10 +371,10 @@ void *buffer_resize(void *ptr, size_t oldsz, size_t newsz, $allocator $source_co
 	    allocator->buffer.context, ptr, oldsz $thread(*thread_count()),
 	    newsz $thread(*thread_count()));
 	if (!new_ptr) {
+		$heap_trace_failure();
 		$thread_alloc_return_error();
 	}
 
-	Heap_Trace_Entry **entry_ptr = &heap_trace_entry_head;
 	$heap_trace_remove_entry(ptr);
 
 	$heap_trace_add_entry(new_ptr, newsz, source_code_location);
@@ -417,27 +441,48 @@ void heap_trace_remove_entry(void *ptr) {
 #endif
 
 int heap_count_leaks(void) {
+#ifdef NDEBUG
+	return 0;
+#else
 	return heap_trace_alloc_count - heap_trace_free_count;
+#endif
 }
 
 void heap_trace_summary(FILE *fd) {
 #ifdef NDEBUG
 	fprintf(fd, "Memory Report: Debugging is disabled\n");
 #else
-	int leaks, allocations, frees;
+	int leaks, allocations, frees, failure;
 	leaks = heap_count_leaks();
 	allocations = heap_trace_alloc_count;
 	frees = heap_trace_free_count;
-	fprintf(fd, "Memory Report: %d leaks, %d allocations, %d frees\n", leaks, allocations, frees);
-	if (leaks == 0) return;
-	Heap_Trace_Entry *curr = heap_trace_entry_head;
-	while (curr) {
-		fprintf(
-		    fd, "%zu bytes at %s() in %s:%d (ptr: %p)\n", curr->size, curr->loc.funcname,
-		    curr->loc.filename, curr->loc.line, curr->ptr);
-		curr = curr->next;
+	failure = heap_trace_failure_count;
+	fprintf(
+	    fd, "Memory Report: %d allocations, %d frees, %d leaks, %d failures\n", allocations, frees,
+	    leaks, failure);
+	if (leaks > 0) {
+		fprintf(stderr, ">> Leaks:\n");
+		Heap_Trace_Entry *curr = heap_trace_entry_head;
+		while (curr) {
+			fprintf(
+			    fd, "%s:%d:%s: leaked %zu bytes (ptr: %p)\n", curr->loc.filename, curr->loc.line,
+			    curr->loc.funcname, curr->size, curr->ptr);
+			curr = curr->next;
+		}
 	}
-#endif
+#ifdef HEAP_TRACE_FAILURE_REPORT
+	if (failure > 0) {
+		fprintf(stderr, ">> Failures:\n");
+		Source_Code_Location *curr = heap_trace_failure;
+		$range(0, failure, i) {
+			if (i >= HEAP_TRACE_MAX_FAILURE) break;
+			fprintf(
+			    fd, "%s:%d:%s: error messages WIP\n", curr->filename, curr->line, curr->funcname);
+			curr++;
+		}
+	}
+#endif //  HEAP_TRACE_FAILURE_REPORT
+#endif // NDEBUG
 }
 
 #endif // AOC_IMPLEMENTATION
