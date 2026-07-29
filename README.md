@@ -26,7 +26,7 @@ c++ @build++ && ./merge
 Supported compilers:
 
 - **C++:** clang++, g++
-- **C:**: clang, gcc, tcc
+- **C:** clang, gcc, tcc
 
 ## Explore
 
@@ -57,14 +57,14 @@ Supported compilers:
 | rc.h                         | String type powered by da.h      |
 | stack.h                      | Stack allocator                  |
 | thread.h                     | Threading framework              |
-| [tunit.h](./include/tunit.h) | Test Unit                        |
+| tunit.h                      | Test Unit                        |
 | types.h                      | Forward declared types           |
 
 ### Libraries
 
 | Library                    | Description                        |
 |----------------------------|------------------------------------|
-| [crown.h](./libs/crown.h)  | Full-blown CLI suite               |
+| crown.h                    | Full-blown CLI suite               |
 | lexer.h                    | Simple lexer                       |
 | spinner.h                  | Simple spinner without allocations |
 
