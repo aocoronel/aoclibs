@@ -311,15 +311,25 @@ void fbdestroy(void *ctx) {
 #define $thread_alloc_return(ptr) return ptr
 #endif
 
+#ifdef THREAD
+#define $thread_alloc_assert_only_thrd0(fn)                                                       \
+	$assert(                                                                                      \
+	    is_thrd0(), #fn "() must be called only by thrd0. "                                       \
+	                    "This assertion is here to ensure you properly synchronize all threads, " \
+	                    "and make sure they no longer need the memory")
+#else
+#define $thread_alloc_assert_only_thrd0(fn)
+#endif
+
 void *general_alloc(size_t size, $allocator $source_code_location) {
 	$thread_alloc_init();
-	void *ptr =
-	    allocator->general.allocate(allocator->general.context, size $thread(*thread_count()));
+	const size_t allocation_size = size $thread(*thread_count());
+	void *ptr = allocator->general.allocate(allocator->general.context, allocation_size);
 	if (!ptr) {
 		$heap_trace_failure();
 		$thread_alloc_return_error();
 	}
-	$heap_trace_add_entry(ptr, size, source_code_location);
+	$heap_trace_add_entry(ptr, allocation_size, source_code_location);
 	$thread_alloc_return(ptr);
 }
 
@@ -328,8 +338,8 @@ void *general_resize(void *ptr, size_t size, $allocator $source_code_location) {
 
 	$thread_alloc_init();
 
-	void *new_ptr = allocator->general.reallocate(
-	    allocator->general.context, ptr, size $thread(*thread_count()));
+	const size_t allocation_size = size $thread(*thread_count());
+	void *new_ptr = allocator->general.reallocate(allocator->general.context, ptr, allocation_size);
 	if (!new_ptr) {
 		$heap_trace_failure();
 		$thread_alloc_return_error();
@@ -337,14 +347,12 @@ void *general_resize(void *ptr, size_t size, $allocator $source_code_location) {
 
 	$heap_trace_remove_entry(ptr);
 
-	$heap_trace_add_entry(new_ptr, size, source_code_location);
+	$heap_trace_add_entry(new_ptr, allocation_size, source_code_location);
 	$thread_alloc_return(new_ptr);
 }
 
 void general_dealloc(void *ptr, $allocator) {
-#ifdef THREAD
-	if (!is_thrd0()) return;
-#endif
+	$thread_alloc_assert_only_thrd0(dealloc);
 	$assert_nonnull(ptr);
 	$heap_trace_remove_entry(ptr);
 	allocator->general.deallocate(allocator->general.context, ptr);
@@ -352,13 +360,13 @@ void general_dealloc(void *ptr, $allocator) {
 
 void *buffer_alloc(size_t size, $allocator $source_code_location) {
 	$thread_alloc_init();
-	void *ptr =
-	    allocator->buffer.allocate(allocator->buffer.context, size $thread(*thread_count()));
+	const size_t allocation_size = size $thread(*thread_count());
+	void *ptr = allocator->buffer.allocate(allocator->buffer.context, allocation_size);
 	if (!ptr) {
 		$heap_trace_failure();
 		$thread_alloc_return_error();
 	}
-	$heap_trace_add_entry(ptr, size, source_code_location);
+	$heap_trace_add_entry(ptr, allocation_size, source_code_location);
 	$thread_alloc_return(ptr);
 }
 
@@ -367,9 +375,9 @@ void *buffer_resize(void *ptr, size_t oldsz, size_t newsz, $allocator $source_co
 
 	$thread_alloc_init();
 
+	const size_t allocation_size = newsz $thread(*thread_count());
 	void *new_ptr = allocator->buffer.reallocate(
-	    allocator->buffer.context, ptr, oldsz $thread(*thread_count()),
-	    newsz $thread(*thread_count()));
+	    allocator->buffer.context, ptr, oldsz $thread(*thread_count()), allocation_size);
 	if (!new_ptr) {
 		$heap_trace_failure();
 		$thread_alloc_return_error();
@@ -377,30 +385,24 @@ void *buffer_resize(void *ptr, size_t oldsz, size_t newsz, $allocator $source_co
 
 	$heap_trace_remove_entry(ptr);
 
-	$heap_trace_add_entry(new_ptr, newsz, source_code_location);
+	$heap_trace_add_entry(new_ptr, allocation_size, source_code_location);
 	$thread_alloc_return(new_ptr);
 }
 
 void buffer_dealloc(void *ptr, $allocator) {
-#ifdef THREAD
-	if (!is_thrd0()) return;
-#endif
+	$thread_alloc_assert_only_thrd0(dealloc);
 	$assert_nonnull(ptr);
 	$heap_trace_remove_entry(ptr);
 	allocator->buffer.deallocate(allocator->buffer.context, ptr);
 }
 
 void buffer_reset($allocator) {
-#ifdef THREAD
-	if (!is_thrd0()) return;
-#endif
+	$thread_alloc_assert_only_thrd0(reset);
 	allocator->buffer.reset(allocator->buffer.context);
 }
 
 void buffer_destroy($allocator) {
-#ifdef THREAD
-	if (!is_thrd0()) return;
-#endif
+	$thread_alloc_assert_only_thrd0(destroy);
 	allocator->buffer.destroy(allocator->buffer.context);
 }
 

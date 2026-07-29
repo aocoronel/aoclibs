@@ -30,19 +30,15 @@
 // Sometimes variables are left undefined on purpose, but there is not indicator of such
 #define undefined
 
-#ifdef atomic
-#error "atomic() is defined"
-#endif
-
 // Macros for renaming purposes
 #ifdef __cplusplus
 #define restrict
-#define atomic(type) std::atomic<type>
+#define $atomic(type) std::atomic<type>
 #else
 
 #define inline __attribute__((__gnu_inline__)) inline
 #define restrict __restrict
-#define atomic(type) _Atomic(type)
+#define $atomic(type) _Atomic(type)
 
 #ifndef thread_local
 #define thread_local _Thread_local
