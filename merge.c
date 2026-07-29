@@ -211,8 +211,8 @@ int main(int argc, char *argv[]) {
 
 	if (!disable_tunit) {
 		Fork_Options opt = { 0 };
-		char *compile_args[] = { C_COMPILER,  "-std=c11",  "-c",  "-o",
-			                     "aoclibs.o", "aoclibs.c", EXTRA_FLAGS };
+		char *compile_args[] = { C_COMPILER, "-c", "-o",        "aoclibs.o",
+			                     "-x",       "c",  "aoclibs.c", EXTRA_FLAGS };
 		opt.argv = compile_args;
 		opt.err = true;
 		Cmd_Result output = { 0 };
@@ -230,8 +230,8 @@ int main(int argc, char *argv[]) {
 	if (!disable_tunit) {
 		Fork_Options opt = { 0 };
 		// "-DTUNIT_SUBPROCESS",
-		char *compile_args[] = { C_COMPILER, "-std=c11",  "-o",      "test", "test.c",
-			                     "-lm",      "aoclibs.o", "-DTUNIT", EXTRA_FLAGS };
+		char *compile_args[] = { C_COMPILER, "-o", "test", "-lm",    "aoclibs.o",
+			                     "-DTUNIT",  "-x", "c",    "test.c", EXTRA_FLAGS };
 		opt.argv = compile_args;
 		opt.err = true;
 		Cmd_Result output = { 0 };
