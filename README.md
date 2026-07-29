@@ -23,6 +23,11 @@ cc @build && ./merge
 c++ @build++ && ./merge
 ```
 
+Supported compilers:
+
+- **C++:** clang++, g++
+- **C:**: clang, gcc, tcc
+
 ## Explore
 
 - [Convention](./CONVENTION.md)
