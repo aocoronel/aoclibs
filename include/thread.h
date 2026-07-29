@@ -112,8 +112,8 @@
 //
 // For simplicity I left it as a global variable, because it doesn't matter
 #ifdef THREAD
-extern atomic(size_t) GLOBAL_TASK;
-size_t global_task_init(atomic(size_t) * task);
+extern $atomic(size_t) GLOBAL_TASK;
+size_t global_task_init($atomic(size_t) * task);
 #define $dtask(count)                                              \
 	for (size_t it = global_task_init(&GLOBAL_TASK); it < (count); \
 	     it = atomic_fetch_add(&GLOBAL_TASK, 1))
@@ -170,7 +170,7 @@ void debug_signal_handler(int sig);
 #ifdef AOC_IMPLEMENTATION
 
 #ifdef THREAD
-atomic(size_t) GLOBAL_TASK;
+$atomic(size_t) GLOBAL_TASK;
 #endif
 
 unsigned char GLOBAL_BROADCAST[MAX_ALIGNMENT];
@@ -237,7 +237,7 @@ bool is_thrd0(void) {
 }
 
 #ifdef THREAD
-size_t global_task_init(atomic(size_t) * task) {
+size_t global_task_init($atomic(size_t) * task) {
 	ckp;
 	atomic_store(&GLOBAL_TASK, 0);
 	ckp;
@@ -344,7 +344,7 @@ int main(int argc, char **argv) {
             local_sum += it;
         }
 
-        static atomic(size_t) sum = 0;
+        static $atomic(size_t) sum = 0;
         atomic_fetch_add(&sum, local_sum);
 
         ckp_thrd0 {

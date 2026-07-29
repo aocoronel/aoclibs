@@ -41,7 +41,7 @@ bool _hmap_resize(Hash_Map_Tmpl *map, size_t new_capacity) {
 	for (size_t i = 0; i < old_capacity; i++) {
 		Hash_Entry_Tmpl *e = &old_entries[i];
 		if (_HMAP_ENTRY_IS_USED(e)) {
-			Hash_Entry_Tmpl *_e = _hmap_insert_from_hash(&new_map, e->key, e->hash);
+			Hash_Entry_Tmpl *_e = (Hash_Entry_Tmpl *)_hmap_insert_from_hash(&new_map, e->key, e->hash);
 			_e->value_idx = e->value_idx;
 		}
 	}

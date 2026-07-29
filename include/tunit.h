@@ -358,7 +358,7 @@ static inline void tunit_run_single_test(TUnit_Test *test) {
 }
 #endif
 static inline void tunit_register_test(const char *desc, void (*func)(void), size_t timeout) {
-	TUnit_Test *tc = malloc(sizeof(TUnit_Test));
+	TUnit_Test *tc = (TUnit_Test *)malloc(sizeof(TUnit_Test));
 	tc->description = desc;
 	tc->func = func;
 	tc->next = NULL;

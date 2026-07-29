@@ -159,7 +159,7 @@ extern const Crown_Option *CROWN_OPTION;
 
 // === Standard API
 
-#define CROWN_NOT_OPT ((void *)-1)
+#define CROWN_NOT_OPT ((const char *)-1)
 // Parses command-line arguments
 //
 // CROWN_NOT_OPT :: you may use this to parse positional arguments

@@ -18,7 +18,7 @@ const char *file_to_open = NULL;
 
 bool disable_tunit = false;
 
-#ifdef __cplusplus__
+#ifdef __cplusplus
 char *C_COMPILER = "g++";
 #else
 char *C_COMPILER = "gcc";

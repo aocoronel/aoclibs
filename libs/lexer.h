@@ -132,14 +132,14 @@ typedef struct {
 
 typedef struct {
 	Lexer_Source_Location loc;
-	Slice text;
 	Lexer_Token_Kind kind;
+	Slice text;
 
 	union {
 		struct {
 			Lexer_Num_Base base;
 			Lexer_Num_Suffix suffix;
-			size_t val;
+			long long val;
 		} _int;
 		struct {
 			Lexer_Num_Base base;
@@ -168,13 +168,26 @@ typedef struct {
 
 typedef struct {
 	const char *begin;
-	const char *pos;
 	const char *end;
+	const char *pos;
 
 	Lexer_Source_Location loc;
 	Lexer_Config settings;
 	size_t error_count;
 } Lexer;
+
+#ifdef __cplusplus
+#include <array>
+constexpr std::array<uint8_t, 128> encodings = [] {
+    std::array<uint8_t, 128> a{};
+    a['L'] = Lex_Encoding_Wide;
+    a['u'] = Lex_Encoding_U16;
+    a['U'] = Lex_Encoding_U32;
+    return a;
+}();
+#else
+extern const uint8_t encodings[128];
+#endif
 
 bool lexer_eof(const Lexer *l);
 unsigned char lexer_peek(const Lexer *l);
@@ -198,7 +211,6 @@ Lexer_Token lexer_operator(Lexer *l);
 bool lexer_is_comment(Lexer *l, Slice comment);
 void lexer_comment(Lexer *l);
 Lexer_Token lexer_identifier(Lexer *l);
-extern const uint8_t encodings[128];
 void lexer_skip_digits(Lexer *l, int base);
 Lexer_Token lexer_number(Lexer *l);
 bool lexer_next(Lexer *l, Lexer_Token *out);
@@ -554,7 +566,6 @@ Lexer_Token lexer_operator(Lexer *l) {
 		} else if (second == '>') {
 			lexer_next_char(l);
 			kind = Lex_Tok_RArrow;
-			op = 0;
 		} else {
 			op = Lex_Op_Minus;
 		}
@@ -683,11 +694,13 @@ void lexer_comment(Lexer *l) {
 	}
 }
 
+#ifndef __cplusplus
 const uint8_t encodings[128] = {
 	['L'] = Lex_Encoding_Wide,
 	['u'] = Lex_Encoding_U16,
 	['U'] = Lex_Encoding_U32,
 };
+#endif
 
 Lexer_Token lexer_identifier(Lexer *l) {
 	Lexer_Source_Location loc = l->loc;
@@ -702,10 +715,10 @@ Lexer_Token lexer_identifier(Lexer *l) {
 		quote = lexer_peek2(l);
 		if (quote == '\'') {
 			lexer_next_char(l);
-			return lexer_char(l, encoding);
+			return lexer_char(l, (Lexer_String_Encoding)encoding);
 		} else if (quote == '"') {
 			lexer_next_char(l);
-			return lexer_string(l, encoding);
+			return lexer_string(l, (Lexer_String_Encoding)encoding);
 		}
 	}
 
@@ -758,6 +771,7 @@ void lexer_skip_digits(Lexer *l, int base) {
 Lexer_Token lexer_number(Lexer *l) {
 	Lexer_Source_Location loc = l->loc;
 	const char *begin = l->pos;
+	const char *end undefined;
 
 	bool is_float = false;
 
@@ -831,7 +845,7 @@ Lexer_Token lexer_number(Lexer *l) {
 	}
 
 	// strtol, strtod don't care about suffixes
-	const char *end = l->pos;
+	end = l->pos;
 
 	// Suffixes
 	while (!lexer_eof(l)) {
@@ -906,7 +920,7 @@ done:
 			.loc = loc,
 			.kind = Lex_Tok_Int,
 			.text = val_s,
-			._int = { .base = nbase, .suffix = nsuffix, .val = slice_to_long(val_s, 0) },
+			._int = { .base = nbase, .suffix = nsuffix, .val = slice_to_llong(val_s, 0) },
 		};
 	}
 }
@@ -1011,11 +1025,11 @@ bool lexer_next_peak(Lexer *l, Lexer_Token *out, Lexer_Config *cfg) {
 }
 
 Lexer lexer_init(const char *filename, const char *contents, size_t length, Lexer_Config settings) {
-	Lexer_Source_Location loc = { .filename = filename, .line = 0, .column = 0 };
-	return (Lexer){ .loc = loc,
-		            .begin = contents,
+	Lexer_Source_Location loc = { .line = 0, .column = 0, .filename = filename };
+	return (Lexer){ .begin = contents,
 		            .end = contents + length,
 		            .pos = contents,
+		            .loc = loc,
 		            .settings = settings };
 }
 
