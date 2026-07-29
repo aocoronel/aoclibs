@@ -13,16 +13,43 @@
 #define TEMPLATE_FILE "template.h"
 #define TEMPLATE_FILE_LEN $strlen(TEMPLATE_FILE)
 
+#define OPTIMIZE "-O2", "-flto", "-fPIC"
+
+#ifdef __TINYC__
+// Take advantage of TCC builtin bounds-checker
+#define EXTRA_FLAGS "-b", NULL
+#else
+#define EXTRA_FLAGS NULL
+#endif
+
 FILE *output = NULL;
 const char *file_to_open = NULL;
 
 bool disable_tunit = false;
 
 #ifdef __cplusplus
+
+#if defined(__clang__)
+char *C_COMPILER = "clang++";
+#elif defined(__GNUC__)
 char *C_COMPILER = "g++";
 #else
-char *C_COMPILER = "gcc";
+#error "Unsupported C++ compiler"
 #endif
+
+#else
+
+#if defined(__clang__)
+char *C_COMPILER = "clang";
+#elif defined(__GNUC__)
+char *C_COMPILER = "gcc";
+#elif defined(__TINYC__)
+char *C_COMPILER = "tcc";
+#else
+#error "Unsupported C compiler"
+#endif
+
+#endif // __cplusplus
 
 void read_source_files(File_Type ft, struct stat *st, const char *path);
 
@@ -183,11 +210,9 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (!disable_tunit) {
-#define OPTIMIZE "-O2", "-flto", "-fPIC"
-
 		Fork_Options opt = { 0 };
 		char *compile_args[] = { C_COMPILER,  "-std=c11",  "-c",  "-o",
-			                     "aoclibs.o", "aoclibs.c", "-lm", NULL };
+			                     "aoclibs.o", "aoclibs.c", EXTRA_FLAGS };
 		opt.argv = compile_args;
 		opt.err = true;
 		Cmd_Result output = { 0 };
@@ -206,7 +231,7 @@ int main(int argc, char *argv[]) {
 		Fork_Options opt = { 0 };
 		// "-DTUNIT_SUBPROCESS",
 		char *compile_args[] = { C_COMPILER, "-std=c11",  "-o",      "test", "test.c",
-			                     "-lm",      "aoclibs.o", "-DTUNIT", NULL };
+			                     "-lm",      "aoclibs.o", "-DTUNIT", EXTRA_FLAGS };
 		opt.argv = compile_args;
 		opt.err = true;
 		Cmd_Result output = { 0 };
