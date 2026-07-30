@@ -3,7 +3,9 @@
 
 #include "cfg.h"
 
-// TTY Colors
+// Instead of giving an entire color palette, this only provides colors that are used by the TTY.
+// The reason is, because each user has their own theme and taste on colors, so why should we force
+// them to see a certain shade of green, if we can just let them see the green color they like?
 
 #if CONFIG_TTY_COLORS == 0
 #define COLOR_RESET ""
