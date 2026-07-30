@@ -159,6 +159,12 @@ extern const Crown_Option *CROWN_OPTION;
 
 // === Standard API
 
+#define $crown_set(opts)                             \
+	do {                                             \
+		CROWN_OPTION = ((const Crown_Option *)opts); \
+		CROWN_OPTION_LEN = $array_len(opts) - 1;     \
+	} while (0)
+
 #define CROWN_NOT_OPT ((const char *)-1)
 // Parses command-line arguments
 //
@@ -290,12 +296,6 @@ Crown_Hashmap CROWN_HASHMAP = { { 0 } };
 
 const Crown_Option *CROWN_OPTION = NULL;
 size_t CROWN_OPTION_LEN = 0;
-
-#define $crown_set(opts)                             \
-	do {                                             \
-		CROWN_OPTION = ((const Crown_Option *)opts); \
-		CROWN_OPTION_LEN = $array_len(opts) - 1;     \
-	} while (0)
 
 void crown_generate_options(int indent) {
 	$range(0, CROWN_OPTION_LEN, i) {
