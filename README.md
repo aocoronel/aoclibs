@@ -12,7 +12,7 @@ The goal is to make writing programs in C more enjoyable, and decrease the amoun
 
 This library is only tested in x86_64 and aarch64 Linux and x86_64 FreeBSD. If you work on Windows this library will certainly not work, not even with MinGW. It might work on MacOS (I can't test it), and I may add support to other operational systems (NetBSD, OpenBSD, Haiku, DragonflyBSD) at some point.
 
-`aoclibs` can currently be compiled with C++ without `extern "C"`.
+`aoclibs` can currently be compiled with C++ without `extern "C"`. You can use, either C99 or C11 standards.
 
 ## How to use
 
@@ -25,8 +25,8 @@ c++ @build++ && ./merge
 
 Supported compilers:
 
-- **C++:** clang++, g++
-- **C:** clang, gcc, tcc
+- **C++:** clang++, g++, fil++
+- **C:** clang, gcc, tcc, filcc
 
 ## Explore
 
