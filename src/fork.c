@@ -1,14 +1,15 @@
 #pragma once
 
-#include <sys/types.h>
 #include "base.h"
-#include "fork.h"
 #include "file.h"
+#include "fork.h"
 #include <errno.h>
-#include <sys/select.h>
+#include <signal.h>
+#include <stdio.h>
+#include <sys/poll.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <signal.h>
 
 bool write_fd(int fd, const void *buf, size_t count) {
 	$assert_nonnull(buf);
@@ -106,54 +107,48 @@ Fork_Result fork_cmd(Fork_Options opt) {
 }
 #undef $close_fd
 
-int read_fds(int out_fd, int err_fd, Cmd_Result *fb) {
-	$assert_nonnull(fb);
+int read_fds(int out_fd, int err_fd, Cmd_Result *result) {
+	$assert_nonnull(result);
 
 	bool out_eof = (out_fd == -1);
 	bool err_eof = (err_fd == -1);
 
-	int maxfd = -1;
-	if (out_fd >= 0) maxfd = out_fd;
-	if (err_fd >= 0 && err_fd > maxfd) maxfd = err_fd;
-
 	char buf[4096];
 
+	if (!out_eof) da_init(&result->out, 4096);
+	if (!err_eof) da_init(&result->err, 4096);
+
 	while (!out_eof || !err_eof) {
-		fd_set set;
-		FD_ZERO(&set);
+		struct pollfd pfd[2];
+		int nfds = 0;
 
-		if (!out_eof) FD_SET(out_fd, &set);
-		if (!err_eof) FD_SET(err_fd, &set);
+		if (!out_eof) pfd[nfds++] = (struct pollfd){ out_fd, POLLIN, 0 };
+		if (!err_eof) pfd[nfds++] = (struct pollfd){ err_fd, POLLIN, 0 };
 
-		int ret = select(maxfd + 1, &set, NULL, NULL, NULL);
+		int ret = poll(pfd, nfds, -1);
 		$catch(ret == -1) {
 			if (errno == EINTR) continue;
 			return -1;
 		}
 
-		if (!out_eof && FD_ISSET(out_fd, &set)) {
+		for (int i = 0; i < nfds; i++) {
+			if (!(pfd[i].revents & (POLLIN | POLLHUP | POLLERR))) continue;
+
 			ssize_t n;
-			while ((n = read(out_fd, buf, sizeof(buf))) == -1 && errno == EINTR)
+			while ((n = read(pfd[i].fd, buf, sizeof(buf))) == -1 && errno == EINTR)
 				;
 
-			if ($likely(n > 0)) {
-				da_append(&fb->out, buf, n);
+			if (n > 0) {
+				if (pfd[i].fd == out_fd)
+					da_append(&result->out, buf, n);
+				else
+					da_append(&result->err, buf, n);
 			} else {
-				out_eof = true;
-				close(out_fd);
-			}
-		}
-
-		if (!err_eof && FD_ISSET(err_fd, &set)) {
-			ssize_t n;
-			while ((n = read(err_fd, buf, sizeof(buf))) == -1 && errno == EINTR)
-				;
-
-			if ($likely(n > 0)) {
-				da_append(&fb->err, buf, n);
-			} else {
-				err_eof = true;
-				close(err_fd);
+				close(pfd[i].fd);
+				if (pfd[i].fd == out_fd)
+					out_eof = true;
+				else
+					err_eof = true;
 			}
 		}
 	}
@@ -168,9 +163,11 @@ int wait_child(pid_t pid) {
 	return -1;
 }
 
-int run_cmd(Cmd_Result *out, Fork_Options opt) {
-	$assert_nonnull(out);
-
+int run_cmd(Fork_Options opt) {
+	if (!opt.result) {
+		opt.err = false;
+		opt.out = false;
+	}
 	Cmd_Result result = { 0 };
 	Fork_Result fc = fork_cmd(opt);
 
@@ -178,17 +175,17 @@ int run_cmd(Cmd_Result *out, Fork_Options opt) {
 		return fc.pid;
 	}
 
-	Cmd_Result fb = { 0 };
+	read_fds(fc.stdout_fd, fc.stderr_fd, &result);
 
-	read_fds(fc.stdout_fd, fc.stderr_fd, &fb);
+	if (opt.out) da_add_null(&result.out);
+	if (opt.err) da_add_null(&result.err);
 
-	if (opt.out) da_add_null(&fb.out);
-	if (opt.err) da_add_null(&fb.err);
+	result.out = result.out;
+	result.err = result.err;
 
-	result.out = fb.out;
-	result.err = fb.err;
-
-	*out = result;
+	if (opt.result) {
+		*opt.result = result;
+	}
 
 	return wait_child(fc.pid);
 }

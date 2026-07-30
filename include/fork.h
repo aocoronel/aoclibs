@@ -13,20 +13,22 @@ struct Fork_Result {
 	int stderr_fd;
 };
 
+struct Cmd_Result {
+	rc out;
+	rc err;
+};
+
 struct Fork_Options {
+	Cmd_Result *null result;
 	char **argv;
 	char *input;
 	bool out;
 	bool err;
 };
 
-struct Cmd_Result {
-	rc out;
-	rc err;
-};
-
-// run("ls", NULL, &output, .in = true, .out = true, .err = true)
-AOCDEF int run_cmd(Cmd_Result *restrict out, Fork_Options opt);
+// Passing "opt.result" as NULL implies "out" and "err" to be false
+// Only use "err" and "out" if you need to capture the results
+AOCDEF int run_cmd(Fork_Options opt);
 
 AOCDEF Fork_Result fork_cmd(Fork_Options opt);
 AOCDEF int wait_child(pid_t pid);
