@@ -1,13 +1,11 @@
 #define AOC_IMPLEMENTATION
+
 #include "include/base.h"
 #include "include/cstr.h"
 #include "include/file.h"
 #include "include/fork.h"
 #include "include/io.h"
-#include <assert.h>
 #include <errno.h>
-#include <stdint.h>
-#include <stdio.h>
 
 #define OUTPUT_FILE "aoclibs.h"
 #define TEMPLATE_FILE "template.h"
@@ -33,6 +31,8 @@ bool disable_tunit = false;
 char *C_COMPILER = "clang++";
 #elif defined(__GNUC__)
 char *C_COMPILER = "g++";
+#elif defined(__FILC__)
+char *C_COMPILER = "fil++";
 #else
 #error "Unsupported C++ compiler"
 #endif
@@ -45,6 +45,8 @@ char *C_COMPILER = "clang";
 char *C_COMPILER = "gcc";
 #elif defined(__TINYC__)
 char *C_COMPILER = "tcc";
+#elif defined(__FILC__)
+char *C_COMPILER = "filcc";
 #else
 #error "Unsupported C compiler"
 #endif
@@ -53,6 +55,7 @@ char *C_COMPILER = "tcc";
 
 void read_source_files(File_Type ft, struct stat *st, const char *path);
 
+#define $match(s) cstr_has_at(buffer, size, s, $strlen(s))
 bool read_file(const char *file, bool ignore_include) {
 	FILE *fp = fopen(file, "r");
 	if (!fp) {
@@ -69,13 +72,11 @@ bool read_file(const char *file, bool ignore_include) {
 	while ((nread = read_by_delim(&buffer, &size, '\n', fp)) != SIZE_MAX) {
 		line_count++;
 
-#define MERGE_MATCH(s) cstr_has_at(buffer, size, s, $strlen(s))
-
 		size_t pos = 0;
-		if ((pos = MERGE_MATCH("#include")) != SIZE_MAX) {
+		if ((pos = $match("#include")) != SIZE_MAX) {
 			//        #include ...
 			//        ^ pos
-			assert(buffer[pos] == '#');
+			$assert(buffer[pos] == '#');
 
 			pos += $strlen("#include");
 			for (size_t i = pos; i < size && buffer[i] == ' '; i++) {
@@ -101,28 +102,29 @@ bool read_file(const char *file, bool ignore_include) {
 				continue;
 			}
 			continue;
-		} else if (disable_tunit && MERGE_MATCH("// TEST_BEGIN") != SIZE_MAX) {
+		} else if (disable_tunit && $match("// TEST_BEGIN") != SIZE_MAX) {
 			while ((nread = read_by_delim(&buffer, &size, '\n', fp)) != SIZE_MAX) {
 				line_count++;
-				if (MERGE_MATCH("// TEST_END") != SIZE_MAX) {
+				if ($match("// TEST_END") != SIZE_MAX) {
 					goto out;
 				}
 			}
 out:
 			continue;
-		} else if ((pos = MERGE_MATCH("#pragma once")) != SIZE_MAX) {
+		} else if ((pos = $match("#pragma once")) != SIZE_MAX) {
 			continue;
 		}
 print:
 		fprintf(output, "%s", buffer);
 	}
 
-	assert(buffer != NULL);
+	$assert(buffer != NULL);
 	free(buffer);
-	assert(fp != NULL);
+	$assert(fp != NULL);
 	fclose(fp);
 	return true;
 }
+#undef $match
 
 void read_source_files(File_Type ft, struct stat *st, const char *path) {
 	if (!cstr_ends_with(path, strlen(path), ".c", 2)) return;
@@ -142,12 +144,10 @@ void read_source_files(File_Type ft, struct stat *st, const char *path) {
 #define STRING_MAIN "#include \"aoclibs.h\"\n"
 
 // I didn't want to deploy crown, so I made this silly flag parsing
-#define flag(var, string)                     \
-	$range(1, argc, i) {                      \
-		if (cstr_eq(argv[i], "" string "")) { \
-			var = true;                       \
-			break;                            \
-		}                                     \
+#define flag(var, string)                 \
+	if (cstr_eq(argv[i], "" string "")) { \
+		var = true;                       \
+		break;                            \
 	}
 
 void usage() {
@@ -159,110 +159,83 @@ void usage() {
 
 int main(int argc, char *argv[]) {
 	bool print_usage = false;
-
-	flag(disable_tunit, "-no-test");
-	flag(print_usage, "-h");
-
+	$range(1, argc, i) {
+		flag(print_usage, "-h");
+		flag(disable_tunit, "-no-test");
+	}
 	if (print_usage) {
 		usage();
 		return 0;
 	}
 
-	output = fopen(OUTPUT_FILE, "w");
+	{
+		output = fopen(OUTPUT_FILE, "w");
+		$assert(output);
 
-	if (!output) {
-		eprintf("Failed to open file %s. %s\n", OUTPUT_FILE, strerror(errno));
-		return 1;
+		fputs("#ifndef AOC_H\n", output);
+		fputs("#define AOC_H\n", output);
+
+		if (read_file(TEMPLATE_FILE, false) == false) return 1;
+
+		fprintf(output, "%s", "#ifdef AOC_IMPLEMENTATION\n");
+		dir_walk("src", .isreg = read_source_files);
+		fprintf(output, "%s", "#endif // AOC_IMPLEMENTATION\n");
+
+		fputs("#endif // AOC_H\n", output);
+
+		fclose(output);
+
+		eprintf("Generated ./aoclibs.h\n");
 	}
-
-	fputs("#ifndef AOC_H\n", output);
-	fputs("#define AOC_H\n", output);
-
-	if (read_file(TEMPLATE_FILE, false) == false) return 1;
-
-	fprintf(output, "%s", "#ifdef AOC_IMPLEMENTATION\n");
-	dir_walk("src", .isreg = read_source_files);
-	fprintf(output, "%s", "#endif // AOC_IMPLEMENTATION\n");
-	fputs("#endif // AOC_H\n", output);
-
-	fclose(output);
-
-	eprintf("Generated ./aoclibs.h\n");
 
 	if (!disable_tunit) {
 		FILE *fp = fopen("test.c", "w");
-		if (!fp) {
-			perror("fopen(test.c, w)");
-			return 1;
-		}
+		$assert(fp);
 		fwrite(STRING_MAIN, sizeof(char), $strlen(STRING_MAIN), fp);
 		fclose(fp);
 	}
 
 	{
 		FILE *fp = fopen("aoclibs.c", "w");
-		if (!fp) {
-			perror("fopen(aoclibs, w)");
-			return 1;
-		}
+		$assert(fp);
 		fwrite(STRING, sizeof(char), $strlen(STRING), fp);
 		fclose(fp);
 	}
 
-	if (!disable_tunit) {
-		Fork_Options opt = { 0 };
-		char *compile_args[] = { C_COMPILER, "-c", "-o",        "aoclibs.o",
-			                     "-x",       "c",  "aoclibs.c", EXTRA_FLAGS };
-		opt.argv = compile_args;
-		opt.err = true;
-		Cmd_Result output = { 0 };
-		int status = run_cmd(&output, opt);
+	Fork_Options opt = { 0 };
 
-		if (status != 0) {
-			eprintf("%s", output.err.data);
-			eprintf("Failed to build aoclibs.h. Got error: %d\n", status);
+	if (!disable_tunit) {
+		char *args[] = { C_COMPILER, "-c", "-o", "aoclibs.o", "-x", "c", "aoclibs.c", EXTRA_FLAGS };
+		opt.argv = args;
+		int status = run_cmd(opt);
+
+		if (run_cmd(opt) != 0) {
+			eprintf("Failed to build aoclibs.h\n");
 			return 1;
-		} else {
-			eprintf("Generated ./aoclibs.o\n");
 		}
+		eprintf("Generated ./aoclibs.o\n");
 	}
 
 	if (!disable_tunit) {
-		Fork_Options opt = { 0 };
-		// "-DTUNIT_SUBPROCESS",
-		char *compile_args[] = { C_COMPILER, "-o", "test", "-lm",    "aoclibs.o",
-			                     "-DTUNIT",  "-x", "c",    "test.c", EXTRA_FLAGS };
-		opt.argv = compile_args;
-		opt.err = true;
-		Cmd_Result output = { 0 };
-		int status = run_cmd(&output, opt);
-
-		if (status != 0) {
-			eprintf("%s", output.err.data);
-			eprintf("Failed to build aoclibs.h. Got error: %d\n", status);
+		char *args[] = { C_COMPILER, "-o", "test", "-lm",    "aoclibs.o",
+			             "-DTUNIT",  "-x", "c",    "test.c", EXTRA_FLAGS };
+		opt.argv = args;
+		if (run_cmd(opt) != 0) {
+			eprintf("Failed to build aoclibs.h\n");
 			return 1;
 		}
 	}
 
 	if (!disable_tunit) {
-		Fork_Options opt = { 0 };
-		char *run_args[] = { "./test", NULL };
-		opt.argv = run_args;
-		opt.err = true;
-		Cmd_Result output = { 0 };
-		int status = run_cmd(&output, opt);
-
-		if (disable_tunit) {
-			eprintf("%s", output.err.data);
-		} else {
-			eprintf("Running tests:\n%s", output.err.data);
-		}
-		if (status != 0) {
-			eprintf("Failed to run test. Got error %d\n", status);
+		char *args[] = { "./test", NULL };
+		opt.argv = args;
+		eprintf("Running tests:\n");
+		if (run_cmd(opt) != 0) {
+			eprintf("Failed to run test\n");
 			return 1;
 		}
+		fputc('\n', stderr);
 	}
-	if (!disable_tunit) fputc('\n', stderr);
 
 	return 0;
 }
