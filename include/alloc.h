@@ -47,7 +47,6 @@ struct Buffer_Allocator {
 // I have a slab allocator implementation sitting in my todo for a while, but I suppose it requires
 // its own allocator interface, since the API doesn't follow the buffer allocator interface
 
-typedef struct Allocator Allocator;
 struct Allocator {
 	General_Allocator general;
 	Buffer_Allocator buffer;

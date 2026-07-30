@@ -25,6 +25,7 @@ $declare(struct)(General_Allocator);
 $declare(struct)(Buffer_Allocator);
 $declare(struct)(Fixed_Buffer);
 $declare(struct)(Heap_Trace_Entry);
+$declare(struct)(Allocator);
 
 // base.h
 $declare(struct)(Source_Code_Location);
