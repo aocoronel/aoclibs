@@ -35,10 +35,10 @@
 #define _assert_da_is_not_null(da) ($assert((da)->data != NULL, "cannot modify NULL pointer"))
 
 // Zero initialize
-#define da_init(da, new_cap)                               \
-	do {                                                   \
-		(da)->data = calloc(new_cap, sizeof(*(da)->data)); \
-		(da)->cap = new_cap;                               \
+#define da_init(da, new_cap)                                                   \
+	do {                                                                       \
+		(da)->data = (typeof((da)->data))calloc(new_cap, sizeof(*(da)->data)); \
+		(da)->cap = new_cap;                                                   \
 	} while (0)
 
 // If you know before hand you need a big dynamic array, you can reserve memory.
