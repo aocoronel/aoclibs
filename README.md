@@ -52,7 +52,6 @@ Supported compilers:
 | io.h                         | Input/output simple functions    |
 | libc.h                       | Most included libc libraries     |
 | map.h                        | Ordered map                      |
-| pp.h                         | Pointer Pool                     |
 | printfc.h                    | printf() with colors             |
 | rc.h                         | String type powered by da.h      |
 | stack.h                      | Stack allocator                  |
