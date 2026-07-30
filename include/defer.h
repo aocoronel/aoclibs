@@ -18,9 +18,7 @@ AOCDEF void defer_fn(struct Defer_Context *ctx);
 	    __attribute__((cleanup(defer_fn))) = { (void (*)(void *))(fn), (void *)(ptr) }
 
 #ifdef AOC_IMPLEMENTATION
-AOCDEF void _defer_cleanup(struct Defer_Context *ctx) {
-	if (ctx->fn) ctx->fn(ctx->arg);
-}
+#include "defer.c"
 #endif
 
 #endif // AOC_DEFER_H_
