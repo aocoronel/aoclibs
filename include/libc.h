@@ -13,10 +13,12 @@
 #include <stdnoreturn.h>
 #include <string.h>
 
+#ifdef AOC_ENABLE_C11_FEATURES
 #ifdef __cplusplus
 #include <atomic>
 #else
 #include <stdatomic.h>
+#endif
 #endif
 
 #endif

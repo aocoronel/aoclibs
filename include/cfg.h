@@ -1,6 +1,10 @@
 #ifndef AOC_CFG_H_
 #define AOC_CFG_H_
 
+#if defined(__cplusplus) || defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#define AOC_ENABLE_C11_FEATURES
+#endif
+
 // 1 :: enable tty colors
 // 0 :: disable tty colors
 #ifndef CONFIG_TTY_COLORS

@@ -111,7 +111,7 @@
 // This is only guaranteed to work properly if you use this were you are sure it will never recurse
 //
 // For simplicity I left it as a global variable, because it doesn't matter
-#ifdef THREAD
+#if defined(THREAD) && defined(AOC_ENABLE_C11_FEATURES)
 extern $atomic(size_t) GLOBAL_TASK;
 size_t global_task_init($atomic(size_t) * task);
 #define $dtask(count)                                              \
@@ -169,7 +169,7 @@ void debug_signal_handler(int sig);
 
 #ifdef AOC_IMPLEMENTATION
 
-#ifdef THREAD
+#if defined(THREAD) && defined(AOC_ENABLE_C11_FEATURES)
 $atomic(size_t) GLOBAL_TASK;
 #endif
 
@@ -236,7 +236,7 @@ bool is_thrd0(void) {
 	return thread_id() == 0;
 }
 
-#ifdef THREAD
+#if defined(THREAD) && defined(AOC_ENABLE_C11_FEATURES)
 size_t global_task_init($atomic(size_t) * task) {
 	ckp;
 	atomic_store(&GLOBAL_TASK, 0);

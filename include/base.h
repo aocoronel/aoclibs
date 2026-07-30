@@ -33,11 +33,18 @@
 // Macros for renaming purposes
 #ifdef __cplusplus
 #define restrict
-#define $atomic(type) std::atomic<type>
 #else
 
 #define inline __attribute__((__gnu_inline__)) inline
 #define restrict __restrict
+
+#endif // __cplusplus
+
+#ifdef AOC_ENABLE_C11_FEATURES
+
+#ifdef __cplusplus
+#define $atomic(type) std::atomic<type>
+#else
 #define $atomic(type) _Atomic(type)
 
 #ifndef thread_local
@@ -49,6 +56,14 @@
 #endif // static_assert
 
 #endif // __cplusplus
+
+#else // AOC_ENABLE_C11_FEATURES
+
+#ifndef static_assert
+#define static_assert
+#endif // static_assert
+
+#endif // AOC_ENABLE_C11_FEATURES
 
 // This macro is an exception on the $macro() convention. Reason: it's a C23 keyword.
 #define typeof(type) __typeof__((type))
