@@ -18,6 +18,7 @@ AOCDEF size_t fputw(FILE *fp, size_t count);
 AOCDEF void fputf(FILE *fp, double f, int decimals);
 AOCDEF void fputui(FILE *fp, unsigned long long n);
 AOCDEF void fputsi(FILE *fp, signed long long n);
+AOCDEF int get_terminal_width(void);
 
 #ifdef AOC_IMPLEMENTATION
 #include "io.c"

@@ -3,6 +3,8 @@
 #include "base.h"
 #include "io.h"
 #include <math.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 #define AOC_IO_PUT_BUFF 64
 
@@ -326,4 +328,12 @@ void fputsi(FILE *fp, signed long long n) {
 	if (negative) fputc('-', fp);
 
 	fwrite(str, sizeof(char), len, fp);
+}
+
+int get_terminal_width(void) {
+	struct winsize w;
+	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1) {
+		return 80;
+	}
+	return w.ws_col;
 }
