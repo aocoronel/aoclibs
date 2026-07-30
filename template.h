@@ -65,9 +65,7 @@
 #include "./include/colors.h"
 #include "./include/buddy.h"
 #include "./include/stack.h"
-#include "./include/pp.h"
 #include "./include/cstr.h"
-#include "./include/fquery.h"
 #include "./include/printfc.h"
 #include "./include/io.h"
 #include "./include/rc.h"
@@ -80,3 +78,4 @@
 #include "./libs/lexer.h" // -DLEXER
 #include "./libs/crown.h" // -DCROWN
 #include "./libs/spinner.h" // -DAOC_SPINNER
+#include "./libs/fquery.h"

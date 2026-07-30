@@ -168,6 +168,7 @@ void broadcast_variable(void *val, void *output, size_t size);
 void debug_signal_handler(int sig);
 
 #ifdef AOC_IMPLEMENTATION
+#include "thread.c"
 #endif // AOC_IMPLEMENTATION
 
 #if 0
