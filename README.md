@@ -64,7 +64,7 @@ Supported compilers:
 
 | Library                    | Description                        |
 |----------------------------|------------------------------------|
-| crown.h                    | Full-blown CLI suite               |
+| crown.h                    | Option parsing library             |
 | lexer.h                    | Simple lexer                       |
 | spinner.h                  | Simple spinner without allocations |
 
