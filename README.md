@@ -34,38 +34,38 @@ Supported compilers:
 
 ### Base libraries
 
-| Library                      | Description                      |
-|------------------------------|----------------------------------|
-| alloc.h                      | Allocator interface              |
-| base.h                       | Handful aliases and macros       |
-| buddy.h                      | Buddy allocator                  |
-| calculus.h                   | Math                             |
-| cfg.h                        | Configuration macros             |
-| colors.h                     | Terminal colors                  |
-| cstr.h                       | C String operations and slices   |
-| da.h                         | Heap/stack-based dynamic arrays  |
-| defer.h                      | Portable defer                   |
-| file.h                       | File operations                  |
-| fork.h                       | Fork high-level wrappers         |
-| fquery.h                     | "Regex"-like based on functions  |
-| hmap.h                       | Unordered hashmap                |
-| io.h                         | Input/output simple functions    |
-| libc.h                       | Most included libc libraries     |
-| map.h                        | Ordered map                      |
-| printfc.h                    | printf() with colors             |
-| rc.h                         | String type powered by da.h      |
-| stack.h                      | Stack allocator                  |
-| thread.h                     | Threading framework              |
-| tunit.h                      | Test Unit                        |
-| types.h                      | Forward declared types           |
+| Library        | Description                        |
+|----------------|------------------------------------|
+| alloc.h        | Allocator interface                |
+| base.h         | Handful aliases and macros         |
+| buddy.h        | Buddy allocator                    |
+| calculus.h     | Math                               |
+| cfg.h          | Configuration macros               |
+| colors.h       | Terminal colors                    |
+| cstr.h         | C String operations and slices     |
+| da.h           | Heap/stack-based dynamic arrays    |
+| defer.h        | Portable defer                     |
+| file.h         | File operations                    |
+| fork.h         | Fork high-level wrappers           |
+| hmap.h         | Unordered hashmap                  |
+| io.h           | Input/output simple functions      |
+| libc.h         | Most included libc libraries       |
+| map.h          | Ordered map                        |
+| printfc.h      | printf() with colors               |
+| rc.h           | String type powered by da.h        |
+| stack.h        | Stack allocator                    |
+| thread.h       | Threading framework                |
+| tunit.h        | Test Unit                          |
+| types.h        | Forward declared types             |
 
 ### Libraries
 
-| Library                    | Description                        |
-|----------------------------|------------------------------------|
-| crown.h                    | Option parsing library             |
-| lexer.h                    | Simple lexer                       |
-| spinner.h                  | Simple spinner without allocations |
+| Library        | Description                        |
+|----------------|------------------------------------|
+| crown.h        | Option parsing library             |
+| fquery.h       | "Regex"-like based on functions    |
+| lexer.h        | Simple lexer                       |
+| spinner.h      | Simple spinner without allocations |
 
 ### Vendored
 
