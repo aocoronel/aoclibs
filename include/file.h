@@ -18,26 +18,11 @@ enum File_Type {
 typedef void (*Dir_Walker_Fn)(File_Type, struct stat *, const char *);
 
 struct Dir_Walker {
-	void (*null isdir)(File_Type, Dir_Walker *);
-	Dir_Walker_Fn null islnk;
-	Dir_Walker_Fn null isnull;
-	Dir_Walker_Fn null isreg;
+	void (*null callback)(File_Type, struct stat *, const char *path, Dir_Walker *);
 	void (*null isempty)(const char *path);
 };
 
-// Usage: dir_walk("test.md", .islnk = my_fn);
-#define dir_walk(path, ...)                             \
-	do {                                                \
-		Dir_Walker _walk = (Dir_Walker){ __VA_ARGS__ }; \
-		dir_walker(path, &_walk);                       \
-	} while (0)
-// dir_walker can run five user provided functions based on each File_Type.
-//
-// If the user prefers to ignore a certain filetype, the function values can be
-// passed as NULL.
-//
-// dir_walker will not recurse by itself. You have to call dir_walker again inside
-// the isdir function
+// dir_walker will not recurse by itself. You have to call dir_walker again in the callback
 //
 // Sets errno << opendir
 AOCDEF bool dir_walker(const char *restrict path, Dir_Walker *restrict dw);

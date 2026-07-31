@@ -164,26 +164,12 @@ bool dir_walker(const char *path, Dir_Walker *dw) {
 	while ((entry = readdir(dir)) != NULL) {
 		$catch(cstr_eq(entry->d_name, ".") || cstr_eq(entry->d_name, "..")) continue;
 
+		size_t len = cstr_fmt_size(fullpath, AOC_MAX_PATH, "%s/%s", path, entry->d_name);
+		if (len > AOC_MAX_PATH) return false;
+
 		cstr_fmt_write(fullpath, AOC_MAX_PATH, "%s/%s", path, entry->d_name);
-
 		File_Type ft = get_filetype(&st, fullpath);
-
-		switch (ft) {
-		case F_REG:
-			if (dw->isreg != NULL) dw->isreg(ft, &st, fullpath);
-			break;
-		case F_DIR:
-			if (dw->isdir != NULL) dw->isdir(ft, dw);
-			break;
-		case F_LNK:
-			if (dw->islnk != NULL) dw->islnk(ft, &st, fullpath);
-			break;
-		case F_NULL:
-			if (dw->isnull != NULL) dw->isnull(ft, &st, fullpath);
-			break;
-		default:
-			break;
-		}
+		dw->callback(ft, &st, fullpath, dw);
 
 		empty++;
 	}
