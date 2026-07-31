@@ -9,6 +9,8 @@
 #include "rc.h"
 
 #include <dirent.h>
+#include <errno.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -278,4 +280,72 @@ char *make_path(
 	*ptr = '\0';
 
 	return out;
+}
+
+bool create_dir_all_parts(const char *parts[], mode_t mode) {
+	$assert_nonnull(parts);
+	char path[AOC_MAX_PATH];
+	size_t size = 0;
+
+	while (*parts) {
+		const char *part;
+		size_t len;
+
+		if (size > 0) {
+			memcpy(path, "/", 1);
+			size += 1;
+		}
+
+		part = *parts;
+		len = strlen(part);
+
+		if (size + len > AOC_MAX_PATH - 1) {
+			printfc_fatal("File name is too large: %s\n", path);
+			return false;
+		}
+
+		memcpy(path + size, part, len);
+		size += len;
+
+		if (mkdir(path, mode) != 0 && errno != EEXIST) {
+			perror(path);
+			return false;
+		}
+
+		parts++;
+	}
+
+	return true;
+}
+
+bool create_dir_all(const char *path, mode_t mode) {
+	$assert_nonnull(path);
+	char path_copy[AOC_MAX_PATH];
+	size_t len = strlen(path);
+
+	if (len > AOC_MAX_PATH - 1) {
+		printfc_fatal("File name is too large: %s\n", path);
+		return false;
+	}
+
+	memcpy(path_copy, path, len + 1);
+
+	char *p = path_copy;
+	for (char *p = path_copy + 1; *p; ++p) {
+		if (*p != '/') continue;
+
+		*p = '\0';
+
+		if (path_copy[0] != '\0' && mkdir(path_copy, mode) != 0 && errno != EEXIST) {
+			perror(path_copy);
+			return false;
+		}
+
+		*p = '/';
+	}
+	if (mkdir(path_copy, mode) != 0 && errno != EEXIST) {
+		perror(path_copy);
+		return false;
+	}
+	return true;
 }
