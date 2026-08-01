@@ -53,7 +53,7 @@ char *C_COMPILER = "filcc";
 
 #endif // __cplusplus
 
-void read_source_files(File_Type ft, struct stat *st, const char *path);
+void read_source_files(File_Type ft, struct stat *st, const char *path, Dir_Walker *dw);
 
 #define $match(s) cstr_has_at(buffer, size, s, $strlen(s))
 bool read_file(const char *file, bool ignore_include) {
@@ -126,7 +126,7 @@ print:
 }
 #undef $match
 
-void read_source_files(File_Type ft, struct stat *st, const char *path) {
+void read_source_files(File_Type ft, struct stat *st, const char *path, Dir_Walker *dw) {
 	if (!cstr_ends_with(path, strlen(path), ".c", 2)) return;
 
 	if (!read_file(path, true)) return;
@@ -178,7 +178,8 @@ int main(int argc, char *argv[]) {
 		if (read_file(TEMPLATE_FILE, false) == false) return 1;
 
 		fprintf(output, "%s", "#ifdef AOC_IMPLEMENTATION\n");
-		dir_walk("src", .isreg = read_source_files);
+		Dir_Walker dw = { .callback = read_source_files, .isempty = NULL };
+		dir_walker("src", &dw);
 		fprintf(output, "%s", "#endif // AOC_IMPLEMENTATION\n");
 
 		fputs("#endif // AOC_H\n", output);
