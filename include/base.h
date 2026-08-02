@@ -117,6 +117,10 @@
 // $range(0, 10) { printf("%d\n", it) }
 #define $range(init, end) for (size_t it = (init); it < (end); it++)
 
+// Loops over any null-terminated array
+// $rangeptr(cstring) { printf("%c\n", *it) }
+#define $rangeptr(base) for (typeof((base)) it = ($assert((base)), base); *(base); it++)
+
 #define $abort(msg, ...)                                           \
 	(fprintf(stderr, "%s: %s:%u: ", __func__, __FILE__, __LINE__), \
 	 fprintf(stderr, msg " " __VA_ARGS__), fputc('\n', stderr), abort())
