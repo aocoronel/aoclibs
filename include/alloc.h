@@ -96,6 +96,13 @@ AOCDEF void fbreset(void *ctx);
 #define bdealloc(ptr) buffer_dealloc((ptr), allocator)
 #define bdestroy() buffer_destroy(allocator)
 
+#define talloc(size) thread_general_alloc((size), allocator $$source_code_location)
+#define tresize(ptr, size) thread_general_resize((ptr), (size), allocator $$source_code_location)
+
+#define tballoc(size) thread_buffer_alloc((size), allocator $$source_code_location)
+#define tbresize(ptr, oldsz, newsz) \
+	thread_buffer_resize((ptr), (oldsz), (newsz), allocator $$source_code_location)
+
 AOCDEF void *general_alloc(size_t size, $allocator $source_code_location);
 AOCDEF void *general_resize(void *ptr, size_t size, $allocator $source_code_location);
 AOCDEF void general_dealloc(void *ptr, $allocator);
@@ -105,6 +112,12 @@ AOCDEF void *buffer_resize(void *ptr, size_t oldsz, size_t newsz, $allocator $so
 AOCDEF void buffer_dealloc(void *ptr, $allocator);
 #define breset() buffer_reset(allocator)
 AOCDEF void buffer_reset($allocator);
+
+AOCDEF void *thread_general_alloc(size_t size, $allocator $source_code_location);
+AOCDEF void *thread_general_resize(void *ptr, size_t size, $allocator $source_code_location);
+AOCDEF void *thread_buffer_alloc(size_t size, $allocator $source_code_location);
+AOCDEF void *
+thread_buffer_resize(void *ptr, size_t oldsz, size_t newsz, $allocator $source_code_location);
 
 // alloc.h doesn't touch heap_entry in this function, so if there were initialization, the user
 // must remove it from the entry manually

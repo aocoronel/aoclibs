@@ -1,6 +1,7 @@
 #pragma once
 
 #include "alloc.h"
+#include "thread.h"
 
 #ifndef NDEBUG
 Heap_Trace_Entry *heap_trace_entry_head = NULL;
@@ -136,7 +137,7 @@ void fbdestroy(void *ctx) {
 
 void *general_alloc(size_t size, $allocator $source_code_location) {
 	$thread_alloc_init();
-	const size_t allocation_size = size $thread(*thread_count());
+	const size_t allocation_size = size;
 	void *ptr = allocator->general.allocate(allocator->general.context, allocation_size);
 	if (!ptr) {
 		$heap_trace_failure();
@@ -151,7 +152,7 @@ void *general_resize(void *ptr, size_t size, $allocator $source_code_location) {
 
 	$thread_alloc_init();
 
-	const size_t allocation_size = size $thread(*thread_count());
+	const size_t allocation_size = size;
 	void *new_ptr = allocator->general.reallocate(allocator->general.context, ptr, allocation_size);
 	if (!new_ptr) {
 		$heap_trace_failure();
@@ -173,13 +174,12 @@ void general_dealloc(void *ptr, $allocator) {
 
 void *buffer_alloc(size_t size, $allocator $source_code_location) {
 	$thread_alloc_init();
-	const size_t allocation_size = size $thread(*thread_count());
-	void *ptr = allocator->buffer.allocate(allocator->buffer.context, allocation_size);
+	void *ptr = allocator->buffer.allocate(allocator->buffer.context, size);
 	if (!ptr) {
 		$heap_trace_failure();
 		$thread_alloc_return_error();
 	}
-	$heap_trace_add_entry(ptr, allocation_size, source_code_location);
+	$heap_trace_add_entry(ptr, size, source_code_location);
 	$thread_alloc_return(ptr);
 }
 
@@ -188,9 +188,7 @@ void *buffer_resize(void *ptr, size_t oldsz, size_t newsz, $allocator $source_co
 
 	$thread_alloc_init();
 
-	const size_t allocation_size = newsz $thread(*thread_count());
-	void *new_ptr = allocator->buffer.reallocate(
-	    allocator->buffer.context, ptr, oldsz $thread(*thread_count()), allocation_size);
+	void *new_ptr = allocator->buffer.reallocate(allocator->buffer.context, ptr, oldsz, newsz);
 	if (!new_ptr) {
 		$heap_trace_failure();
 		$thread_alloc_return_error();
@@ -198,7 +196,7 @@ void *buffer_resize(void *ptr, size_t oldsz, size_t newsz, $allocator $source_co
 
 	$heap_trace_remove_entry(ptr);
 
-	$heap_trace_add_entry(new_ptr, allocation_size, source_code_location);
+	$heap_trace_add_entry(new_ptr, newsz, source_code_location);
 	$thread_alloc_return(new_ptr);
 }
 
@@ -217,6 +215,25 @@ void buffer_reset($allocator) {
 void buffer_destroy($allocator) {
 	$thread_alloc_assert_only_thrd0(destroy);
 	allocator->buffer.destroy(allocator->buffer.context);
+}
+
+void *thread_general_alloc(size_t size, $allocator $source_code_location) {
+	return general_alloc(size * thread_count(), allocator, source_code_location);
+}
+
+void *
+thread_general_resize(void *ptr, size_t size, $allocator $source_code_location) {
+	return general_resize(ptr, size * thread_count(), allocator, source_code_location);
+}
+
+void *thread_buffer_alloc(size_t size, $allocator $source_code_location) {
+	return buffer_alloc(size * thread_count(), allocator, source_code_location);
+}
+
+void *
+thread_buffer_resize(void *ptr, size_t oldsz, size_t newsz, $allocator $source_code_location) {
+	usize tc = thread_count();
+	return buffer_resize(ptr, oldsz * tc, newsz * tc, allocator, source_code_location);
 }
 
 #ifdef NDEBUG
