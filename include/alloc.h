@@ -15,6 +15,11 @@ typedef void (*Buffer_Allocator_Free_Fn)(void *ctx, void *ptr);
 typedef void (*Buffer_Allocator_Destroy_Fn)(void *ctx);
 typedef void (*Buffer_Allocator_Reset_Fn)(void *ctx);
 
+typedef enum Allocator_Mode {
+	General_Allocator_Mode,
+	Buffer_Allocator_Mode,
+} Allocator_Mode;
+
 // General_Allocator vs Buffer_Allocator
 //
 // Something common in modern languages is a single allocator interface for every possible allocator
@@ -196,6 +201,10 @@ int heap_count_leaks(void);
 
 void heap_trace_add_entry(void *ptr, size_t size $source_code_location);
 void heap_trace_remove_entry(void *ptr);
+
+#define $memdup(src, size, mode) memdup((src), (size), (mode), allocator)
+// void *dupped = $memdup(cstring, strlen(cstring), General_Allocator_Mode);
+AOCDEF void *null memdup(void *src, size_t size, Allocator_Mode mode, $allocator);
 
 #ifdef AOC_IMPLEMENTATION
 #include "alloc.c"

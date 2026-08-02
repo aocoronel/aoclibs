@@ -299,3 +299,22 @@ void heap_trace_summary(FILE *fd) {
 #endif //  HEAP_TRACE_FAILURE_REPORT
 #endif // NDEBUG
 }
+
+#define memdup(src, size, mode) memory_dup((src), (size), (mode), allocator)
+void *_memdup(void *src, size_t size, Allocator_Mode mode, $allocator) {
+	$assert_nonnull(src);
+	void *ptr undefined;
+	switch (mode) {
+	case General_Allocator_Mode: {
+		ptr = alloc(size);
+		break;
+	}
+	case Buffer_Allocator_Mode: {
+		ptr = balloc(size);
+		break;
+	}
+	}
+	if (!ptr) return NULL;
+	memcpy(ptr, src, size);
+	return ptr;
+}

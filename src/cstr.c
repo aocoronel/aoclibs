@@ -4,16 +4,6 @@
 #include "base.h"
 #include <ctype.h>
 
-char *cstr_dup(const char *s, const size_t len) {
-	$assert_nonnull(s != NULL);
-
-	char *d = (char *)malloc(len);
-	$catch(!d) return NULL;
-
-	memcpy(d, s, len);
-	return d;
-}
-
 void cstr_to_lower(char *s) {
 	$assert_nonnull(s != NULL);
 	for (; *s; s++)
