@@ -289,8 +289,8 @@ void heap_trace_summary(FILE *fd) {
 	if (failure > 0) {
 		fprintf(stderr, ">> Failures:\n");
 		Source_Code_Location *curr = heap_trace_failure;
-		$range(0, failure, i) {
-			if (i >= HEAP_TRACE_MAX_FAILURE) break;
+		$range(0, failure) {
+			if (it >= HEAP_TRACE_MAX_FAILURE) break;
 			fprintf(
 			    fd, "%s:%d:%s: error messages WIP\n", curr->filename, curr->line, curr->funcname);
 			curr++;

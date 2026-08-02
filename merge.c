@@ -144,10 +144,10 @@ void read_source_files(File_Type ft, struct stat *st, const char *path, Dir_Walk
 #define STRING_MAIN "#include \"aoclibs.h\"\n"
 
 // I didn't want to deploy crown, so I made this silly flag parsing
-#define flag(var, string)                 \
-	if (cstr_eq(argv[i], "" string "")) { \
-		var = true;                       \
-		break;                            \
+#define flag(var, string)                  \
+	if (cstr_eq(argv[it], "" string "")) { \
+		var = true;                        \
+		break;                             \
 	}
 
 void usage() {
@@ -159,7 +159,7 @@ void usage() {
 
 int main(int argc, char *argv[]) {
 	bool print_usage = false;
-	$range(1, argc, i) {
+	$range(1, argc) {
 		flag(print_usage, "-h");
 		flag(disable_tunit, "-no-test");
 	}

@@ -195,19 +195,19 @@ void hmap_dump(FILE *fd, void *map, const char *map_name, const char *type, Hash
 	fprintf(fd, "        .cap = %zu,\n", m->entries.cap);
 	fprintf(fd, "        .data = (const Hash_Entry_Tmpl[]) {\n");
 
-	$range(0, m->entries.cap, i) {
-		$assert(i < 259);
-		Hash_Entry_Tmpl e = m->entries.data[i];
+	$range(0, m->entries.cap) {
+		$assert(it < 259);
+		Hash_Entry_Tmpl e = m->entries.data[it];
 		if (e.hash == 0) {
 			fprintf(fd, "            ");
-			for (; i < m->entries.cap; i++) {
-				Hash_Entry_Tmpl e = m->entries.data[i];
+			for (; it < m->entries.cap; it++) {
+				Hash_Entry_Tmpl e = m->entries.data[it];
 				if (e.hash != 0) break;
 				fprintf(fd, "{ 0 },");
 			}
 			fprintf(fd, "\n");
-			if (i < m->entries.cap) {
-				Hash_Entry_Tmpl e = m->entries.data[i];
+			if (it < m->entries.cap) {
+				Hash_Entry_Tmpl e = m->entries.data[it];
 				fprintf(
 				    fd,
 				    "            {\n"
@@ -238,8 +238,8 @@ void hmap_dump(FILE *fd, void *map, const char *map_name, const char *type, Hash
 	    "    .cap = %zu,\n",
 	    m->len, m->cap);
 	fprintf(fd, "    .data = (const %s[]) {\n", type);
-	$range(0, m->len, i) {
-		fprintf(fd, "        %s,\n", fn(m->data, i));
+	$range(0, m->len) {
+		fprintf(fd, "        %s,\n", fn(m->data, it));
 	}
 	fprintf(fd, "    },\n");
 	fprintf(fd, "}\n"); // map_name

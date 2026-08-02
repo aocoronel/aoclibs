@@ -269,8 +269,8 @@ char *make_path(
 	char *ptr = out;
 	char *end = out + size;
 
-	$range(0, dir_count, i) {
-		const Slice *s = &dirs[i];
+	$range(0, dir_count) {
+		const Slice *s = &dirs[it];
 		size_t needed = s->len + 1; // '/'
 		if ((size_t)(end - ptr) <= needed) return NULL;
 		*ptr++ = '/';

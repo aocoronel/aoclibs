@@ -114,8 +114,8 @@
 // Unless is used for handling errors, so the control flow is always unlikely to happen
 #define $catch(expr) if ($unlikely(expr))
 
-// $range(0, 10, i) { printf("%d\n", i) }
-#define $range(init, end, it) for (size_t it = (init); it < (end); it++)
+// $range(0, 10) { printf("%d\n", it) }
+#define $range(init, end) for (size_t it = (init); it < (end); it++)
 
 #define $abort(msg, ...)                                           \
 	(fprintf(stderr, "%s: %s:%u: ", __func__, __FILE__, __LINE__), \

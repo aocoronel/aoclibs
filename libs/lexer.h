@@ -248,7 +248,7 @@ char lexer_next_char(Lexer *l) {
 
 char lexer_jump(Lexer *l, size_t n) {
 	char c undefined;
-	$range(0, n, i) {
+	$range(0, n) {
 		if (lexer_eof(l)) return '\0';
 
 		c = *l->pos++;

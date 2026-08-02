@@ -298,8 +298,8 @@ const Crown_Option *CROWN_OPTION = NULL;
 size_t CROWN_OPTION_LEN = 0;
 
 void crown_generate_options(int indent) {
-	$range(0, CROWN_OPTION_LEN, i) {
-		const Crown_Option opt = CROWN_OPTION[i];
+	$range(0, CROWN_OPTION_LEN) {
+		const Crown_Option opt = CROWN_OPTION[it];
 
 		const char *sopt = opt.short_opt;
 		const char *lopt = opt.long_opt;
@@ -329,8 +329,8 @@ void crown_generate_options(int indent) {
 }
 
 void crown_generate_env_vars(int idx) {
-	$range(0, CROWN_OPTION_LEN, i) {
-		const Crown_Option opt = CROWN_OPTION[i];
+	$range(0, CROWN_OPTION_LEN) {
+		const Crown_Option opt = CROWN_OPTION[it];
 		const char *env = opt.env;
 		const char *sopt = opt.short_opt;
 		const char *lopt = opt.long_opt;
@@ -410,8 +410,8 @@ void crown_completion(const char *progname, const char *default_completion, int 
 	}
 
 	// Sets all environment variables to the top
-	$range(0, CROWN_OPTION_LEN, i) {
-		const Crown_Option opt = CROWN_OPTION[i];
+	$range(0, CROWN_OPTION_LEN) {
+		const Crown_Option opt = CROWN_OPTION[it];
 		if (opt.env) $crown_printf("%s=\"${%s:-}\"\n", opt.env, opt.env);
 	}
 	$crown_putc('\n');
@@ -424,8 +424,8 @@ void crown_completion(const char *progname, const char *default_completion, int 
 	}
 
 	$crown_puts("global_flags=(\n");
-	$range(0, CROWN_OPTION_LEN, i) {
-		const Crown_Option opt = CROWN_OPTION[i];
+	$range(0, CROWN_OPTION_LEN) {
+		const Crown_Option opt = CROWN_OPTION[it];
 		const char *sopt = opt.short_opt;
 		const char *lopt = opt.long_opt;
 		const char *desc = opt.desc;
@@ -455,8 +455,8 @@ void crown_completion(const char *progname, const char *default_completion, int 
 	// _PATH() {
 	//   ls
 	// }
-	$range(0, CROWN_OPTION_LEN, i) {
-		const Crown_Option opt = CROWN_OPTION[i];
+	$range(0, CROWN_OPTION_LEN) {
+		const Crown_Option opt = CROWN_OPTION[it];
 		const char *name = opt.arg.name;
 		const char *completion = opt.arg.completion;
 
@@ -469,17 +469,17 @@ void crown_completion(const char *progname, const char *default_completion, int 
 
 		$crown_printf("_%s() {\n", name);
 
-		for (int j = 0; j < completion_len;) {
-			int newline = index_of(completion + j, '\n', completion_len - j);
+		$range(0, completion_len) {
+			int newline = index_of(completion + it, '\n', completion_len - it);
 
 			if (newline < 0) {
 				// no more newlines, print the rest
-				$crown_printf("  %.*s\n", completion_len - j, completion + j);
+				$crown_printf("  %.*s\n", completion_len - it, completion + it);
 				break;
 			}
 
-			$crown_printf("  %.*s\n", newline, completion + j);
-			j += newline + 1; // +1 to skip '\n'
+			$crown_printf("  %.*s\n", newline, completion + it);
+			it += newline + 1; // +1 to skip '\n'
 		}
 
 		$crown_puts("}\n");
@@ -662,8 +662,8 @@ const char *crown_parse(int argc, char *argv[]) {
 }
 
 void crown_help_options() {
-	$range(0, CROWN_OPTION_LEN, i) {
-		const Crown_Option opt = CROWN_OPTION[i];
+	$range(0, CROWN_OPTION_LEN) {
+		const Crown_Option opt = CROWN_OPTION[it];
 
 		const char *desc = opt.desc;
 		const char *arg = opt.arg.name;

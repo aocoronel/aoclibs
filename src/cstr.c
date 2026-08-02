@@ -12,7 +12,7 @@ void cstr_to_lower(char *s) {
 
 void cstrn_to_lower(char *s, const size_t len) {
 	$assert_nonnull(s != NULL);
-	$range(0, len, i) s[i] = tolower(s[i]);
+	$range(0, len) s[it] = tolower(s[it]);
 }
 
 void cstr_to_upper(char *s) {
@@ -23,7 +23,7 @@ void cstr_to_upper(char *s) {
 
 void cstrn_to_upper(char *s, const size_t len) {
 	$assert_nonnull(s != NULL);
-	$range(0, len, i) s[i] = toupper(s[i]);
+	$range(0, len) s[it] = toupper(s[it]);
 }
 
 bool cstr_ends_with(

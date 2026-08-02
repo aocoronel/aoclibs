@@ -20,14 +20,14 @@ void _map_dump(struct Map_Tmpl *restrict m, rc *restrict buff, const int indent,
 	$assert_nonnull(m);
 	$assert_nonnull(buff);
 	da_reserve(buff, depth + 1);
-	$range(0, m->len, i) {
-		buff->data[depth] = m->data[i].key;
+	$range(0, m->len) {
+		buff->data[depth] = m->data[it].key;
 		buff->data[depth + 1] = '\0';
 
 		fputn(stderr, indent, ' ');
-		fprintf(stderr, "%c -> %s\n", m->data[i].key, buff->data);
+		fprintf(stderr, "%c -> %s\n", m->data[it].key, buff->data);
 
-		_map_dump(&m->data[i], buff, indent + 3, depth + 1);
+		_map_dump(&m->data[it], buff, indent + 3, depth + 1);
 	}
 }
 
