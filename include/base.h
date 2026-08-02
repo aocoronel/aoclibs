@@ -37,6 +37,7 @@
 
 #define inline __attribute__((__gnu_inline__)) inline
 #define restrict __restrict
+#define nullptr NULL
 
 #endif // __cplusplus
 
